@@ -982,7 +982,7 @@ async function chatStep1() {
   const continueToStep2 = () => {
     if (sent) return;
     const value = ta.value.trim();
-    if (value.length < 5) {
+    if (value.length < 1) {
       ta.focus();
       ta.style.borderColor = 'var(--gold)';
       setTimeout(() => { ta.style.borderColor = ''; }, 900);
