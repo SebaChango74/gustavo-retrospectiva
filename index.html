@@ -951,7 +951,7 @@ function addUser(text) {
 function clearChat() { cInput.innerHTML = ''; }
 
 async function chatStep0() {
-  await addBot('Hola. Juntos estamos llegando a un fin de ciclo, pero seguimos pensando en Villa Gesell. ¿Sobre qué área creés que Villa Gesell necesita seguir creciendo?');
+  await addBot('Hola. Juntos seguimos pensando en Villa Gesell. ¿Sobre qué área creés que Villa Gesell necesita seguir creciendo?');
   clearChat();
   cInput.innerHTML = `<div class="chips-wrap" id="chipsWrap">${AREAS.map(a=>`<div class="chip" data-val="${a}">${a}</div>`).join('')}</div><div class="chips-confirm"><button class="btn-chat" id="confirmAreas" disabled>Continuar →</button></div>`;
   document.querySelectorAll('.chip').forEach(c => {
