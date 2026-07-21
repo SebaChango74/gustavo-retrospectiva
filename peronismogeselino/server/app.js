@@ -1,4 +1,5 @@
 import express from "express";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -34,6 +35,13 @@ export function createApp(db) {
   app.disable("x-powered-by");
   app.set("trust proxy", 1);
   app.use(express.json({ limit: "256kb" }));
+  app.use(express.urlencoded({ extended: false, limit: "16kb" }));
+
+  // Compuerta de vista previa: con PG_PREVIEW_CODE definido, nada se sirve sin
+  // la clave. Pensada para mostrar la app en privado antes de publicarla.
+  if (process.env.PG_PREVIEW_CODE) {
+    app.use(previewGate(process.env.PG_PREVIEW_CODE));
+  }
 
   // Encabezados de seguridad para todo el sitio.
   app.use((_req, res, next) => {
@@ -122,6 +130,57 @@ export function createApp(db) {
 }
 
 export { ensureAdmins };
+
+// Pantalla de clave para la vista previa privada.
+function previewGate(code) {
+  const expected = crypto.createHash("sha256").update(`pg-preview:${code}`).digest("hex").slice(0, 40);
+  const COOKIE = "pg_preview";
+
+  return (req, res, next) => {
+    const cookies = req.headers.cookie || "";
+    if (cookies.split(";").some((c) => c.trim() === `${COOKIE}=${expected}`)) {
+      return next();
+    }
+    if (req.method === "POST" && typeof req.body?.previewCode === "string") {
+      if (req.body.previewCode.trim() === code) {
+        const secure =
+          process.env.NODE_ENV === "production" || process.env.PG_SECURE_COOKIES === "1";
+        res.setHeader(
+          "Set-Cookie",
+          `${COOKIE}=${expected}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${45 * 86400}${secure ? "; Secure" : ""}`,
+        );
+        return res.redirect(303, req.originalUrl || "/");
+      }
+      return res.status(401).send(previewPage(true));
+    }
+    res.status(401).send(previewPage(false));
+  };
+}
+
+function previewPage(wrongCode) {
+  return `<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow"><title>Vista previa privada</title>
+<style>
+  body{margin:0;min-height:100vh;display:grid;place-items:center;background:#071b33;color:#f3eadb;font-family:Arial,sans-serif}
+  form{max-width:340px;padding:40px 30px;text-align:center}
+  .mark{width:74px;height:74px;margin:0 auto 18px;border:3px solid #f3eadb;border-radius:50%;display:grid;place-items:center;font-size:30px;font-weight:900;position:relative}
+  .mark i{position:absolute;right:-2px;top:4px;width:14px;height:14px;border-radius:50%;background:#e84b3c}
+  h1{margin:0 0 6px;font-size:24px;letter-spacing:.02em}
+  p{margin:0 0 22px;color:rgba(255,255,255,.65);font-size:13px;line-height:1.5}
+  input{width:100%;box-sizing:border-box;padding:13px;border:1px solid rgba(255,255,255,.35);border-radius:8px;background:rgba(255,255,255,.08);color:#fff;font-size:16px;text-align:center;letter-spacing:.15em}
+  button{width:100%;margin-top:12px;padding:13px;border:0;border-radius:8px;background:#19baf3;color:#071b33;font-weight:800;font-size:14px;letter-spacing:.06em;cursor:pointer}
+  .err{color:#ff8d80;font-size:12px;margin-top:10px}
+</style></head>
+<body><form method="POST">
+  <div class="mark">PG<i></i></div>
+  <h1>PERONISMO GESELINO</h1>
+  <p>Vista previa privada. Ingresá la clave que te compartieron.</p>
+  <input type="password" name="previewCode" placeholder="Clave" autofocus autocomplete="off">
+  <button type="submit">ENTRAR</button>
+  ${wrongCode ? '<div class="err">La clave no es correcta.</div>' : ""}
+</form></body></html>`;
+}
 
 // Limitador de ritmo simple en memoria, suficiente para el volumen del portal.
 function rateLimit({ windowMs, max, methods }) {

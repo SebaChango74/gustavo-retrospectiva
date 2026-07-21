@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { api } from "./api";
 import { Arrow } from "./ui";
 import { SessionProvider } from "./session";
 import Home from "./screens/Home";
@@ -12,6 +13,14 @@ import Panel from "./panel/Panel";
 
 export default function App() {
   const location = useLocation();
+  const [preview, setPreview] = useState(false);
+
+  useEffect(() => {
+    api
+      .get<{ preview: boolean }>("/public/config")
+      .then((config) => setPreview(config.preview))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!location.hash) {
@@ -29,6 +38,11 @@ export default function App() {
   return (
     <SessionProvider>
       <div className="site-shell">
+        {preview && (
+          <div className="preview-banner" role="status">
+            ◆ VERSIÓN DE PRUEBA · PRIVADA · NO COMPARTIR TODAVÍA
+          </div>
+        )}
         {!inPanel && <Header />}
         <main>
           <Routes>

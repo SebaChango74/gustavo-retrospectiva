@@ -8,6 +8,7 @@ export function publicRoutes(db) {
     res.json({
       googleClientId: process.env.PG_GOOGLE_CLIENT_ID || "",
       devLogin: process.env.PG_DEV === "1",
+      preview: Boolean(process.env.PG_PREVIEW_CODE),
     });
   });
 
