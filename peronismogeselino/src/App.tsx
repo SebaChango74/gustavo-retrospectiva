@@ -6,6 +6,7 @@ import Home from "./screens/Home";
 import Cause from "./screens/Cause";
 import Agenda from "./screens/Agenda";
 import Game from "./screens/Game";
+import Peronometro from "./screens/Peronometro";
 import Community from "./screens/Community";
 import Panel from "./panel/Panel";
 
@@ -36,6 +37,8 @@ export default function App() {
             <Route path="/causas/:slug" element={<Cause />} />
             <Route path="/agenda" element={<Agenda />} />
             <Route path="/juegos" element={<Game />} />
+            <Route path="/juegos/jugar" element={<Peronometro />} />
+            <Route path="/peronometro" element={<Navigate to="/juegos/jugar" replace />} />
             <Route path="/comunidad/*" element={<Community />} />
             <Route path="/panel/*" element={<Panel />} />
             <Route path="*" element={<Navigate to="/" replace />} />

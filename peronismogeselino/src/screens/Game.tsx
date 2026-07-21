@@ -30,10 +30,10 @@ export default function Game() {
           <h1>¿QUÉ TAN PERONISTA SOS?</h1>
           <p>Una carrera contra el reloj por la historia, las ideas y la memoria.</p>
           <div className="game-hero-actions">
-            <button className="button button-game">
-              PRÓXIMAMENTE: JUGAR <Arrow />
+            <button className="button button-game" onClick={() => go("/juegos/jugar")}>
+              JUGAR AHORA <Arrow />
             </button>
-            <span>PROTOTIPO DE CONCEPTO</span>
+            <span>EDICIÓN 01 · GRATIS Y SIN REGISTRO</span>
           </div>
         </div>
       </section>
@@ -93,7 +93,7 @@ export default function Game() {
             <button>1951</button>
             <button>1955</button>
           </div>
-          <small>Ejemplo visual. El juego completo se habilita en la sección Peronómetro.</small>
+          <small>Ejemplo visual. Tocá «Jugar ahora» para la partida completa de 50 preguntas.</small>
         </div>
       </section>
 
@@ -113,8 +113,8 @@ export default function Game() {
             El resultado se genera en formato vertical para WhatsApp e Instagram, sin pedir datos
             personales ni consumir inteligencia artificial.
           </p>
-          <button className="button button-sky">
-            COMPARTIR RESULTADO <ShareIcon />
+          <button className="button button-sky" onClick={() => go("/juegos/jugar")}>
+            JUGAR Y COMPARTIR <ShareIcon />
           </button>
         </div>
       </section>

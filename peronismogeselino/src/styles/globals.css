@@ -622,3 +622,46 @@ footer img { width: 150px; }
 @media (max-width: 780px) {
   .map-buttons { justify-content: stretch; flex-direction: column; }
 }
+
+/* ───────────────────────── Peronómetro jugable ───────────────────────── */
+.peronometro-play { min-height: 100vh; background: #07090c; color: white; }
+.play-intro { min-height: calc(100vh - 92px); padding: 60px 6vw 80px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; background-color: #07090c; }
+.play-intro h1 { margin: 26px 0 10px; font-family: "Barlow Condensed", sans-serif; font-size: clamp(52px, 7vw, 100px); line-height: .85; letter-spacing: -.03em; }
+.play-intro > p { max-width: 520px; margin: 0 0 8px; color: rgba(255,255,255,.72); font-size: 17px; }
+.play-rules { margin: 18px 0 30px; padding: 0; list-style: none; }
+.play-rules li { padding: 9px 0 9px 26px; position: relative; color: rgba(255,255,255,.65); font-size: 13px; border-top: 1px solid rgba(255,255,255,.12); }
+.play-rules li::before { content: "→"; position: absolute; left: 0; color: #35e97c; }
+.play-stage { min-height: calc(100vh - 92px); padding: 48px 5vw 70px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
+.play-card { width: min(860px, 100%); padding: clamp(28px, 4vw, 52px); background: #0b0e13; border: 1px solid rgba(255,255,255,.1); box-shadow: 18px 18px 0 #ff612f; }
+.play-card h3 { margin: 0 0 28px; font-family: "Barlow Condensed", sans-serif; font-size: clamp(34px, 4vw, 54px); line-height: .96; outline: none; }
+.answer-grid.live button { cursor: pointer; transition: background .15s ease, border-color .15s ease; }
+.answer-grid.live button:hover:not(:disabled) { background: rgba(255,255,255,.16); border-color: white; }
+.answer-grid.live button:focus-visible { outline: 3px solid #17bff5; outline-offset: 2px; }
+.answer-grid.live button.is-correct { background: #35e97c; border-color: #35e97c; color: #07090c; }
+.answer-grid.live button.is-wrong { background: #ff612f; border-color: #ff612f; color: #07090c; }
+.answer-grid.live button.is-off { opacity: .35; }
+.answer-grid.live button:disabled { cursor: default; }
+.play-feedback { margin-top: 26px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,.12); display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.play-feedback strong { font-family: "Barlow Condensed", sans-serif; font-size: 30px; letter-spacing: .02em; }
+.play-feedback strong.ok { color: #35e97c; }
+.play-feedback strong.bad { color: #ff612f; }
+.play-feedback p { margin: 0; max-width: 640px; color: rgba(255,255,255,.75); font-size: 14px; line-height: 1.6; }
+.play-feedback small { color: rgba(255,255,255,.45); }
+.play-feedback small a { color: #17bff5; }
+.play-feedback .button { margin-top: 10px; }
+.play-progress { color: rgba(255,255,255,.4); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+.play-result { min-height: calc(100vh - 92px); padding: 60px 5vw 80px; display: grid; grid-template-columns: minmax(300px, 430px) 1fr; gap: clamp(40px, 7vw, 110px); align-items: center; background-color: #07090c; }
+.play-result-plate img { width: 100%; border: 0; box-shadow: 20px 20px 0 #35e97c; }
+.play-result-copy h1 { margin: 12px 0 14px; font-family: "Barlow Condensed", sans-serif; font-size: clamp(44px, 5.4vw, 84px); line-height: .88; }
+.play-result-copy > p { max-width: 560px; margin: 0 0 22px; color: rgba(255,255,255,.72); }
+.play-alias { display: flex; flex-direction: column; gap: 8px; max-width: 420px; margin-bottom: 22px; font-size: 12px; font-weight: 800; color: rgba(255,255,255,.7); }
+.play-alias input { padding: 12px 14px; border: 1px solid rgba(255,255,255,.3); border-radius: 8px; background: rgba(255,255,255,.07); color: white; font: inherit; }
+.play-result-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.play-share-note { margin-top: 14px; color: #35e97c; font-size: 13px; }
+.play-result .text-action { margin-top: 26px; }
+@media (max-width: 900px) {
+  .play-result { grid-template-columns: 1fr; }
+  .play-result-plate { max-width: 380px; margin: 0 auto; }
+  .play-card { box-shadow: 10px 10px 0 #ff612f; }
+  .play-result-actions { flex-direction: column; align-items: stretch; }
+}

@@ -1,9 +1,12 @@
 // Contenido inicial: replica el contenido aprobado del prototipo para que el
 // portal se vea igual desde el primer arranque. Todo es editable desde el panel.
 
+import { QUESTIONS_SEED } from "./questions-seed.js";
+
 const IMG = "/peronismogeselino/images";
 
 export function seed(db) {
+  seedQuestions(db);
   const hasNews = db.prepare("SELECT COUNT(*) AS n FROM news").get().n > 0;
   if (hasNews) return;
 
@@ -182,4 +185,26 @@ export function seed(db) {
   };
   const insertSetting = db.prepare("INSERT INTO settings (key, value) VALUES (?, ?)");
   for (const [key, value] of Object.entries(settings)) insertSetting.run(key, value);
+}
+
+function seedQuestions(db) {
+  const count = db.prepare("SELECT COUNT(*) AS n FROM questions").get().n;
+  if (count > 0) return;
+  const insert = db.prepare(`
+    INSERT INTO questions (category, prompt, options, correct_option, explanation,
+      source_title, source_url, difficulty, enabled)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+  `);
+  for (const q of QUESTIONS_SEED) {
+    insert.run(
+      q.category,
+      q.prompt,
+      JSON.stringify(q.options),
+      q.correctOption,
+      q.explanation,
+      q.sourceTitle,
+      q.sourceUrl,
+      q.difficulty,
+    );
+  }
 }
