@@ -10,6 +10,7 @@ import Game from "./screens/Game";
 import Peronometro from "./screens/Peronometro";
 import Community from "./screens/Community";
 import Panel from "./panel/Panel";
+import Presentacion from "./screens/Presentacion";
 
 export default function App() {
   const location = useLocation();
@@ -54,6 +55,8 @@ export default function App() {
             <Route path="/juegos/jugar" element={<Peronometro />} />
             <Route path="/peronometro" element={<Navigate to="/juegos/jugar" replace />} />
             <Route path="/comunidad/*" element={<Community />} />
+            <Route path="/presentacion" element={<Presentacion />} />
+            <Route path="/guia" element={<Navigate to="/presentacion" replace />} />
             <Route path="/panel/*" element={<Panel />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
@@ -161,6 +164,7 @@ function Footer() {
         <span>Información, memoria y organización.</span>
       </div>
       <div className="footer-links">
+        <button onClick={() => navigate("/presentacion")}>Guía del portal</button>
         <button onClick={() => navigate("/")}>Portal público</button>
         <button onClick={() => navigate("/causas")}>Causas vivas</button>
         <button onClick={() => navigate("/agenda")}>Agenda</button>

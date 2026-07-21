@@ -365,26 +365,27 @@ function ResultScreen({
     ctx.font = condensed(420);
     ctx.fillText(`${score}%`, 80, 810);
 
-    // rango
+    // rango (el espaciado posterior se acomoda según ocupe 1 o 2 líneas)
     ctx.fillStyle = "#ffffff";
     ctx.font = condensed(96);
-    wrapText(ctx, range, 90, 950, PLATE_W - 180, 96);
+    const rangeEndY = wrapText(ctx, range, 90, 950, PLATE_W - 180, 96);
 
     // aciertos
     ctx.fillStyle = "rgba(255,255,255,.75)";
     ctx.font = sans(34, 600);
-    ctx.fillText(`${correct} de ${total} respuestas correctas`, 90, 1080);
+    const hitsY = rangeEndY + 74;
+    ctx.fillText(`${correct} de ${total} respuestas correctas`, 90, hitsY);
 
     // desafío
     ctx.fillStyle = "#35e97c";
     ctx.font = condensed(64, 800);
-    ctx.fillText("¿PODÉS SUPERARME?", 90, 1170);
+    ctx.fillText("¿PODÉS SUPERARME?", 90, hitsY + 88);
 
     // alias opcional
     if (alias.trim()) {
       ctx.fillStyle = "#f3eadb";
       ctx.font = sans(32, 800);
-      ctx.fillText(alias.trim().slice(0, 30), 90, 1225);
+      ctx.fillText(alias.trim().slice(0, 30), 90, hitsY + 145);
     }
 
     // pie
@@ -476,7 +477,7 @@ function wrapText(
   y: number,
   maxWidth: number,
   lineHeight: number,
-) {
+): number {
   const words = text.split(" ");
   let line = "";
   let currentY = y;
@@ -491,4 +492,5 @@ function wrapText(
     }
   }
   ctx.fillText(line, x, currentY);
+  return currentY;
 }
