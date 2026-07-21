@@ -300,7 +300,7 @@ a.button { text-decoration: none; }
 .community-login-image img { height: 100%; object-fit: cover; object-position: center; opacity: .87; }
 .community-login-image::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(7,27,51,.85), transparent 60%); }
 .image-quote { max-width: 650px; position: absolute; left: 5vw; bottom: 56px; z-index: 2; color: white; font-family: "Barlow Condensed", sans-serif; font-size: clamp(34px, 4vw, 59px); line-height: .98; font-weight: 800; }
-.community-login-panel { padding: 80px clamp(45px, 7vw, 110px); display: flex; flex-direction: column; justify-content: center; background-color: var(--cobalt); color: white; }
+.community-login-panel { padding: 80px clamp(45px, 7vw, 110px); display: flex; flex-direction: column; justify-content: center; background-color: var(--cobalt); color: white; min-width: 0; overflow-x: hidden; }
 .community-login-panel h1 { margin: 18px 0; font-family: "Barlow Condensed", sans-serif; font-size: clamp(64px, 7vw, 105px); line-height: .85; }
 .community-login-panel > p { max-width: 520px; margin: 0 0 30px; color: rgba(255,255,255,.72); font-size: 18px; line-height: 1.6; }
 .google-button { min-height: 62px; max-width: 460px; display: flex; align-items: center; justify-content: center; gap: 16px; border: 0; border-radius: 8px; background: white; color: var(--navy); font-weight: 800; cursor: pointer; }
@@ -424,7 +424,7 @@ footer img { width: 150px; }
   .hero-stats div { grid-template-columns: 1fr; gap: 0; }
   .hero-stats strong { font-size: 27px; }
   .hero-image { height: 330px; min-height: 0; order: -1; }
-  .hero-image img { object-position: center; }
+  .hero-image img { object-position: 66% center; }
   .pulse-strip { min-height: 150px; margin: 0; grid-template-columns: 1fr; border-left: 0; border-right: 0; }
   .pulse-label { min-height: 46px; justify-content: flex-start; padding: 0 20px; }
   .pulse-strip > button { padding: 17px 20px; grid-template-columns: auto 1fr auto; gap: 12px; }
@@ -496,7 +496,7 @@ footer img { width: 150px; }
   .community-login-image { min-height: 410px; }
   .image-quote { left: 22px; right: 22px; bottom: 30px; font-size: 40px; }
   .community-login-panel { padding: 56px 23px 65px; }
-  .community-login-panel h1 { font-size: 67px; }
+  .community-login-panel h1 { font-size: clamp(44px, 13.2vw, 67px); }
   .login-links { flex-direction: column; align-items: flex-start; }
   .community-welcome { padding: 42px 22px 33px; }
   .community-welcome h1 { font-size: 64px; }
@@ -539,9 +539,9 @@ footer img { width: 150px; }
 .panel-login h1 { margin: 0; font-family: "Barlow Condensed", sans-serif; font-size: clamp(48px, 6vw, 84px); line-height: .87; }
 .panel-login > p { max-width: 480px; margin: 0 0 12px; color: rgba(255,255,255,.72); }
 .panel-login .text-action { margin-top: 26px; }
-.google-login-zone { display: flex; flex-direction: column; gap: 14px; }
-.dev-login { display: flex; gap: 8px; }
-.dev-login input { min-width: 260px; padding: 10px 12px; border: 1px solid rgba(255,255,255,.35); border-radius: 8px; background: rgba(255,255,255,.08); color: white; font: inherit; }
+.google-login-zone { display: flex; flex-direction: column; gap: 14px; max-width: 460px; width: 100%; min-width: 0; }
+.dev-login { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.dev-login input { flex: 1 1 200px; min-width: 0; padding: 10px 12px; border: 1px solid rgba(255,255,255,.35); border-radius: 8px; background: rgba(255,255,255,.08); color: white; font: inherit; }
 .dev-login button { padding: 10px 16px; border: 0; border-radius: 8px; background: var(--sky); color: var(--navy); font-weight: 800; cursor: pointer; }
 
 .panel-shell { min-height: 100vh; background: #eef1f4; color: var(--ink); }
