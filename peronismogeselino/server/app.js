@@ -2,6 +2,10 @@ import express from "express";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { attachMember, ensureAdmins } from "./auth.js";
+import { publicRoutes } from "./routes/public.js";
+import { authRoutes } from "./routes/auth.js";
+import { adminRoutes } from "./routes/admin.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -14,10 +18,23 @@ const DIST_DIR = path.join(APP_ROOT, "dist");
 // Rutas del repositorio que nunca deben servirse como archivos estáticos.
 const BLOCKED_PREFIXES = ["/peronismogeselino", "/_handoff", "/node_modules", "/scripts"];
 
-export function createApp() {
+export function createApp(db) {
   const app = express();
   app.disable("x-powered-by");
   app.use(express.json({ limit: "256kb" }));
+
+  // ─── API de la app aislada ────────────────────────────────────────────────
+  const api = express.Router();
+  api.use(attachMember(db));
+  api.use("/auth", authRoutes(db));
+  api.use("/public", publicRoutes(db));
+  api.use("/admin", adminRoutes(db));
+  api.use((req, res) => res.status(404).json({ error: "Ruta de API inexistente." }));
+  api.use((err, _req, res, _next) => {
+    console.error("API error:", err);
+    res.status(500).json({ error: "Error interno del servidor." });
+  });
+  app.use("/peronismogeselino/api", api);
 
   // ─── App aislada: /peronismogeselino ───────────────────────────────────────
   if (fs.existsSync(DIST_DIR)) {
@@ -31,7 +48,7 @@ export function createApp() {
       res.sendFile(path.join(DIST_DIR, "index.html"));
     });
   } else {
-    app.get(/^\/peronismogeselino(\/.*)?$/, (_req, res) => {
+    app.get(/^\/peronismogeselino(?!\/api\/)(\/.*)?$/, (_req, res) => {
       res
         .status(503)
         .type("text/plain")
@@ -57,3 +74,5 @@ export function createApp() {
 
   return app;
 }
+
+export { ensureAdmins };

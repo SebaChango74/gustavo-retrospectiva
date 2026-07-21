@@ -1,39 +1,50 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Arrow, LockIcon, PeronometroLogo, SectionHeading } from "../ui";
+import { api, type HomePayload } from "../api";
+import { Arrow, LockIcon, PeronometroLogo, SectionHeading, dayOf, monthOf, dateLabel, timeOf } from "../ui";
 
 const IMG = "/peronismogeselino/images";
 
-const news = [
-  {
-    tag: "Villa Gesell",
-    date: "14 JUL 2026",
-    title: "Barrera llevó a Nación los reclamos de Villa Gesell",
+const FALLBACK: HomePayload = {
+  news: [
+    {
+      slug: "barrera-llevo-a-nacion-los-reclamos",
+      tag: "Villa Gesell",
+      title: "Barrera llevó a Nación los reclamos de Villa Gesell",
+      summary:
+        "Un pedido formal para defender obras, recursos y derechos que pertenecen a los geselinos.",
+      image: `${IMG}/gestion-obras.jpg`,
+      featured: 1,
+      published_at: "2026-07-14T12:00:00.000Z",
+    },
+  ],
+  cause: {
+    slug: "defender-lo-que-le-corresponde-a-villa-gesell",
+    title: "DEFENDER LO QUE LE CORRESPONDE A VILLA GESELL",
     summary:
-      "Un pedido formal para defender obras, recursos y derechos que pertenecen a los geselinos.",
-    image: `${IMG}/gestion-obras.jpg`,
-    featured: true,
+      "Obras, recursos y derechos no son promesas: forman parte de una historia que se puede seguir, documentar y defender.",
+    status_label: "EN GESTIÓN",
+    progress: 72,
+    progress_from: "Pedido presentado",
+    progress_next: "Próximo paso: audiencia",
   },
-  {
-    tag: "Provincia",
-    date: "20 JUL 2026",
-    title: "Más de 220 familias avanzaron en la regularización de sus hogares",
-    summary:
-      "La Provincia entregó escrituras y boletos de compraventa para ampliar el acceso al hábitat.",
-    image: `${IMG}/comunidad-grupo.jpg`,
-  },
-  {
-    tag: "Comunidad",
-    date: "15 JUL 2026",
-    title: "Peatonal de las Infancias: convocatoria a instituciones geselinas",
-    summary:
-      "Una propuesta abierta para construir una jornada cultural, educativa y comunitaria.",
-    image: `${IMG}/gustavo-infancias.jpg`,
-  },
-];
+  events: [],
+  stats: { territorios: "23", causasActivas: "2", municipios: "135" },
+};
 
 export default function Home() {
   const navigate = useNavigate();
   const go = (path: string) => navigate(path);
+  const [data, setData] = useState<HomePayload>(FALLBACK);
+
+  useEffect(() => {
+    api
+      .get<HomePayload>("/public/home")
+      .then(setData)
+      .catch(() => {});
+  }, []);
+
+  const featured = data.news[0];
 
   return (
     <>
@@ -69,15 +80,15 @@ export default function Home() {
           </div>
           <div className="hero-stats" aria-label="Datos del portal">
             <div>
-              <strong>23</strong>
+              <strong>{data.stats.territorios}</strong>
               <span>territorios</span>
             </div>
             <div>
-              <strong>2</strong>
+              <strong>{data.stats.causasActivas}</strong>
               <span>causas activas</span>
             </div>
             <div>
-              <strong>135</strong>
+              <strong>{data.stats.municipios}</strong>
               <span>municipios</span>
             </div>
           </div>
@@ -91,30 +102,31 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="pulse-strip" aria-label="El pulso de hoy">
-        <div className="pulse-label">
-          <span className="live-dot red" /> EL PULSO DE HOY <time>12:46</time>
-        </div>
-        <button onClick={() => go("/causas")}>
-          <span className="pulse-tag">AHORA</span>
-          <strong>Barrera llevó a Nación los reclamos de Villa Gesell</strong>
-          <Arrow />
-        </button>
-      </section>
+      {featured && (
+        <section className="pulse-strip" aria-label="El pulso de hoy">
+          <div className="pulse-label">
+            <span className="live-dot red" /> EL PULSO DE HOY{" "}
+            <time>{timeOf(featured.published_at)}</time>
+          </div>
+          <button onClick={() => go("/causas")}>
+            <span className="pulse-tag">AHORA</span>
+            <strong>{featured.title}</strong>
+            <Arrow />
+          </button>
+        </section>
+      )}
 
       <section className="section news-section" id="noticias">
-        <SectionHeading eyebrow="AHORA" title="LO QUE ESTÁ PASANDO" action="Ver todas las noticias" />
+        <SectionHeading eyebrow="AHORA" title="LO QUE ESTÁ PASANDO" />
         <div className="news-grid">
-          {news.map((item, index) => (
-            <article className={item.featured ? "news-card featured" : "news-card"} key={item.title}>
+          {data.news.map((item, index) => (
+            <article className={item.featured ? "news-card featured" : "news-card"} key={item.slug}>
               <button onClick={() => index === 0 && go("/causas")} aria-label={`Abrir ${item.title}`}>
-                <div className="news-image">
-                  <img src={item.image} alt="" />
-                </div>
+                <div className="news-image">{item.image && <img src={item.image} alt="" />}</div>
                 <div className="news-body">
                   <div className="meta">
                     <span>{item.tag}</span>
-                    <time>{item.date}</time>
+                    <time>{dateLabel(item.published_at)}</time>
                   </div>
                   <h3>{item.title}</h3>
                   <p>{item.summary}</p>
@@ -128,61 +140,74 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="cause-teaser">
-        <div className="cause-photo">
-          <img src={`${IMG}/gustavo-abrazo.jpg`} alt="Gustavo Barrera abrazando a una vecina" />
-        </div>
-        <div className="cause-copy">
-          <span className="eyebrow light">CAUSA VIVA · EN CURSO</span>
-          <h2>DEFENDER LO QUE LE CORRESPONDE A VILLA GESELL</h2>
-          <p>
-            Obras, recursos y derechos no son promesas: forman parte de una historia que se puede
-            seguir, documentar y defender.
-          </p>
-          <div className="cause-progress">
-            <span style={{ width: "72%" }} />
+      {data.cause && (
+        <section className="cause-teaser">
+          <div className="cause-photo">
+            <img src={`${IMG}/gustavo-abrazo.jpg`} alt="Gustavo Barrera abrazando a una vecina" />
           </div>
-          <div className="progress-legend">
-            <span>Pedido presentado</span>
-            <strong>Próximo paso: audiencia</strong>
+          <div className="cause-copy">
+            <span className="eyebrow light">CAUSA VIVA · EN CURSO</span>
+            <h2>DEFENDER LO QUE LE CORRESPONDE A VILLA GESELL</h2>
+            <p>
+              Obras, recursos y derechos no son promesas: forman parte de una historia que se puede
+              seguir, documentar y defender.
+            </p>
+            <div className="cause-progress">
+              <span style={{ width: `${data.cause.progress}%` }} />
+            </div>
+            <div className="progress-legend">
+              <span>{data.cause.progress_from}</span>
+              <strong>{data.cause.progress_next}</strong>
+            </div>
+            <button className="button button-sky" onClick={() => go(`/causas/${data.cause!.slug}`)}>
+              SEGUIR ESTA CAUSA <Arrow />
+            </button>
           </div>
-          <button className="button button-sky" onClick={() => go("/causas")}>
-            SEGUIR ESTA CAUSA <Arrow />
-          </button>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section className="section agenda-games" id="agenda">
         <div className="agenda-column">
           <SectionHeading eyebrow="PRÓXIMAMENTE" title="AGENDA" />
-          <article className="event-card public-event">
-            <div className="event-date">
-              <strong>15</strong>
-              <span>AGO</span>
-            </div>
-            <div className="event-content">
-              <span className="event-type">ENTREVISTA · TELEVISIÓN</span>
-              <h3>Gustavo en Telefe</h3>
-              <p>Las consecuencias de la quita del beneficio de Zona Fría.</p>
-            </div>
-            <button onClick={() => go("/agenda")} aria-label="Ver actividad">
-              <Arrow />
-            </button>
-          </article>
-          <article className="event-card members-event">
-            <div className="event-date">
-              <strong>10</strong>
-              <span>AGO</span>
-            </div>
-            <div className="event-content">
-              <span className="event-type">ACTIVIDAD DE LA COMUNIDAD</span>
-              <h3>Pensar 2027</h3>
-              <p>Encuentro interno · ubicación disponible para miembros.</p>
-            </div>
-            <button onClick={() => go("/agenda")} aria-label="Ver ubicación para miembros">
-              <LockIcon />
-            </button>
-          </article>
+          {data.events.map((event) => (
+            <article
+              key={event.id}
+              className={
+                event.visibility === "members" ? "event-card members-event" : "event-card public-event"
+              }
+            >
+              <div className="event-date">
+                <strong>{dayOf(event.startsAt)}</strong>
+                <span>{monthOf(event.startsAt)}</span>
+              </div>
+              <div className="event-content">
+                <span className="event-type">{event.eventType}</span>
+                <h3>{event.title}</h3>
+                <p>
+                  {event.visibility === "members" && !event.address
+                    ? "Encuentro interno · ubicación disponible para miembros."
+                    : event.summary}
+                </p>
+              </div>
+              <button
+                onClick={() => go("/agenda")}
+                aria-label={
+                  event.visibility === "members" ? "Ver ubicación para miembros" : "Ver actividad"
+                }
+              >
+                {event.visibility === "members" ? <LockIcon /> : <Arrow />}
+              </button>
+            </article>
+          ))}
+          {data.events.length === 0 && (
+            <article className="event-card public-event">
+              <div className="event-content" style={{ gridColumn: "1 / -1" }}>
+                <span className="event-type">AGENDA</span>
+                <h3>Próximas actividades</h3>
+                <p>Las nuevas actividades se publican desde el panel.</p>
+              </div>
+            </article>
+          )}
         </div>
 
         <div className="games-column" id="juegos">

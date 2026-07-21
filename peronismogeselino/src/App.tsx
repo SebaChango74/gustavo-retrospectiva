@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { Arrow } from "./ui";
+import { SessionProvider } from "./session";
 import Home from "./screens/Home";
 import Cause from "./screens/Cause";
 import Agenda from "./screens/Agenda";
 import Game from "./screens/Game";
 import Community from "./screens/Community";
+import Panel from "./panel/Panel";
 
 export default function App() {
   const location = useLocation();
@@ -21,22 +23,28 @@ export default function App() {
     }
   }, [location]);
 
+  const inPanel = location.pathname.startsWith("/panel");
+
   return (
-    <div className="site-shell">
-      <Header />
-      <main>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/causas" element={<Cause />} />
-          <Route path="/agenda" element={<Agenda />} />
-          <Route path="/juegos" element={<Game />} />
-          <Route path="/comunidad/*" element={<Community />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </main>
-      <MobileDock />
-      <Footer />
-    </div>
+    <SessionProvider>
+      <div className="site-shell">
+        {!inPanel && <Header />}
+        <main>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/causas" element={<Cause />} />
+            <Route path="/causas/:slug" element={<Cause />} />
+            <Route path="/agenda" element={<Agenda />} />
+            <Route path="/juegos" element={<Game />} />
+            <Route path="/comunidad/*" element={<Community />} />
+            <Route path="/panel/*" element={<Panel />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
+        {!inPanel && <MobileDock />}
+        {!inPanel && <Footer />}
+      </div>
+    </SessionProvider>
   );
 }
 
