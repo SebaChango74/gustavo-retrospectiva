@@ -86,7 +86,12 @@ export function createApp(db) {
           express.static(DIST_DIR, { maxAge: "1h" }),
         );
         app.use(express.static(DIST_DIR, { index: "index.html", maxAge: "1h" }));
-        app.get(/^\/(?!api\/).*/, (_req, res) => {
+        // El respaldo SPA es solo para páginas: un archivo inexistente (JS/CSS
+        // de una versión vieja, imagen borrada) debe dar 404, nunca HTML.
+        app.get(/^\/(?!api\/).*/, (req, res) => {
+          if (path.extname(req.path)) {
+            return res.status(404).type("text/plain").send("No encontrado");
+          }
           res.sendFile(path.join(DIST_DIR, "index.html"));
         });
       } else {
@@ -94,7 +99,10 @@ export function createApp(db) {
           "/peronismogeselino",
           express.static(DIST_DIR, { index: "index.html", maxAge: "1h" }),
         );
-        app.get(/^\/peronismogeselino(?!\/api\/)(\/.*)?$/, (_req, res) => {
+        app.get(/^\/peronismogeselino(?!\/api\/)(\/.*)?$/, (req, res) => {
+          if (path.extname(req.path)) {
+            return res.status(404).type("text/plain").send("No encontrado");
+          }
           res.sendFile(path.join(DIST_DIR, "index.html"));
         });
       }

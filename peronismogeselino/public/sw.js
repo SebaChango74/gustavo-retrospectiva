@@ -2,7 +2,7 @@
    Gobierna únicamente la base donde está registrado:
    /peronismogeselino/ en modo integrado, / en modo independiente. */
 
-const VERSION = "pg-v2";
+const VERSION = "pg-v3";
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const BASE = new URL(self.registration.scope).pathname;
@@ -52,11 +52,14 @@ self.addEventListener("fetch", (event) => {
   }
 
   // Estáticos (JS/CSS con hash, imágenes, íconos): caché primero.
+  // Nunca guardar una respuesta HTML para un archivo: sería una versión rota.
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
       return fetch(event.request).then((response) => {
-        if (response.ok) {
+        const type = response.headers.get("content-type") || "";
+        const isAssetPath = /\.(js|css|png|jpg|jpeg|svg|webp|woff2?)$/.test(url.pathname);
+        if (response.ok && !(isAssetPath && type.includes("text/html"))) {
           const copy = response.clone();
           caches.open(ASSET_CACHE).then((cache) => cache.put(event.request, copy));
         }
