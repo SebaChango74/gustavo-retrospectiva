@@ -1,10 +1,11 @@
 /* Service worker de Peronismo Geselino.
-   Alcance: /peronismogeselino/ únicamente. No toca el resto de la web. */
+   Gobierna únicamente la base donde está registrado:
+   /peronismogeselino/ en modo integrado, / en modo independiente. */
 
-const VERSION = "pg-v1";
+const VERSION = "pg-v2";
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
-const BASE = "/peronismogeselino/";
+const BASE = new URL(self.registration.scope).pathname;
 
 const SHELL = [BASE, `${BASE}manifest.webmanifest`, `${BASE}icon-192.png`, `${BASE}icon-512.png`];
 

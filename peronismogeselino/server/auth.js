@@ -40,13 +40,17 @@ export function destroySession(db, token) {
   db.prepare("DELETE FROM sessions WHERE token_hash = ?").run(hashToken(token));
 }
 
+function cookiePath() {
+  return process.env.PG_STANDALONE === "1" ? "/" : "/peronismogeselino";
+}
+
 export function sessionCookie(token, expires) {
   const secure = process.env.NODE_ENV === "production" || process.env.PG_SECURE_COOKIES === "1";
   return [
     `${SESSION_COOKIE}=${token}`,
     "HttpOnly",
     "SameSite=Lax",
-    "Path=/peronismogeselino",
+    `Path=${cookiePath()}`,
     `Expires=${new Date(expires).toUTCString()}`,
     secure ? "Secure" : "",
   ]
@@ -55,7 +59,7 @@ export function sessionCookie(token, expires) {
 }
 
 export function clearSessionCookie() {
-  return `${SESSION_COOKIE}=; HttpOnly; SameSite=Lax; Path=/peronismogeselino; Max-Age=0`;
+  return `${SESSION_COOKIE}=; HttpOnly; SameSite=Lax; Path=${cookiePath()}; Max-Age=0`;
 }
 
 export function readSessionToken(req) {

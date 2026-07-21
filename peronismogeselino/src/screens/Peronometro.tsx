@@ -6,7 +6,11 @@ import { Arrow, PeronometroLogo, ShareIcon } from "../ui";
 const SECONDS = 10;
 const PLATE_W = 1080;
 const PLATE_H = 1350;
-const PORTAL_URL = "gustavobarrera.com/peronismogeselino";
+// URL del portal para la placa: el dominio real donde corre la app.
+function portalUrl(): string {
+  const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+  return `${window.location.host}${base}`;
+}
 
 type Question = {
   id: number;
@@ -386,7 +390,7 @@ function ResultScreen({
     // pie
     ctx.fillStyle = "rgba(255,255,255,.45)";
     ctx.font = sans(26, 600);
-    ctx.fillText(`${PORTAL_URL} · desafío 01`, 90, 1285);
+    ctx.fillText(`${portalUrl()} · desafío 01`, 90, 1285);
 
     setPlateUrl(canvas.toDataURL("image/png"));
   }, [alias, correct, range, score, total]);
@@ -409,7 +413,7 @@ function ResultScreen({
     const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
     if (!blob) return;
     const file = new File([blob], `peronometro-${score}.png`, { type: "image/png" });
-    const text = `Saqué ${score}% en el Peronómetro: ${range}. ¿Podés superarme? ${PORTAL_URL}`;
+    const text = `Saqué ${score}% en el Peronómetro: ${range}. ¿Podés superarme? ${portalUrl()}`;
     if (navigator.canShare?.({ files: [file] })) {
       try {
         await navigator.share({ files: [file], text, title: "Peronómetro" });

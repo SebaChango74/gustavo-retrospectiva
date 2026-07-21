@@ -1,4 +1,4 @@
-const BASE = "/peronismogeselino/api";
+const BASE = `${import.meta.env.BASE_URL}api`;
 
 export class ApiError extends Error {
   status: number;

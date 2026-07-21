@@ -1,9 +1,11 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-// La app vive bajo /peronismogeselino, aislada del resto de gustavobarrera.com.
+// Por defecto la app vive bajo /peronismogeselino (integrada al repo de
+// gustavobarrera.com). Con PG_BASE=/ se compila para vivir sola en la raíz
+// de su propio dominio (modo independiente).
 export default defineConfig({
-  base: "/peronismogeselino/",
+  base: process.env.PG_BASE || "/peronismogeselino/",
   plugins: [react()],
   build: {
     outDir: "dist",

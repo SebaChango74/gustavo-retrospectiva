@@ -2,9 +2,9 @@
   "name": "Peronismo Geselino",
   "short_name": "P. Geselino",
   "description": "Noticias, causas, agenda, cultura y comunidad del peronismo geselino.",
-  "id": "/peronismogeselino/",
-  "start_url": "/peronismogeselino/",
-  "scope": "/peronismogeselino/",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#fbf7ef",
@@ -12,19 +12,19 @@
   "lang": "es-AR",
   "icons": [
     {
-      "src": "/peronismogeselino/icon-192.png",
+      "src": "./icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/peronismogeselino/icon-512.png",
+      "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/peronismogeselino/icon-512.png",
+      "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
