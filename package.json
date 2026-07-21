@@ -1,8 +1,9 @@
 {
   "scripts": {
-    "start": "npx serve . -l $PORT"
+    "build": "npm ci --prefix peronismogeselino && npm run build --prefix peronismogeselino",
+    "start": "node peronismogeselino/server/index.js"
   },
-  "dependencies": {
-    "serve": "^14.2.4"
+  "engines": {
+    "node": ">=22.13.0"
   }
 }
