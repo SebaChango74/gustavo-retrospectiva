@@ -6,6 +6,7 @@ import { attachMember, ensureAdmins } from "./auth.js";
 import { publicRoutes } from "./routes/public.js";
 import { authRoutes } from "./routes/auth.js";
 import { adminRoutes } from "./routes/admin.js";
+import { communityRoutes } from "./routes/community.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -29,6 +30,7 @@ export function createApp(db) {
   api.use("/auth", authRoutes(db));
   api.use("/public", publicRoutes(db));
   api.use("/admin", adminRoutes(db));
+  api.use("/community", communityRoutes(db));
   api.use((req, res) => res.status(404).json({ error: "Ruta de API inexistente." }));
   api.use((err, _req, res, _next) => {
     console.error("API error:", err);
