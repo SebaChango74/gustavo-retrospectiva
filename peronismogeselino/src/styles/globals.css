@@ -423,7 +423,7 @@ footer img { width: 150px; }
   .hero-stats { margin-top: 34px; gap: 8px; }
   .hero-stats div { grid-template-columns: 1fr; gap: 0; }
   .hero-stats strong { font-size: 27px; }
-  .hero-image { min-height: 330px; order: -1; }
+  .hero-image { height: 330px; min-height: 0; order: -1; }
   .hero-image img { object-position: center; }
   .pulse-strip { min-height: 150px; margin: 0; grid-template-columns: 1fr; border-left: 0; border-right: 0; }
   .pulse-label { min-height: 46px; justify-content: flex-start; padding: 0 20px; }
