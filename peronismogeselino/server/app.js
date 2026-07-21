@@ -23,10 +23,22 @@ const BLOCKED_PREFIXES = ["/peronismogeselino", "/_handoff", "/node_modules", "/
 export function createApp(db) {
   const app = express();
   app.disable("x-powered-by");
+  app.set("trust proxy", 1);
   app.use(express.json({ limit: "256kb" }));
+
+  // Encabezados de seguridad para todo el sitio.
+  app.use((_req, res, next) => {
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+    res.setHeader("X-Frame-Options", "SAMEORIGIN");
+    res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    next();
+  });
 
   // ─── API de la app aislada ────────────────────────────────────────────────
   const api = express.Router();
+  api.use(rateLimit({ windowMs: 60_000, max: 240 }));
+  api.use("/auth", rateLimit({ windowMs: 60_000, max: 20, methods: ["POST"] }));
   api.use(attachMember(db));
   api.use("/auth", authRoutes(db));
   api.use("/public", publicRoutes(db));
@@ -80,3 +92,24 @@ export function createApp(db) {
 }
 
 export { ensureAdmins };
+
+// Limitador de ritmo simple en memoria, suficiente para el volumen del portal.
+function rateLimit({ windowMs, max, methods }) {
+  const hits = new Map();
+  return (req, res, next) => {
+    if (methods && !methods.includes(req.method)) return next();
+    const now = Date.now();
+    const key = req.ip || "local";
+    const entry = hits.get(key);
+    if (!entry || now - entry.start > windowMs) {
+      hits.set(key, { start: now, count: 1 });
+      if (hits.size > 10_000) hits.clear();
+      return next();
+    }
+    entry.count += 1;
+    if (entry.count > max) {
+      return res.status(429).json({ error: "Demasiadas solicitudes. Esperá un momento." });
+    }
+    next();
+  };
+}

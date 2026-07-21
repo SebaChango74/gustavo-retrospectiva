@@ -231,7 +231,7 @@ a.button { text-decoration: none; }
 .question-demo h3 { margin: 0 0 28px; font-family: "Barlow Condensed", sans-serif; font-size: clamp(35px, 3.6vw, 52px); line-height: .96; }
 .answer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
 .answer-grid button { min-height: 58px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.06); color: white; font-weight: 900; cursor: default; }
-.answer-grid button:nth-child(2) { color: #07090c; background: #17bff5; border-color: #17bff5; }
+.question-demo .answer-grid button:nth-child(2) { color: #07090c; background: #17bff5; border-color: #17bff5; }
 .question-demo small { display: block; margin-top: 19px; color: rgba(255,255,255,.4); font-size: 9px; line-height: 1.5; }
 .share-result { padding: 90px 7vw; display: grid; grid-template-columns: minmax(330px, 470px) 1fr; gap: clamp(55px, 9vw, 140px); align-items: center; color: white; background: var(--cobalt); }
 .share-plate { aspect-ratio: 4 / 5; padding: 34px; display: flex; flex-direction: column; position: relative; overflow: hidden; color: white; background: #07090c; border: 12px solid var(--cream); box-shadow: 20px 20px 0 #35e97c; }
