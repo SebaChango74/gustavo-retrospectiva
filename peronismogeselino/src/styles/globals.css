@@ -608,3 +608,17 @@ footer img { width: 150px; }
   .panel-nav a.active { border-bottom-color: var(--sky-bright); }
   .panel-timeline-row { grid-template-columns: 1fr; }
 }
+
+/* ───────────────────────── Agenda dinámica ───────────────────────── */
+.map-locked { display: grid; place-items: center; background: var(--navy); color: white; }
+.map-locked > div { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 30px; text-align: center; }
+.map-locked strong { max-width: 360px; font-size: 14px; }
+.map-locked > div > span { color: var(--red); font-size: 22px; }
+.map-buttons { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+.map-actions .button-outline { border-color: var(--line); }
+.agenda-notice { display: block; margin-top: 8px; color: var(--cobalt); font-weight: 800; }
+.agenda-side-event.as-button { display: block; width: 100%; border: 0; text-align: left; cursor: pointer; }
+.agenda-side-event.as-button:hover { background: var(--cobalt-deep); }
+@media (max-width: 780px) {
+  .map-buttons { justify-content: stretch; flex-direction: column; }
+}
