@@ -6,7 +6,7 @@ const SESSION_DAYS = 30;
 // Qué módulos del panel puede tocar cada rol. El administrador puede todo.
 const ROLE_GRANTS = {
   admin: ["*"],
-  editor: ["news", "causes", "events", "questions", "announcements", "materials"],
+  editor: ["news", "causes", "events", "questions", "announcements", "materials", "peron365"],
   moderator: ["moderation", "announcements"],
   referente: ["territorio"],
   member: [],

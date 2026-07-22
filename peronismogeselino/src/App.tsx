@@ -11,6 +11,7 @@ import Community from "./screens/Community";
 import Panel from "./panel/Panel";
 import Presentacion from "./screens/Presentacion";
 import News from "./screens/News";
+import Peron365 from "./screens/Peron365";
 
 export default function App() {
   const location = useLocation();
@@ -44,6 +45,8 @@ export default function App() {
             <Route path="/peronometro" element={<Navigate to="/juegos/jugar" replace />} />
             <Route path="/comunidad/*" element={<Community />} />
             <Route path="/presentacion" element={<Presentacion />} />
+            <Route path="/peron365" element={<Peron365 />} />
+            <Route path="/peron365/:date" element={<Peron365 />} />
             <Route path="/guia" element={<Navigate to="/presentacion" replace />} />
             <Route path="/panel/*" element={<Panel />} />
             <Route path="*" element={<Navigate to="/" replace />} />
@@ -157,6 +160,7 @@ function Footer() {
         <button onClick={() => navigate("/causas")}>Causas vivas</button>
         <button onClick={() => navigate("/agenda")}>Agenda</button>
         <button onClick={() => navigate("/juegos")}>Peronómetro</button>
+        <button onClick={() => navigate("/peron365")}>Perón 365</button>
         <button onClick={() => navigate("/comunidad")}>La Comunidad</button>
       </div>
       <img

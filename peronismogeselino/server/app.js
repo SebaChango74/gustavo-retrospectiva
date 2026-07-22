@@ -9,6 +9,7 @@ import { authRoutes } from "./routes/auth.js";
 import { adminRoutes } from "./routes/admin.js";
 import { communityRoutes } from "./routes/community.js";
 import { quizRoutes } from "./routes/quiz.js";
+import { peron365Routes, peron365AdminRoutes } from "./routes/peron365.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -65,6 +66,8 @@ export function createApp(db) {
     api.use("/admin", adminRoutes(db));
     api.use("/community", communityRoutes(db));
     api.use("/quiz", quizRoutes(db));
+    api.use("/peron365", peron365Routes(db));
+    api.use("/admin/peron365", peron365AdminRoutes(db));
     api.use((req, res) => res.status(404).json({ error: "Ruta de API inexistente." }));
     api.use((err, _req, res, _next) => {
       console.error("API error:", err);

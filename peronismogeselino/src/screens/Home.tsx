@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, type HomePayload } from "../api";
 import { Arrow, LockIcon, PeronometroLogo, SectionHeading, dayOf, monthOf, dateLabel, timeOf } from "../ui";
+import { Peron365Home } from "../peron365/Peron365Home";
 
 const IMG = "/peronismogeselino/images";
 
@@ -115,6 +116,8 @@ export default function Home() {
           </button>
         </section>
       )}
+
+      <Peron365Home />
 
       <section className="section news-section" id="noticias">
         <SectionHeading eyebrow="AHORA" title="LO QUE ESTÁ PASANDO" />

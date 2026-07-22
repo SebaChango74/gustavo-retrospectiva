@@ -154,6 +154,27 @@ paso manual.
   bloqueados como estáticos.
 - El Peronómetro guarda solo métricas anónimas (aciertos, duración).
 
+## PERÓN 365
+
+Módulo diario compartible («una idea por día»): una frase documentada de Perón
+por día, con permalink (`/peron365/2026-07-22`), archivo, emergente en la
+portada (una vez por día y dispositivo, controlado por `localStorage`) y placa
+compartible 1080×1350 / 1080×1920 generada en el navegador.
+
+- Selección automática a medianoche de Buenos Aires, determinística y sin
+  repetir dentro de un intervalo configurable (ajuste `peron365_min_gap`,
+  120 días por defecto). Una fecha publicada nunca cambia.
+- Solo entran al selector frases con estado **Verificada** (panel → Perón 365).
+  El corpus inicial es de muestra y requiere revisión editorial.
+- El panel administra biblioteca, verificación, calendario de 30 días,
+  plantillas y estadísticas (aperturas/compartidas). El emergente se apaga con
+  el ajuste `peron365_modal = 0`.
+- Miembros: guardar frases y «Conversar sobre esta frase» (crea como máximo un
+  tema de foro por fecha).
+- Regla visual 70/30 según la referencia V3 del handoff
+  (`_handoff/peron365`). Fotos en `public/images/peron365/` (sumar más para
+  variar). Sin IA y sin servicios pagos.
+
 ## PWA
 
 Manifest + service worker con alcance limitado a `/peronismogeselino/`:

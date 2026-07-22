@@ -182,3 +182,43 @@ test("la web actual se sirve y las rutas sensibles quedan bloqueadas", async () 
   const shellBody = await shell.text();
   assert.ok(!shellBody.includes("DatabaseSync"));
 });
+
+test("Perón 365: frase diaria estable, verificada y con permalink", async () => {
+  const first = await fetch(`${base}/peronismogeselino/api/peron365/today`);
+  assert.equal(first.status, 200);
+  const a = await first.json();
+  assert.ok(a.day.quote.text.length > 0);
+  assert.ok(a.day.quote.sourceTitle.length > 0);
+
+  // la misma fecha devuelve siempre la misma frase
+  const second = await fetch(`${base}/peronismogeselino/api/peron365/today`);
+  const b = await second.json();
+  assert.equal(a.day.quote.id, b.day.quote.id);
+
+  // el permalink fechado coincide
+  const dated = await fetch(
+    `${base}/peronismogeselino/api/peron365/days/${a.day.dayKey}`,
+  );
+  const c = await dated.json();
+  assert.equal(c.day.quote.id, a.day.quote.id);
+
+  // solo se seleccionan frases verificadas
+  const verifiedIds = db
+    .prepare(
+      "SELECT id FROM peron365_quotes WHERE verification_status = 'verified' AND active = 1",
+    )
+    .all()
+    .map((row) => row.id);
+  assert.ok(verifiedIds.includes(a.day.quote.id));
+
+  // una fecha futura no existe para el público
+  const future = await fetch(`${base}/peronismogeselino/api/peron365/days/2099-01-01`);
+  assert.equal(future.status, 404);
+});
+
+test("Perón 365: el archivo lista el día publicado", async () => {
+  const response = await fetch(`${base}/peronismogeselino/api/peron365/archive`);
+  const data = await response.json();
+  assert.ok(data.days.length >= 1);
+  assert.ok(data.days[0].shortText.length > 0);
+});

@@ -210,3 +210,52 @@ export const MIGRATIONS = [
     `,
   },
 ];
+
+MIGRATIONS.push({
+  name: "002_peron365",
+  sql: `
+    CREATE TABLE peron365_quotes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      text TEXT NOT NULL,
+      short_text TEXT NOT NULL DEFAULT '',
+      author TEXT NOT NULL DEFAULT 'Juan Domingo Perón',
+      source_title TEXT NOT NULL,
+      source_type TEXT NOT NULL DEFAULT 'discurso',
+      source_date TEXT NOT NULL DEFAULT '',
+      source_url TEXT NOT NULL DEFAULT '',
+      source_locator TEXT NOT NULL DEFAULT '',
+      historical_context TEXT NOT NULL DEFAULT '',
+      topic TEXT NOT NULL DEFAULT '',
+      verification_status TEXT NOT NULL DEFAULT 'draft'
+        CHECK (verification_status IN ('draft','in_review','verified','rejected')),
+      verified_by TEXT NOT NULL DEFAULT '',
+      verified_at TEXT,
+      active INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE peron365_days (
+      day_key TEXT PRIMARY KEY,
+      quote_id INTEGER NOT NULL REFERENCES peron365_quotes(id),
+      theme TEXT NOT NULL DEFAULT 'almanaque',
+      status TEXT NOT NULL DEFAULT 'scheduled'
+        CHECK (status IN ('scheduled','published')),
+      opens INTEGER NOT NULL DEFAULT 0,
+      shares INTEGER NOT NULL DEFAULT 0,
+      published_at TEXT,
+      created_by INTEGER REFERENCES members(id) ON DELETE SET NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE peron365_saves (
+      member_id INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+      day_key TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      PRIMARY KEY (member_id, day_key)
+    );
+
+    CREATE INDEX idx_p365_quotes_status ON peron365_quotes(verification_status, active);
+    CREATE INDEX idx_p365_days_quote ON peron365_days(quote_id, day_key);
+  `,
+});

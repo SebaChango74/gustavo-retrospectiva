@@ -7,6 +7,7 @@ import { Members } from "./Members";
 import { Moderation } from "./Moderation";
 import { Results } from "./Results";
 import { SettingsModule } from "./Settings";
+import { Peron365Admin } from "./Peron365Admin";
 import { dateLabel } from "../ui";
 
 const IMAGES = [
@@ -36,6 +37,7 @@ const MODULES: { key: string; label: string; roles: string[] }[] = [
   { key: "noticias", label: "Noticias", roles: ["admin", "editor"] },
   { key: "causas", label: "Causas vivas", roles: ["admin", "editor"] },
   { key: "agenda", label: "Agenda", roles: ["admin", "editor"] },
+  { key: "peron365", label: "Perón 365", roles: ["admin", "editor"] },
   { key: "preguntas", label: "Peronómetro · preguntas", roles: ["admin", "editor"] },
   { key: "resultados", label: "Peronómetro · resultados", roles: ["admin", "editor"] },
   { key: "anuncios", label: "Anuncios", roles: ["admin", "editor", "moderator"] },
@@ -120,6 +122,7 @@ export default function Panel() {
             <Route path="noticias" element={<NewsModule />} />
             <Route path="causas" element={<CausesModule />} />
             <Route path="agenda" element={<EventsModule />} />
+            <Route path="peron365" element={<Peron365Admin />} />
             <Route path="preguntas" element={<QuestionsModule />} />
             <Route path="resultados" element={<Results />} />
             <Route path="anuncios" element={<AnnouncementsModule />} />

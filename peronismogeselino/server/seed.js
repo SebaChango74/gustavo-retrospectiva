@@ -2,11 +2,13 @@
 // portal se vea igual desde el primer arranque. Todo es editable desde el panel.
 
 import { QUESTIONS_SEED } from "./questions-seed.js";
+import { seedPeron365 } from "./peron365-seed.js";
 
 const IMG = "/peronismogeselino/images";
 
 export function seed(db) {
   seedQuestions(db);
+  seedPeron365(db);
   const hasNews = db.prepare("SELECT COUNT(*) AS n FROM news").get().n > 0;
   if (hasNews) return;
 
