@@ -483,7 +483,9 @@ footer img { width: 150px; }
   .game-hero-actions > span { text-align: center; }
   .collage-number { width: 70px; height: 70px; right: 24px; top: 72px; font-size: 42px; }
   .collage-date { display: none; }
-  .collage-word { right: 18px; bottom: auto; top: 260px; }
+  /* En el celular las piezas del collage taparían la cara y el texto:
+     queda solo la ficha «50» arriba a la derecha. */
+  .collage-word { display: none; }
   .collage-stripes { display: none; }
   .game-metrics { grid-template-columns: 1fr 1fr; }
   .game-metrics div { min-height: 105px; }
