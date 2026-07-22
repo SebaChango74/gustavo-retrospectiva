@@ -11,6 +11,7 @@ import Peronometro from "./screens/Peronometro";
 import Community from "./screens/Community";
 import Panel from "./panel/Panel";
 import Presentacion from "./screens/Presentacion";
+import News from "./screens/News";
 
 export default function App() {
   const location = useLocation();
@@ -48,6 +49,7 @@ export default function App() {
         <main>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/noticias/:slug" element={<News />} />
             <Route path="/causas" element={<Cause />} />
             <Route path="/causas/:slug" element={<Cause />} />
             <Route path="/agenda" element={<Agenda />} />

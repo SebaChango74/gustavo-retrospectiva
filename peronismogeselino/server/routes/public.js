@@ -62,6 +62,17 @@ export function publicRoutes(db) {
     res.json({ news: rows });
   });
 
+  router.get("/news/:slug", (req, res) => {
+    const item = db
+      .prepare(`
+        SELECT slug, tag, title, summary, body, image, featured, published_at
+        FROM news WHERE slug = ? AND status = 'published'
+      `)
+      .get(req.params.slug);
+    if (!item) return res.status(404).json({ error: "Noticia no encontrada." });
+    res.json({ item });
+  });
+
   router.get("/causes", (_req, res) => {
     const rows = db
       .prepare(`

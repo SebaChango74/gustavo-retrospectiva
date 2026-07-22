@@ -424,7 +424,8 @@ footer img { width: 150px; }
   .hero-stats div { grid-template-columns: 1fr; gap: 0; }
   .hero-stats strong { font-size: 27px; }
   .hero-image { height: 330px; min-height: 0; order: -1; }
-  .hero-image img { object-position: 66% center; }
+  /* En el celular la franja muestra solo a Gustavo, con su figura completa. */
+  .hero-image img { object-position: right center; }
   .pulse-strip { min-height: 150px; margin: 0; grid-template-columns: 1fr; border-left: 0; border-right: 0; }
   .pulse-label { min-height: 46px; justify-content: flex-start; padding: 0 20px; }
   .pulse-strip > button { padding: 17px 20px; grid-template-columns: auto 1fr auto; gap: 12px; }
@@ -714,3 +715,9 @@ footer img { width: 150px; }
   .guide-roadmap { grid-template-columns: 1fr; }
   .guide-note { margin: 0 20px 70px; }
 }
+
+/* ───────────────────────── Noticia individual ───────────────────────── */
+.news-article { max-width: 1000px; }
+.news-article-body { max-width: 760px; margin: 40px 0 30px; }
+.news-article-body p { margin: 0 0 20px; font-size: 16px; line-height: 1.8; color: var(--ink); }
+.text-action.dark { color: var(--cobalt); border-color: var(--line); }

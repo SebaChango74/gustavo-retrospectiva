@@ -108,7 +108,7 @@ export default function Home() {
             <span className="live-dot red" /> EL PULSO DE HOY{" "}
             <time>{timeOf(featured.published_at)}</time>
           </div>
-          <button onClick={() => go("/causas")}>
+          <button onClick={() => go(`/noticias/${featured.slug}`)}>
             <span className="pulse-tag">AHORA</span>
             <strong>{featured.title}</strong>
             <Arrow />
@@ -121,7 +121,7 @@ export default function Home() {
         <div className="news-grid">
           {data.news.map((item, index) => (
             <article className={item.featured ? "news-card featured" : "news-card"} key={item.slug}>
-              <button onClick={() => index === 0 && go("/causas")} aria-label={`Abrir ${item.title}`}>
+              <button onClick={() => go(`/noticias/${item.slug}`)} aria-label={`Abrir ${item.title}`}>
                 <div className="news-image">{item.image && <img src={item.image} alt="" />}</div>
                 <div className="news-body">
                   <div className="meta">
