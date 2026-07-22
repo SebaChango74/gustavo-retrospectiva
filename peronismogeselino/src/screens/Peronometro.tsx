@@ -86,9 +86,8 @@ export default function Peronometro() {
         setQuestions(data.questions.map(shuffleOptions));
       })
       .catch(() => setLoadError("No pudimos cargar las preguntas. Probá de nuevo."));
-    // precarga de la imagen del retrato para la pantalla final
-    const img = new Image();
-    img.src = "/peronismogeselino/images/peronometro-peron.png";
+    // precarga del arte de la placa para la pantalla final
+    loadPlateArt().catch(() => {});
   }, []);
 
   const clearTimer = useCallback(() => {

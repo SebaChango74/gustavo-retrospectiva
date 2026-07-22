@@ -215,12 +215,9 @@ export default function Home() {
           <div className="peronometro-card">
             <div className="peronometro-card-image">
               <img
-                src={`${IMG}/peronometro-peron.png`}
-                alt="Retrato editorial de Juan Domingo Perón"
+                src={`${IMG}/peronometro-hero.jpg`}
+                alt="Juan Domingo Perón, collage editorial"
               />
-              <div className="pop-tile tile-date">17 OCT</div>
-              <div className="pop-tile tile-score">%</div>
-              <div className="pop-tile tile-time">10s</div>
               <PeronometroLogo compact />
             </div>
             <div className="peronometro-card-body">
