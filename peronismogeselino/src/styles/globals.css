@@ -197,7 +197,7 @@ a.button { text-decoration: none; }
 
 .peronometro-page { background: #f4efe5; }
 .peronometro-hero { min-height: 720px; display: grid; grid-template-columns: 1fr; position: relative; overflow: hidden; color: white; background: #07090c; }
-.peronometro-hero > img { width: 67%; height: 100%; position: absolute; right: 0; top: 0; object-fit: cover; object-position: center; filter: saturate(.78) contrast(1.08); }
+.peronometro-hero > img { width: 100%; height: 100%; position: absolute; right: 0; top: 0; object-fit: cover; object-position: right center; }
 .peronometro-hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, #07090c 0%, rgba(7,9,12,.96) 37%, rgba(7,9,12,.08) 77%), linear-gradient(0deg, rgba(7,9,12,.65), transparent 45%); }
 .peronometro-hero-copy { width: min(61%, 850px); padding: 44px 5vw 65px; position: relative; z-index: 3; display: flex; flex-direction: column; justify-content: center; }
 .game-back { align-self: flex-start; margin-bottom: 45px; border: 0; border-bottom: 1px solid rgba(255,255,255,.28); background: none; color: rgba(255,255,255,.7); padding: 7px 0; cursor: pointer; font-size: 10px; letter-spacing: .1em; }
@@ -206,7 +206,7 @@ a.button { text-decoration: none; }
 .peronometro-hero-copy > p { max-width: 600px; margin: 0; color: rgba(255,255,255,.7); font-size: 18px; line-height: 1.55; }
 .game-hero-actions { margin-top: 31px; display: flex; align-items: center; gap: 20px; }
 .button-game { background: #35e97c; color: #07090c; }
-.game-hero-actions > span { font-size: 8px; letter-spacing: .14em; color: rgba(255,255,255,.45); }
+.game-hero-actions > span { font-size: 11px; letter-spacing: .02em; color: rgba(255,255,255,.6); }
 .peronometro-collage { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
 .collage-word, .collage-number, .collage-date { position: absolute; display: grid; place-items: center; font-family: "Barlow Condensed", sans-serif; font-weight: 900; }
 .collage-word { width: 135px; height: 52px; right: 3vw; bottom: 4vw; color: #07090c; background: #35e97c; font-size: 27px; transform: rotate(-3deg); }
@@ -470,7 +470,8 @@ footer img { width: 150px; }
   .map-shell { height: 300px; }
   .map-actions { align-items: stretch; flex-direction: column; }
   .peronometro-hero { min-height: 780px; }
-  .peronometro-hero > img { width: 100%; height: 48%; top: 0; object-position: 64% center; }
+  /* Perón ocupa la mitad superior; el texto va abajo sobre el degradado. */
+  .peronometro-hero > img { width: 100%; height: 52%; top: 0; object-position: 72% top; }
   .peronometro-hero::after { background: linear-gradient(0deg, #07090c 0%, #07090c 45%, rgba(7,9,12,.15) 77%); }
   .peronometro-hero-copy { width: 100%; min-height: 780px; padding: 28px 22px 48px; justify-content: flex-end; }
   .game-back { position: absolute; top: 18px; left: 22px; margin: 0; z-index: 4; }

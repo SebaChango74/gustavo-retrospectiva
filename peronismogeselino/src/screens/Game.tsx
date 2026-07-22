@@ -10,30 +10,20 @@ export default function Game() {
   return (
     <div className="inner-page peronometro-page">
       <section className="peronometro-hero">
-        <div className="peronometro-collage" aria-hidden="true">
-          <div className="collage-word">JUSTA</div>
-          <div className="collage-number">50</div>
-          <div className="collage-date">
-            17
-            <br />
-            OCT
-          </div>
-          <div className="collage-stripes" />
-        </div>
-        <img src={`${IMG}/peronometro-peron.png`} alt="Juan Domingo Perón" />
+        <img src={`${IMG}/peronometro-hero.jpg`} alt="Juan Domingo Perón, collage editorial" />
         <div className="peronometro-hero-copy">
           <button className="game-back" onClick={() => go("/")}>
             ← VOLVER
           </button>
-          <span className="game-edition">CULTURA EN JUEGO · EDICIÓN 01</span>
+          <span className="game-edition">50 PREGUNTAS · 10 SEGUNDOS CADA UNA</span>
           <PeronometroLogo />
           <h1>¿QUÉ TAN PERONISTA SOS?</h1>
           <p>Una carrera contra el reloj por la historia, las ideas y la memoria.</p>
           <div className="game-hero-actions">
             <button className="button button-game" onClick={() => go("/juegos/jugar")}>
-              JUGAR AHORA <Arrow />
+              EMPEZAR EL DESAFÍO <Arrow />
             </button>
-            <span>EDICIÓN 01 · GRATIS Y SIN REGISTRO</span>
+            <span>Descubrí tu porcentaje y compartilo con tus amigos.</span>
           </div>
         </div>
       </section>

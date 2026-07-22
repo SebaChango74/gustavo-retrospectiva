@@ -6,10 +6,18 @@ import { Arrow, PeronometroLogo, ShareIcon } from "../ui";
 const SECONDS = 10;
 const PLATE_W = 1080;
 const PLATE_H = 1350;
-// URL del portal para la placa: el dominio real donde corre la app.
-function portalUrl(): string {
-  const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-  return `${window.location.host}${base}`;
+// URL oficial que lleva la placa compartible.
+const PLATE_URL = "gustavobarrera.com/peronismogeselino/peronometro";
+
+let plateArt: HTMLImageElement | null = null;
+function loadPlateArt(): Promise<HTMLImageElement> {
+  if (plateArt) return Promise.resolve(plateArt);
+  const img = new Image();
+  img.src = "/peronismogeselino/images/peronometro-placa.jpg";
+  return img.decode().then(() => {
+    plateArt = img;
+    return img;
+  });
 }
 
 type Question = {
@@ -298,22 +306,21 @@ function ResultScreen({
     const ctx = canvas.getContext("2d")!;
     await document.fonts.ready;
 
-    // fondo
+    // fondo: arte de collage aprobado (916×1717), recortado con foco en Perón
     ctx.fillStyle = "#07090c";
     ctx.fillRect(0, 0, PLATE_W, PLATE_H);
-    // marco crema
-    ctx.strokeStyle = "#f3eadb";
-    ctx.lineWidth = 28;
-    ctx.strokeRect(14, 14, PLATE_W - 28, PLATE_H - 28);
-    // trama de puntos naranja
-    ctx.fillStyle = "rgba(255,97,47,.7)";
-    for (let x = 0; x < 15; x++) {
-      for (let y = 0; y < 15; y++) {
-        ctx.beginPath();
-        ctx.arc(760 + x * 24, 620 + y * 24, 4, 0, Math.PI * 2);
-        ctx.fill();
-      }
+    try {
+      const art = await loadPlateArt();
+      const sourceWidth = art.naturalWidth;
+      const sourceHeight = Math.round(sourceWidth * (PLATE_H / PLATE_W));
+      const sourceY = Math.min(190, Math.max(0, art.naturalHeight - sourceHeight));
+      ctx.drawImage(art, 0, sourceY, sourceWidth, sourceHeight, 0, 0, PLATE_W, PLATE_H);
+    } catch {
+      // sin el arte, la placa sale con fondo oscuro liso
     }
+    // sombra suave para que el texto respire sobre el collage
+    ctx.shadowColor = "rgba(0,0,0,.6)";
+    ctx.shadowBlur = 22;
 
     const condensed = (size: number, weight = 900) =>
       `${weight} ${size}px "Barlow Condensed", "Arial Narrow", sans-serif`;
@@ -360,15 +367,15 @@ function ResultScreen({
     ctx.fillStyle = "#17bff5";
     ctx.fillText("METRO", 240, 296);
 
-    // porcentaje gigante
+    // porcentaje gigante, centro-izquierda (la zona oscura del arte)
     ctx.fillStyle = "#17bff5";
-    ctx.font = condensed(420);
-    ctx.fillText(`${score}%`, 80, 810);
+    ctx.font = condensed(330);
+    ctx.fillText(`${score}%`, 80, 780);
 
     // rango (el espaciado posterior se acomoda según ocupe 1 o 2 líneas)
     ctx.fillStyle = "#ffffff";
-    ctx.font = condensed(96);
-    const rangeEndY = wrapText(ctx, range, 90, 950, PLATE_W - 180, 96);
+    ctx.font = condensed(88);
+    const rangeEndY = wrapText(ctx, range, 90, 910, 600, 88);
 
     // aciertos
     ctx.fillStyle = "rgba(255,255,255,.75)";
@@ -389,9 +396,9 @@ function ResultScreen({
     }
 
     // pie
-    ctx.fillStyle = "rgba(255,255,255,.45)";
-    ctx.font = sans(26, 600);
-    ctx.fillText(`${portalUrl()} · desafío 01`, 90, 1285);
+    ctx.fillStyle = "rgba(255,255,255,.75)";
+    ctx.font = sans(26, 700);
+    ctx.fillText(PLATE_URL, 90, 1285);
 
     setPlateUrl(canvas.toDataURL("image/png"));
   }, [alias, correct, range, score, total]);
@@ -414,7 +421,7 @@ function ResultScreen({
     const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
     if (!blob) return;
     const file = new File([blob], `peronometro-${score}.png`, { type: "image/png" });
-    const text = `Saqué ${score}% en el Peronómetro: ${range}. ¿Podés superarme? ${portalUrl()}`;
+    const text = `Saqué ${score}% en el Peronómetro: ${range}. ¿Podés superarme? ${PLATE_URL}`;
     if (navigator.canShare?.({ files: [file] })) {
       try {
         await navigator.share({ files: [file], text, title: "Peronómetro" });
