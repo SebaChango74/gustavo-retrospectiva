@@ -185,9 +185,9 @@ export default function Presentacion() {
       <section className="guide-note">
         <LockIcon />
         <p>
-          Estás viendo una <b>versión de prueba privada</b>. Nada de esto está publicado: la clave y
-          el cartel superior existen para poder revisar tranquilos. La decisión de cuándo y cómo
-          sale es de la conducción.
+          Estás viendo una <b>versión de prueba privada</b>. Nada de esto está publicado: la clave
+          de ingreso existe para poder revisar tranquilos. La decisión de cuándo y cómo sale es de
+          la conducción.
         </p>
         <button className="button button-cream" onClick={() => go("/")}>
           RECORRER EL PORTAL <Arrow />
