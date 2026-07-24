@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1080" height="1920" viewBox="0 0 1080 1920">
+  <defs>
+    <clipPath id="photoMobile"><rect x="98" y="330" width="884" height="388" rx="20"/></clipPath>
+  </defs>
+
+  <rect width="1080" height="1920" fill="#071625"/>
+  <circle cx="979" cy="103" r="47" fill="#16a8e0" opacity="0.16"/>
+  <circle cx="1010" cy="81" r="17" fill="#20d982"/>
+
+  <!-- Cabecera de la app -->
+  <text x="62" y="101" fill="#aebdca" font-family="Nimbus Sans, Arial, sans-serif" font-size="22">← VOLVER</text>
+  <line x1="62" y1="125" x2="182" y2="125" stroke="#aebdca" stroke-opacity="0.55" stroke-width="2"/>
+  <text x="540" y="98" text-anchor="middle" fill="#f7f1e7" font-family="Nimbus Sans Narrow, Arial Narrow, sans-serif"
+        font-size="44" font-weight="700">PERÓN 365</text>
+  <text x="540" y="135" text-anchor="middle" fill="#20d982" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="16" font-weight="700" letter-spacing="4">UNA IDEA POR DÍA</text>
+
+  <!-- Tarjeta editorial dentro del sistema -->
+  <rect x="58" y="190" width="964" height="1240" rx="34" fill="#f3ead7"/>
+  <rect x="58" y="190" width="964" height="18" rx="9" fill="#16a8e0"/>
+
+  <text x="98" y="273" fill="#0e4c86" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="18" font-weight="700" letter-spacing="4">LA FRASE DE HOY</text>
+  <text x="982" y="274" text-anchor="end" fill="#504b43" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="18">22 JULIO 2026</text>
+
+  <image x="98" y="330" width="884" height="388" preserveAspectRatio="xMidYMid slice"
+         clip-path="url(#photoMobile)" xlink:href="../upload/01-1000052905.webp"/>
+
+  <rect x="114" y="638" width="210" height="200" rx="13" fill="#f05a2a"/>
+  <text x="219" y="764" text-anchor="middle" fill="#071625" font-family="Nimbus Sans Narrow, Arial Narrow, sans-serif"
+        font-size="132" font-weight="700">22</text>
+  <text x="219" y="809" text-anchor="middle" fill="#071625" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="17" font-weight="700" letter-spacing="3">JUL · 2026</text>
+
+  <text x="370" y="794" fill="#d2a52f" font-family="Nimbus Roman, Georgia, serif"
+        font-size="110" font-weight="700">“</text>
+  <text x="410" y="773" fill="#22201d" font-family="Nimbus Roman, Georgia, serif"
+        font-size="60" font-weight="700">
+    <tspan x="410" dy="0">Mejor que</tspan>
+    <tspan x="370" dy="70">decir es hacer.</tspan>
+  </text>
+
+  <line x1="98" y1="914" x2="982" y2="914" stroke="#16a8e0" stroke-width="5"/>
+  <text x="98" y="972" fill="#0e4c86" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="22" font-weight="700" letter-spacing="2">JUAN DOMINGO PERÓN</text>
+  <text x="98" y="1015" fill="#504b43" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="20">Discurso en la Confederación General del Trabajo</text>
+  <text x="98" y="1051" fill="#504b43" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="20">27 de diciembre de 1973</text>
+
+  <rect x="98" y="1127" width="884" height="92" rx="46" fill="#20d982"/>
+  <text x="540" y="1184" text-anchor="middle" fill="#071625" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="22" font-weight="700" letter-spacing="2">COMPARTIR LA FRASE</text>
+
+  <rect x="98" y="1246" width="424" height="82" rx="41" fill="none" stroke="#0e4c86" stroke-width="3"/>
+  <text x="310" y="1298" text-anchor="middle" fill="#0e4c86" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="20" font-weight="700">GUARDAR</text>
+  <rect x="558" y="1246" width="424" height="82" rx="41" fill="none" stroke="#0e4c86" stroke-width="3"/>
+  <text x="770" y="1298" text-anchor="middle" fill="#0e4c86" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="20" font-weight="700">VER CONTEXTO</text>
+
+  <text x="540" y="1382" text-anchor="middle" fill="#504b43" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="17">Esta frase fue verificada y conserva su fuente histórica.</text>
+
+  <!-- Acceso al debate -->
+  <rect x="58" y="1470" width="964" height="126" rx="24" fill="#0b2742" stroke="#16a8e0" stroke-opacity="0.55" stroke-width="2"/>
+  <text x="96" y="1525" fill="#20d982" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="17" font-weight="700" letter-spacing="3">COMUNIDAD</text>
+  <text x="96" y="1565" fill="#f7f1e7" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="22" font-weight="700">¿Qué significa esta idea hoy en Villa Gesell?</text>
+  <text x="963" y="1547" text-anchor="end" fill="#16a8e0" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="24">→</text>
+
+  <!-- Navegación compartida con la app -->
+  <rect x="0" y="1738" width="1080" height="182" fill="#f5f1e8"/>
+  <g fill="#0e4c86" font-family="Nimbus Sans, Arial, sans-serif" text-anchor="middle">
+    <path d="M116 1792 L145 1770 L174 1792 V1830 H116 Z" fill="none" stroke="#0e4c86" stroke-width="5"/>
+    <text x="145" y="1874" font-size="16">Inicio</text>
+    <rect x="302" y="1772" width="48" height="58" rx="4" fill="none" stroke="#0e4c86" stroke-width="5"/>
+    <line x1="313" y1="1788" x2="339" y2="1788" stroke="#0e4c86" stroke-width="4"/>
+    <line x1="313" y1="1803" x2="339" y2="1803" stroke="#0e4c86" stroke-width="4"/>
+    <text x="326" y="1874" font-size="16">Noticias</text>
+    <circle cx="540" cy="1800" r="15" fill="#0e4c86"/>
+    <text x="540" y="1874" font-size="16">Causas</text>
+    <rect x="730" y="1781" width="30" height="30" transform="rotate(45 745 1796)" fill="none" stroke="#f05a2a" stroke-width="5"/>
+    <text x="745" y="1874" font-size="16">Juegos</text>
+    <path d="M931 1773 L940 1791 L960 1797 L940 1804 L931 1824 L922 1804 L902 1797 L922 1791 Z" fill="#0e4c86"/>
+    <text x="931" y="1874" font-size="16">Comunidad</text>
+  </g>
+</svg>

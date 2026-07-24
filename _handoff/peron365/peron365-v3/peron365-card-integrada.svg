@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1080" height="1350" viewBox="0 0 1080 1350">
+  <defs>
+    <clipPath id="photo"><rect x="90" y="214" width="900" height="426" rx="18"/></clipPath>
+  </defs>
+
+  <!-- 70% sistema de la app -->
+  <rect width="1080" height="1350" fill="#071625"/>
+  <circle cx="1008" cy="82" r="52" fill="#16a8e0" opacity="0.20"/>
+  <circle cx="1025" cy="66" r="18" fill="#20d982"/>
+
+  <text x="62" y="100" fill="#f7f1e7" font-family="Nimbus Sans Narrow, Arial Narrow, sans-serif"
+        font-size="66" font-weight="700" letter-spacing="1">PERÓN</text>
+  <rect x="279" y="49" width="126" height="69" rx="3" fill="#f05a2a" transform="rotate(-2 342 84)"/>
+  <text x="303" y="101" fill="#071625" font-family="Nimbus Sans Narrow, Arial Narrow, sans-serif"
+        font-size="54" font-weight="700">365</text>
+  <text x="449" y="89" fill="#20d982" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="18" font-weight="700" letter-spacing="4">UNA IDEA POR DÍA</text>
+
+  <!-- 30% personalidad de almanaque -->
+  <rect x="58" y="160" width="964" height="1086" rx="30" fill="#f3ead7"/>
+  <rect x="58" y="160" width="964" height="18" rx="9" fill="#16a8e0"/>
+  <image x="90" y="214" width="900" height="426" preserveAspectRatio="xMidYMid slice"
+         clip-path="url(#photo)" xlink:href="../upload/01-1000052905.webp"/>
+
+  <!-- Fecha -->
+  <rect x="92" y="556" width="226" height="226" rx="12" fill="#f05a2a"/>
+  <text x="205" y="697" text-anchor="middle" fill="#071625" font-family="Nimbus Sans Narrow, Arial Narrow, sans-serif"
+        font-size="148" font-weight="700">22</text>
+  <line x1="121" y1="714" x2="289" y2="714" stroke="#071625" stroke-width="4"/>
+  <text x="205" y="751" text-anchor="middle" fill="#071625" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="18" font-weight="700" letter-spacing="3">JUL · 2026</text>
+
+  <!-- Frase -->
+  <text x="358" y="727" fill="#d2a52f" font-family="Nimbus Roman, Georgia, serif"
+        font-size="112" font-weight="700">“</text>
+  <text x="402" y="704" fill="#22201d" font-family="Nimbus Roman, Georgia, serif"
+        font-size="62" font-weight="700">
+    <tspan x="402" dy="0">Mejor que</tspan>
+    <tspan x="358" dy="72">decir es hacer.</tspan>
+  </text>
+  <line x1="358" y1="821" x2="954" y2="821" stroke="#16a8e0" stroke-width="5"/>
+
+  <!-- Fuente -->
+  <text x="358" y="874" fill="#0e4c86" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="22" font-weight="700" letter-spacing="2">JUAN DOMINGO PERÓN</text>
+  <text x="358" y="913" fill="#504b43" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="20">Discurso en la Confederación General del Trabajo</text>
+  <text x="358" y="947" fill="#504b43" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="20">27 de diciembre de 1973</text>
+
+  <rect x="92" y="1045" width="362" height="56" rx="4" fill="#20d982" transform="rotate(-1 273 1073)"/>
+  <text x="126" y="1082" fill="#071625" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="18" font-weight="700" letter-spacing="2">UNA IDEA PARA COMPARTIR</text>
+
+  <line x1="92" y1="1160" x2="954" y2="1160" stroke="#071625" stroke-opacity="0.20" stroke-width="2"/>
+  <text x="92" y="1205" fill="#071625" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="18" font-weight="700" letter-spacing="2">PERONISMO GESELINO</text>
+  <text x="954" y="1205" text-anchor="end" fill="#0e4c86" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="17">gustavobarrera.com/peronismogeselino</text>
+
+  <text x="62" y="1310" fill="#f7f1e7" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="17" font-weight="700" letter-spacing="3">LA FRASE DE HOY</text>
+  <text x="1018" y="1310" text-anchor="end" fill="#16a8e0" font-family="Nimbus Sans, Arial, sans-serif"
+        font-size="17">22 · 07 · 2026</text>
+</svg>
