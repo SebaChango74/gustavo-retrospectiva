@@ -28,11 +28,14 @@ export default function App() {
   }, [location]);
 
   const inPanel = location.pathname.startsWith("/panel");
+  // La presentación es un recorrido cerrado: sin navegación que lleve a la app,
+  // solo el botón "Ingresar a la app" del final.
+  const chromeless = inPanel || location.pathname === "/presentacion";
 
   return (
     <SessionProvider>
       <div className="site-shell">
-        {!inPanel && <Header />}
+        {!chromeless && <Header />}
         <main>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -52,8 +55,8 @@ export default function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
-        {!inPanel && <MobileDock />}
-        {!inPanel && <Footer />}
+        {!chromeless && <MobileDock />}
+        {!chromeless && <Footer />}
       </div>
     </SessionProvider>
   );

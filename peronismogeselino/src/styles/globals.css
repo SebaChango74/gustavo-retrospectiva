@@ -680,18 +680,21 @@ footer img { width: 150px; }
 .guide-idea-photo { overflow: hidden; border-radius: 18px; max-height: 420px; }
 .guide-idea-photo img { height: 100%; object-fit: cover; }
 .guide-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-.guide-card { padding: 30px 28px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; background: var(--paper); border: 1px solid var(--line); cursor: pointer; transition: transform .2s ease, box-shadow .2s ease; }
-.guide-card:hover { transform: translateY(-5px); box-shadow: 0 18px 30px rgba(7,27,51,.1); }
+.guide-card { padding: 30px 28px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; }
 .guide-card h3 { margin: 14px 0 8px; font-family: "Barlow Condensed", sans-serif; font-size: 32px; color: var(--navy); }
-.guide-card p { margin: 0 0 16px; font-size: 13px; line-height: 1.65; color: var(--muted); }
-.guide-card .read-more { margin-top: auto; padding-top: 0; }
+.guide-card p { margin: 0; font-size: 13px; line-height: 1.65; color: var(--muted); }
 .guide-icon { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 12px; background: var(--cobalt); color: white; font-size: 20px; }
 .guide-card.dark { background: #07090c; border-color: #07090c; }
 .guide-card.dark h3 { color: white; }
 .guide-card.dark p { color: rgba(255,255,255,.68); }
-.guide-card.dark .read-more { color: #35e97c; }
+.guide-card.p365 { background: var(--p365-cream); border-color: var(--p365-cream); }
+.guide-card.p365 h3 { color: var(--p365-navy); }
+.guide-card.p365 p { color: #5c564c; }
+.guide-icon.p365-icon { position: relative; background: var(--p365-coral); font-family: "Barlow Condensed", sans-serif; font-weight: 900; font-size: 22px; color: var(--p365-cream); }
+.guide-icon.p365-icon i { position: absolute; right: -3px; top: -3px; width: 12px; height: 12px; border-radius: 50%; background: var(--p365-green); }
 .guide-how { background: var(--navy); color: white; }
-.guide-how-inner h2 { margin: 8px 0 30px; font-family: "Barlow Condensed", sans-serif; font-size: clamp(42px, 4.6vw, 68px); line-height: .92; color: var(--cream); }
+.guide-how-inner h2 { margin: 8px 0 18px; font-family: "Barlow Condensed", sans-serif; font-size: clamp(42px, 4.6vw, 68px); line-height: .92; color: var(--cream); }
+.guide-how-lead { max-width: 640px; margin: 0 0 30px; color: rgba(255,255,255,.72); font-size: 15px; line-height: 1.7; }
 .guide-steps { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
 .guide-steps li { display: grid; grid-template-columns: auto 1fr; gap: 16px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.18); }
 .guide-steps strong { font-family: "Barlow Condensed", sans-serif; font-size: 34px; color: var(--sky); }
@@ -706,6 +709,10 @@ footer img { width: 150px; }
 .guide-note { margin: 0 3.35vw 90px; padding: 44px clamp(28px, 5vw, 70px); display: flex; flex-direction: column; align-items: flex-start; gap: 14px; background: var(--cobalt); color: white; border-radius: 22px; }
 .guide-note > span { color: var(--sky); font-size: 22px; }
 .guide-note p { max-width: 720px; margin: 0; font-size: 15px; line-height: 1.7; color: rgba(255,255,255,.82); }
+.guide-cta { margin: 0 3.35vw 90px; padding: clamp(56px, 8vw, 96px) clamp(28px, 5vw, 70px); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; background: var(--navy); color: white; border-radius: 26px; }
+.guide-cta h2 { margin: 4px 0; font-family: "Barlow Condensed", sans-serif; font-size: clamp(44px, 5.4vw, 74px); line-height: .92; color: var(--cream); }
+.guide-cta p { max-width: 560px; margin: 0 0 18px; font-size: 16px; line-height: 1.6; color: rgba(255,255,255,.75); }
+.guide-cta-button { min-height: 62px; padding: 0 44px; font-size: 20px; }
 @media (max-width: 1100px) {
   .guide-grid { grid-template-columns: 1fr 1fr; }
   .guide-roadmap { grid-template-columns: 1fr 1fr; }

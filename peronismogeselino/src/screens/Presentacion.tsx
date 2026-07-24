@@ -1,17 +1,14 @@
 import { useNavigate } from "react-router-dom";
-import { Arrow, LockIcon, PeronometroLogo } from "../ui";
-
-const IMG = "/peronismogeselino/images";
+import { Arrow, PeronometroLogo } from "../ui";
 
 export default function Presentacion() {
   const navigate = useNavigate();
-  const go = (path: string) => navigate(path);
 
   return (
     <div className="inner-page guide-page">
       <section className="inner-hero tech-grid">
         <div className="breadcrumb">
-          <button onClick={() => go("/")}>Inicio</button>
+          <span>Peronismo Geselino</span>
           <span>/</span>
           <span>Guía del portal</span>
         </div>
@@ -20,23 +17,8 @@ export default function Presentacion() {
         <p>
           No es una página más: es la plataforma propia del peronismo de Villa Gesell.
           Información, memoria, juego y organización — todo en un mismo lugar, administrado por
-          nosotros.
+          nosotros. Este es un recorrido por lo que hace y lo que viene.
         </p>
-      </section>
-
-      <section className="section guide-idea">
-        <div className="guide-idea-copy">
-          <span className="eyebrow">LA IDEA EN UNA FRASE</span>
-          <h2>UNA NOTICIA DURA UN DÍA. UNA CAUSA SIGUE VIVA.</h2>
-          <p>
-            En las redes todo se pierde a las pocas horas. Acá, cada tema importante queda abierto
-            con su historia completa: qué se pidió, qué se logró, qué falta. La gente no lee una
-            noticia suelta — acompaña una causa.
-          </p>
-        </div>
-        <div className="guide-idea-photo">
-          <img src={`${IMG}/gustavo-abrazo.jpg`} alt="Gustavo Barrera abrazando a una vecina" />
-        </div>
       </section>
 
       <section className="section">
@@ -47,34 +29,34 @@ export default function Presentacion() {
           </div>
         </div>
         <div className="guide-grid">
-          <button className="guide-card" onClick={() => go("/")}>
+          <article className="guide-card">
             <span className="guide-icon">▤</span>
             <h3>NOTICIAS</h3>
             <p>
-              Lo que está pasando, con foto, etiqueta y destacadas. Se cargan desde el panel y
-              aparecen al instante.
+              Lo que está pasando, con foto, etiqueta y destacadas. Cada noticia abre su propia
+              página y se comparte con un toque.
             </p>
-            <span className="read-more">VER <Arrow /></span>
-          </button>
-          <button className="guide-card" onClick={() => go("/causas")}>
+          </article>
+          <article className="guide-card">
             <span className="guide-icon">●</span>
             <h3>CAUSAS VIVAS</h3>
             <p>
               La marca del portal: cada causa con su ficha, su dato clave, su barra de avance y su
-              línea de tiempo. Memoria que no se borra.
+              línea de tiempo. La información no se pierde a las pocas horas como en las redes;
+              queda abierta con su historia completa —qué se pidió, qué se logró, qué falta— y la
+              gente acompaña la causa.
             </p>
-            <span className="read-more">VER <Arrow /></span>
-          </button>
-          <button className="guide-card" onClick={() => go("/agenda")}>
+          </article>
+          <article className="guide-card">
             <span className="guide-icon">◆</span>
             <h3>AGENDA + MAPA</h3>
             <p>
               Actividades públicas para todos e internas solo para la comunidad: la ubicación de un
-              encuentro interno nunca se muestra afuera. Con Google Maps, calendario y compartir.
+              encuentro interno nunca se muestra afuera. Con Google Maps, agregar al calendario y
+              compartir.
             </p>
-            <span className="read-more">VER <Arrow /></span>
-          </button>
-          <button className="guide-card dark" onClick={() => go("/juegos")}>
+          </article>
+          <article className="guide-card dark">
             <PeronometroLogo compact />
             <h3>PERONÓMETRO</h3>
             <p>
@@ -82,33 +64,37 @@ export default function Presentacion() {
               lista para desafiar por WhatsApp. La puerta de entrada para los que todavía no
               militan.
             </p>
-            <span className="read-more">JUGAR <Arrow /></span>
-          </button>
-          <button className="guide-card" onClick={() => go("/comunidad")}>
+          </article>
+          <article className="guide-card p365">
+            <span className="guide-icon p365-icon">
+              365<i />
+            </span>
+            <h3>PERÓN 365</h3>
+            <p>
+              Una idea por día: una frase documentada de Perón, con su fuente histórica, que
+              aparece cada mañana y se convierte en una placa lista para compartir. Cada frase tiene
+              su enlace permanente y su archivo.
+            </p>
+          </article>
+          <article className="guide-card">
             <span className="guide-icon">✦</span>
             <h3>LA COMUNIDAD</h3>
             <p>
               Espacio privado con invitación e ingreso con Google: foro por causas y por barrio,
               anuncios de conducción, materiales y territorios. Hasta 500 miembros.
             </p>
-            <span className="read-more">CONOCER <Arrow /></span>
-          </button>
-          <button className="guide-card" onClick={() => go("/panel")}>
-            <span className="guide-icon">⚙</span>
-            <h3>PANEL DE CONTROL</h3>
-            <p>
-              Todo lo anterior se administra sin programadores: cargar contenido es llenar un
-              formulario. Roles de administración, edición, moderación y referentes territoriales.
-            </p>
-            <span className="read-more">ENTRAR <Arrow /></span>
-          </button>
+          </article>
         </div>
       </section>
 
       <section className="guide-how">
         <div className="section guide-how-inner">
-          <span className="eyebrow light">ASÍ SE CARGA</span>
+          <span className="eyebrow light">SIN PROGRAMADORES</span>
           <h2>PUBLICAR ES ASÍ DE SIMPLE</h2>
+          <p className="guide-how-lead">
+            Todo el contenido se administra desde un panel de control con roles (administración,
+            edición, moderación y referentes territoriales). Cargar algo es llenar un formulario.
+          </p>
           <ol className="guide-steps">
             <li>
               <strong>01</strong>
@@ -182,15 +168,12 @@ export default function Presentacion() {
         </div>
       </section>
 
-      <section className="guide-note">
-        <LockIcon />
-        <p>
-          Estás viendo una <b>versión de prueba privada</b>. Nada de esto está publicado: la clave
-          de ingreso existe para poder revisar tranquilos. La decisión de cuándo y cómo sale es de
-          la conducción.
-        </p>
-        <button className="button button-cream" onClick={() => go("/")}>
-          RECORRER EL PORTAL <Arrow />
+      <section className="guide-cta">
+        <span className="eyebrow light">FIN DEL RECORRIDO</span>
+        <h2>AHORA SÍ, ENTRÁ A CONOCERLO.</h2>
+        <p>Recorré el portal completo, jugá al Peronómetro y mirá la frase del día.</p>
+        <button className="button button-game guide-cta-button" onClick={() => navigate("/")}>
+          INGRESAR A LA APP <Arrow />
         </button>
       </section>
     </div>
