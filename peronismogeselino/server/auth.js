@@ -3,19 +3,57 @@ import crypto from "node:crypto";
 const SESSION_COOKIE = "pg_session";
 const SESSION_DAYS = 30;
 
-// Qué módulos del panel puede tocar cada rol. El administrador puede todo.
+// Módulos de contenido que puede cargar un editor (queda pendiente de
+// aprobación) o gestionar un admin.
+const CONTENT_GRANTS = [
+  "news",
+  "causes",
+  "events",
+  "questions",
+  "announcements",
+  "materials",
+  "peron365",
+];
+
+// El admin manager: aprueba y controla editores; NO toca ajustes (diseño,
+// estructura, concepto). El admin builder puede todo ("*").
+const MANAGER_GRANTS = [...CONTENT_GRANTS, "approve", "moderation", "members", "territorio"];
+
+// Qué módulos del panel puede tocar cada rol.
 const ROLE_GRANTS = {
-  admin: ["*"],
-  editor: ["news", "causes", "events", "questions", "announcements", "materials", "peron365"],
+  admin: ["*"], // admin builder (tier por defecto)
+  editor: [...CONTENT_GRANTS],
   moderator: ["moderation", "announcements"],
   referente: ["territorio"],
   member: [],
 };
 
+function grantsFor(member) {
+  if (member.role === "admin") {
+    return member.adminTier === "manager" ? MANAGER_GRANTS : ["*"];
+  }
+  return ROLE_GRANTS[member.role] ?? [];
+}
+
 export function can(member, grant) {
   if (!member) return false;
-  const grants = ROLE_GRANTS[member.role] ?? [];
+  const grants = grantsFor(member);
   return grants.includes("*") || grants.includes(grant);
+}
+
+/** Un builder tiene control total; un manager no decide diseño/estructura. */
+export function isBuilder(member) {
+  return Boolean(member) && member.role === "admin" && member.adminTier !== "manager";
+}
+
+/** Puede aprobar contenido pendiente (builder o manager). */
+export function canApprove(member) {
+  return can(member, "approve") || isBuilder(member);
+}
+
+/** El contenido de un editor entra pendiente de aprobación. */
+export function needsApproval(member) {
+  return Boolean(member) && member.role === "editor";
 }
 
 export function hasPanelAccess(member) {

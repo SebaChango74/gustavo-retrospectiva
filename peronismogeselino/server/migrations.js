@@ -259,3 +259,26 @@ MIGRATIONS.push({
     CREATE INDEX idx_p365_days_quote ON peron365_days(quote_id, day_key);
   `,
 });
+
+// Estructura de colaboradores: admin builder / admin manager / editores con
+// aprobación. Sin recrear tablas (columnas agregadas de forma segura).
+MIGRATIONS.push({
+  name: "003_colaboradores",
+  sql: `
+    -- Nivel de administración: 'builder' (acceso total) o 'manager'
+    -- (aprueba y controla editores, sin decidir diseño/estructura/config).
+    ALTER TABLE members ADD COLUMN admin_tier TEXT NOT NULL DEFAULT 'builder';
+
+    -- Contenido a la espera de aprobación de un admin (lo envía un editor).
+    ALTER TABLE news ADD COLUMN pending INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE causes ADD COLUMN pending INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE events ADD COLUMN pending INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE announcements ADD COLUMN pending INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE materials ADD COLUMN pending INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE news ADD COLUMN submitted_by INTEGER;
+    ALTER TABLE causes ADD COLUMN submitted_by INTEGER;
+    ALTER TABLE events ADD COLUMN submitted_by INTEGER;
+    ALTER TABLE announcements ADD COLUMN submitted_by INTEGER;
+    ALTER TABLE materials ADD COLUMN submitted_by INTEGER;
+  `,
+});
