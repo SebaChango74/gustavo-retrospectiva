@@ -125,7 +125,11 @@ export default function Home() {
           {data.news.map((item, index) => (
             <article className={item.featured ? "news-card featured" : "news-card"} key={item.slug}>
               <button onClick={() => go(`/noticias/${item.slug}`)} aria-label={`Abrir ${item.title}`}>
-                <div className="news-image">{item.image && <img src={item.image} alt="" />}</div>
+                {item.image && (
+                  <div className="news-image">
+                    <img src={item.image} alt="" />
+                  </div>
+                )}
                 <div className="news-body">
                   <div className="meta">
                     <span>{item.tag}</span>
@@ -211,6 +215,13 @@ export default function Home() {
               </div>
             </article>
           )}
+          <button className="agenda-cta" onClick={() => go("/agenda")}>
+            <div>
+              <span>AGENDA COMPLETA</span>
+              <strong>Todas las actividades, públicas y de la comunidad</strong>
+            </div>
+            <Arrow />
+          </button>
         </div>
 
         <div className="games-column" id="juegos">
