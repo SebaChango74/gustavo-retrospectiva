@@ -87,7 +87,15 @@ export type CauseSummary = {
 
 export type HomePayload = {
   news: NewsItem[];
+  newsTotal: number;
   cause: CauseSummary | null;
   events: EventItem[];
   stats: { territorios: string; causasActivas: string; municipios: string };
+};
+
+export type NewsArchive = {
+  news: NewsItem[];
+  page: number;
+  pages: number;
+  total: number;
 };

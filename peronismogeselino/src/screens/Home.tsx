@@ -29,6 +29,7 @@ const FALLBACK: HomePayload = {
     progress_from: "Pedido presentado",
     progress_next: "Próximo paso: audiencia",
   },
+  newsTotal: 1,
   events: [],
   stats: { territorios: "23", causasActivas: "2", municipios: "135" },
 };
@@ -120,7 +121,12 @@ export default function Home() {
       <Peron365Home />
 
       <section className="section news-section" id="noticias">
-        <SectionHeading eyebrow="AHORA" title="LO QUE ESTÁ PASANDO" />
+        <SectionHeading
+          eyebrow="AHORA"
+          title="LO QUE ESTÁ PASANDO"
+          action={data.newsTotal > 6 ? "Ver todas las noticias" : undefined}
+          onAction={() => go("/noticias")}
+        />
         <div className="news-grid">
           {data.news.map((item, index) => (
             <article className={item.featured ? "news-card featured" : "news-card"} key={item.slug}>

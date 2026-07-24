@@ -11,6 +11,7 @@ import Community from "./screens/Community";
 import Panel from "./panel/Panel";
 import Presentacion from "./screens/Presentacion";
 import News from "./screens/News";
+import NewsList from "./screens/NewsList";
 import Peron365 from "./screens/Peron365";
 
 export default function App() {
@@ -39,6 +40,7 @@ export default function App() {
         <main>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/noticias" element={<NewsList />} />
             <Route path="/noticias/:slug" element={<News />} />
             <Route path="/causas" element={<Cause />} />
             <Route path="/causas/:slug" element={<Cause />} />

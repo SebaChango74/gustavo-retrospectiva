@@ -40,8 +40,12 @@ export function publicRoutes(db) {
     const causesCount = db
       .prepare("SELECT COUNT(*) AS n FROM causes WHERE status = 'published'")
       .get().n;
+    const newsTotal = db
+      .prepare("SELECT COUNT(*) AS n FROM news WHERE status = 'published'")
+      .get().n;
     res.json({
       news,
+      newsTotal,
       cause,
       events,
       stats: {
@@ -52,14 +56,23 @@ export function publicRoutes(db) {
     });
   });
 
-  router.get("/news", (_req, res) => {
+  // Archivo de noticias paginado: 6 por página, más recientes primero.
+  router.get("/news", (req, res) => {
+    const pageSize = 6;
+    const total = db
+      .prepare("SELECT COUNT(*) AS n FROM news WHERE status = 'published'")
+      .get().n;
+    const pages = Math.max(1, Math.ceil(total / pageSize));
+    const page = Math.min(pages, Math.max(1, Number(req.query.page) || 1));
     const rows = db
       .prepare(`
-        SELECT slug, tag, title, summary, body, image, featured, published_at
-        FROM news WHERE status = 'published' ORDER BY published_at DESC LIMIT 50
+        SELECT slug, tag, title, summary, image, published_at
+        FROM news WHERE status = 'published'
+        ORDER BY published_at DESC
+        LIMIT ? OFFSET ?
       `)
-      .all();
-    res.json({ news: rows });
+      .all(pageSize, (page - 1) * pageSize);
+    res.json({ news: rows, page, pages, total });
   });
 
   router.get("/news/:slug", (req, res) => {
