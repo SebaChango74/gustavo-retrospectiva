@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { MIGRATIONS } from "./migrations.js";
 import { seed } from "./seed.js";
+import { scheduleBackups } from "./backup.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -21,6 +22,7 @@ export function getDb() {
   db.exec("PRAGMA foreign_keys = ON;");
   migrate(db);
   seed(db);
+  if (process.env.PG_BACKUPS !== "0") scheduleBackups(db, DB_FILE);
   return db;
 }
 

@@ -222,3 +222,55 @@ test("Perón 365: el archivo lista el día publicado", async () => {
   assert.ok(data.days.length >= 1);
   assert.ok(data.days[0].shortText.length > 0);
 });
+
+test("blindaje: encabezados de seguridad presentes", async () => {
+  const response = await fetch(`${base}/peronismogeselino/`);
+  const csp = response.headers.get("content-security-policy") || "";
+  assert.ok(csp.includes("default-src 'self'"), "CSP restringe el origen");
+  assert.ok(csp.includes("object-src 'none'"), "CSP bloquea plugins");
+  assert.ok(csp.includes("frame-ancestors 'self'"), "CSP evita ser embebido");
+  assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+  assert.equal(response.headers.get("x-frame-options"), "SAMEORIGIN");
+  assert.ok((response.headers.get("referrer-policy") || "").length > 0);
+});
+
+test("blindaje: anti-CSRF rechaza un origen ajeno", async () => {
+  const response = await fetch(`${base}/peronismogeselino/api/auth/dev`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Origin: "https://sitio-malicioso.example" },
+    body: JSON.stringify({ email: "admin@example.com" }),
+  });
+  assert.equal(response.status, 403);
+});
+
+test("blindaje: el ingreso de desarrollo se apaga solo al publicar", async () => {
+  const { devLoginEnabled } = await import("../dev-login.js");
+  const prevDev = process.env.PG_DEV;
+  const prevPreview = process.env.PG_PREVIEW_CODE;
+  const prevEnv = process.env.NODE_ENV;
+
+  process.env.PG_DEV = "1";
+  process.env.PG_PREVIEW_CODE = "clave";
+  assert.equal(devLoginEnabled(), true, "privado con clave: habilitado");
+
+  delete process.env.PG_PREVIEW_CODE;
+  process.env.NODE_ENV = "production";
+  assert.equal(devLoginEnabled(), false, "publicado sin clave: se apaga solo");
+
+  process.env.PG_DEV = "0";
+  assert.equal(devLoginEnabled(), false);
+
+  process.env.PG_DEV = prevDev;
+  if (prevPreview) process.env.PG_PREVIEW_CODE = prevPreview;
+  process.env.NODE_ENV = prevEnv;
+});
+
+test("blindaje: no se puede escalar el propio rol", async () => {
+  const { cookie } = await login("vecina@example.com");
+  const attempt = await fetch(`${base}/peronismogeselino/api/admin/members`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", cookie },
+    body: JSON.stringify({ email: "nuevo@example.com", role: "admin" }),
+  });
+  assert.equal(attempt.status, 403, "un miembro no puede crear administradores");
+});

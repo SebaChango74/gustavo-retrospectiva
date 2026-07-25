@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { parseJson, publicEvent, mapsEmbedUrl } from "../util.js";
+import { devLoginEnabled } from "../dev-login.js";
 
 export function publicRoutes(db) {
   const router = Router();
@@ -7,7 +8,7 @@ export function publicRoutes(db) {
   router.get("/config", (_req, res) => {
     res.json({
       googleClientId: process.env.PG_GOOGLE_CLIENT_ID || "",
-      devLogin: process.env.PG_DEV === "1",
+      devLogin: devLoginEnabled(),
       preview: Boolean(process.env.PG_PREVIEW_CODE),
     });
   });

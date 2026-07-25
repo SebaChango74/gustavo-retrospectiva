@@ -45,11 +45,55 @@ export function createApp(db) {
   }
 
   // Encabezados de seguridad para todo el sitio.
-  app.use((_req, res, next) => {
+  app.use((req, res, next) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
     res.setHeader("X-Frame-Options", "SAMEORIGIN");
     res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+    // HSTS: solo cuando ya se sirve por HTTPS, para no bloquear pruebas locales.
+    if (req.secure || req.headers["x-forwarded-proto"] === "https") {
+      res.setHeader("Strict-Transport-Security", "max-age=15552000; includeSubDomains");
+    }
+    // Política de contenido: solo scripts propios y los de Google necesarios
+    // para el ingreso; mapas embebidos de Google; nada de plugins ni marcos
+    // ajenos. Bloquea la ejecución de scripts inyectados.
+    res.setHeader(
+      "Content-Security-Policy",
+      [
+        "default-src 'self'",
+        "script-src 'self' https://accounts.google.com https://apis.google.com",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "font-src 'self' https://fonts.gstatic.com data:",
+        "img-src 'self' data: blob: https:",
+        "connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com",
+        "frame-src https://www.google.com https://accounts.google.com",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'self'",
+      ].join("; "),
+    );
+    next();
+  });
+
+  // Anti-CSRF: un sitio ajeno no puede provocar acciones con tu sesión. Si el
+  // navegador informa un origen y no es el propio, se rechaza.
+  app.use((req, res, next) => {
+    if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
+    const origin = req.headers.origin;
+    if (origin) {
+      const host = req.headers["x-forwarded-host"] || req.headers.host;
+      let originHost = "";
+      try {
+        originHost = new URL(origin).host;
+      } catch {
+        originHost = "";
+      }
+      if (originHost && host && originHost !== host) {
+        return res.status(403).json({ error: "Origen no permitido." });
+      }
+    }
     next();
   });
 

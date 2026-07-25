@@ -9,6 +9,7 @@ import {
   hasPanelAccess,
 } from "../auth.js";
 import { audit, str } from "../util.js";
+import { devLoginEnabled } from "../dev-login.js";
 
 export function authRoutes(db) {
   const router = Router();
@@ -38,8 +39,8 @@ export function authRoutes(db) {
     return finishLogin(db, res, profile);
   });
 
-  // Ingreso de desarrollo: solo existe cuando el servidor corre con PG_DEV=1.
-  if (process.env.PG_DEV === "1") {
+  // Ingreso de desarrollo: ver server/dev-login.js. Se apaga solo al publicar.
+  if (devLoginEnabled()) {
     router.post("/dev", (req, res) => {
       const email = str(req.body?.email, 254).toLowerCase();
       if (!email) return res.status(400).json({ error: "Falta el correo." });
