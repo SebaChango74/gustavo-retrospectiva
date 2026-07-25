@@ -2,4 +2,6 @@
 cmds = ["npm run build"]
 
 [start]
-cmd = "npm start"
+# Node directo, sin npm de por medio: así el proceso recibe la señal de cierre
+# y se apaga ordenado. Con npm intermedio el apagado se reporta como caída.
+cmd = "node peronismogeselino/server/index.js"
