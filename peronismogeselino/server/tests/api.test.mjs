@@ -274,3 +274,70 @@ test("blindaje: no se puede escalar el propio rol", async () => {
   });
   assert.equal(attempt.status, 403, "un miembro no puede crear administradores");
 });
+
+test("colaboradores: lo que carga un editor no sale hasta que un admin aprueba", async () => {
+  db.prepare(
+    "INSERT INTO members (email, name, role, status) VALUES (?, ?, 'editor', 'active')",
+  ).run("editor@example.com", "Editor Test");
+  const { cookie: editorCookie } = await login("editor@example.com");
+
+  // El editor publica una noticia
+  const created = await fetch(`${base}/peronismogeselino/api/admin/news`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", cookie: editorCookie },
+    body: JSON.stringify({ title: "Nota de un editor", summary: "Prueba", status: "published" }),
+  });
+  assert.equal(created.status, 200);
+  const { id } = await created.json();
+
+  // Queda pendiente: el portal público NO la muestra
+  const publicList = await fetch(`${base}/peronismogeselino/api/public/news?page=1`);
+  const publicData = await publicList.json();
+  assert.ok(
+    !publicData.news.some((n) => n.title === "Nota de un editor"),
+    "el contenido pendiente no se publica solo",
+  );
+
+  // El editor no puede aprobar
+  const editorApprove = await fetch(
+    `${base}/peronismogeselino/api/admin/pending/news/${id}/approve`,
+    { method: "POST", headers: { cookie: editorCookie } },
+  );
+  assert.equal(editorApprove.status, 403);
+
+  // El admin ve la bandeja y aprueba
+  const { cookie: adminCookie } = await login("admin@example.com");
+  const pending = await fetch(`${base}/peronismogeselino/api/admin/pending`, {
+    headers: { cookie: adminCookie },
+  });
+  const pendingData = await pending.json();
+  assert.ok(pendingData.items.some((i) => i.id === id && i.table === "news"));
+
+  const approved = await fetch(
+    `${base}/peronismogeselino/api/admin/pending/news/${id}/approve`,
+    { method: "POST", headers: { cookie: adminCookie } },
+  );
+  assert.equal(approved.status, 200);
+
+  // Ahora sí aparece en el portal
+  const after = await fetch(`${base}/peronismogeselino/api/public/news?page=1`);
+  const afterData = await after.json();
+  assert.ok(afterData.news.some((n) => n.title === "Nota de un editor"), "aprobada: ya se ve");
+});
+
+test("colaboradores: el admin manager aprueba pero no toca los ajustes", async () => {
+  db.prepare(
+    "INSERT INTO members (email, name, role, status, admin_tier) VALUES (?, ?, 'admin', 'active', 'manager')",
+  ).run("manager@example.com", "Manager Test");
+  const { cookie } = await login("manager@example.com");
+
+  const canSeePending = await fetch(`${base}/peronismogeselino/api/admin/pending`, {
+    headers: { cookie },
+  });
+  assert.equal(canSeePending.status, 200, "el manager ve la bandeja de aprobación");
+
+  const settings = await fetch(`${base}/peronismogeselino/api/admin/settings`, {
+    headers: { cookie },
+  });
+  assert.equal(settings.status, 403, "el manager no entra a los ajustes");
+});

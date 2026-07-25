@@ -14,7 +14,7 @@ export function communityRoutes(db) {
         SELECT a.id, a.title, a.body, a.pinned, a.created_at,
           e.id AS event_id, e.title AS event_title, e.starts_at AS event_starts_at
         FROM announcements a LEFT JOIN events e ON e.id = a.event_id
-        WHERE a.status = 'published'
+        WHERE a.status = 'published' AND a.pending = 0
         ORDER BY a.pinned DESC, a.id DESC LIMIT 10
       `)
       .all();
@@ -22,7 +22,7 @@ export function communityRoutes(db) {
     const nextEventRow = db
       .prepare(`
         SELECT * FROM events
-        WHERE status = 'published' AND datetime(starts_at) >= datetime('now', '-6 hours')
+        WHERE status = 'published' AND pending = 0 AND datetime(starts_at) >= datetime('now', '-6 hours')
         ORDER BY starts_at ASC LIMIT 1
       `)
       .get();
@@ -161,7 +161,7 @@ export function communityRoutes(db) {
     res.json({
       items: db
         .prepare(
-          "SELECT id, title, description, url, kind, created_at FROM materials WHERE status = 'published' ORDER BY id DESC",
+          "SELECT id, title, description, url, kind, created_at FROM materials WHERE status = 'published' AND pending = 0 ORDER BY id DESC",
         )
         .all(),
     });

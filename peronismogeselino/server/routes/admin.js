@@ -1,9 +1,44 @@
 import { Router } from "express";
-import { requireGrant } from "../auth.js";
+import { requireGrant, canApprove } from "../auth.js";
 import { audit, intIn, parseJson, slugify, str } from "../util.js";
+import { APPROVABLE, approveItem, markPending, pendingItems, rejectItem } from "../approval.js";
 
 export function adminRoutes(db) {
   const router = Router();
+
+  // ─── Aprobaciones (lo que enviaron los editores) ──────────────────────────
+  router.get("/pending", (req, res) => {
+    if (!canApprove(req.member)) {
+      return res.status(403).json({ error: "No tenés permisos para aprobar." });
+    }
+    res.json({ items: pendingItems(db) });
+  });
+
+  router.post("/pending/:table/:id/approve", (req, res) => {
+    if (!canApprove(req.member)) {
+      return res.status(403).json({ error: "No tenés permisos para aprobar." });
+    }
+    const { table, id } = req.params;
+    if (!APPROVABLE[table]) return res.status(400).json({ error: "Sección inválida." });
+    if (!approveItem(db, table, id)) {
+      return res.status(404).json({ error: "No hay nada pendiente con ese identificador." });
+    }
+    audit(db, req.member.id, "approve", table, id);
+    res.json({ ok: true });
+  });
+
+  router.post("/pending/:table/:id/reject", (req, res) => {
+    if (!canApprove(req.member)) {
+      return res.status(403).json({ error: "No tenés permisos para aprobar." });
+    }
+    const { table, id } = req.params;
+    if (!APPROVABLE[table]) return res.status(400).json({ error: "Sección inválida." });
+    if (!rejectItem(db, table, id)) {
+      return res.status(404).json({ error: "No hay nada pendiente con ese identificador." });
+    }
+    audit(db, req.member.id, "reject", table, id, str(req.body?.reason, 300));
+    res.json({ ok: true });
+  });
 
   // ─── Noticias ──────────────────────────────────────────────────────────────
   router.get("/news", requireGrant("news"), (_req, res) => {
@@ -31,6 +66,7 @@ export function adminRoutes(db) {
         oneOf(b.status, ["draft", "published", "archived"], "draft"),
         str(b.publishedAt, 40) || new Date().toISOString(),
       );
+    markPending(db, "news", info.lastInsertRowid, req.member);
     audit(db, req.member.id, "create", "news", info.lastInsertRowid, title);
     res.json({ id: info.lastInsertRowid });
   });
@@ -54,6 +90,7 @@ export function adminRoutes(db) {
       str(b.publishedAt, 40) || new Date().toISOString(),
       row.id,
     );
+    markPending(db, "news", row.id, req.member);
     audit(db, req.member.id, "update", "news", row.id);
     res.json({ ok: true });
   });
@@ -84,6 +121,7 @@ export function adminRoutes(db) {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
       .run(...causeParams(b, title, slug));
+    markPending(db, "causes", info.lastInsertRowid, req.member);
     audit(db, req.member.id, "create", "causes", info.lastInsertRowid, title);
     res.json({ id: info.lastInsertRowid });
   });
@@ -118,6 +156,7 @@ export function adminRoutes(db) {
         );
       });
     }
+    markPending(db, "causes", row.id, req.member);
     audit(db, req.member.id, "update", "causes", row.id);
     res.json({ ok: true });
   });
@@ -154,6 +193,7 @@ export function adminRoutes(db) {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
       .run(...eventParams(b, title, startsAt));
+    markPending(db, "events", info.lastInsertRowid, req.member);
     audit(db, req.member.id, "create", "events", info.lastInsertRowid, title);
     res.json({ id: info.lastInsertRowid });
   });
@@ -168,6 +208,7 @@ export function adminRoutes(db) {
         visibility = ?, status = ?, updated_at = datetime('now')
       WHERE id = ?
     `).run(...eventParams(b, str(b.title, 200), str(b.startsAt, 40)), row.id);
+    markPending(db, "events", row.id, req.member);
     audit(db, req.member.id, "update", "events", row.id);
     res.json({ ok: true });
   });
@@ -249,7 +290,7 @@ export function adminRoutes(db) {
   router.get("/members", requireGrant("members"), (_req, res) => {
     const items = db
       .prepare(`
-        SELECT m.id, m.email, m.name, m.role, m.status, m.territory_id, m.last_login_at,
+        SELECT m.id, m.email, m.name, m.role, m.admin_tier, m.status, m.territory_id, m.last_login_at,
           m.created_at, t.name AS territory_name
         FROM members m LEFT JOIN territories t ON t.id = m.territory_id
         ORDER BY m.created_at DESC
@@ -300,13 +341,15 @@ export function adminRoutes(db) {
     if (row.id === req.member.id && role !== "admin") {
       return res.status(400).json({ error: "No podés quitarte tu propio rol de administración." });
     }
+    const tier = req.body?.adminTier === "manager" ? "manager" : "builder";
     db.prepare(
-      "UPDATE members SET name = ?, role = ?, status = ?, territory_id = ? WHERE id = ?",
+      "UPDATE members SET name = ?, role = ?, status = ?, territory_id = ?, admin_tier = ? WHERE id = ?",
     ).run(
       str(req.body?.name ?? row.name, 120),
       role,
       status,
       req.body?.territoryId ? Number(req.body.territoryId) : null,
+      tier,
       row.id,
     );
     if (status === "suspended") {
@@ -389,6 +432,7 @@ export function adminRoutes(db) {
         oneOf(req.body?.status, ["draft", "published", "archived"], "published"),
         req.member.id,
       );
+    markPending(db, "announcements", info.lastInsertRowid, req.member);
     audit(db, req.member.id, "create", "announcement", info.lastInsertRowid, title);
     res.json({ id: info.lastInsertRowid });
   });
@@ -434,6 +478,7 @@ export function adminRoutes(db) {
         oneOf(req.body?.status, ["draft", "published", "archived"], "published"),
         req.member.id,
       );
+    markPending(db, "materials", info.lastInsertRowid, req.member);
     res.json({ id: info.lastInsertRowid });
   });
 

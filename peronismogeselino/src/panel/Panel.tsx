@@ -8,6 +8,7 @@ import { Moderation } from "./Moderation";
 import { Results } from "./Results";
 import { SettingsModule } from "./Settings";
 import { Peron365Admin } from "./Peron365Admin";
+import { Approvals } from "./Approvals";
 import { dateLabel } from "../ui";
 
 const IMAGES = [
@@ -34,6 +35,7 @@ const contentStatus = [
 
 // Espejo de los permisos del servidor, solo para armar el menú.
 const MODULES: { key: string; label: string; roles: string[] }[] = [
+  { key: "aprobaciones", label: "Aprobaciones", roles: ["admin"] },
   { key: "noticias", label: "Noticias", roles: ["admin", "editor"] },
   { key: "causas", label: "Causas vivas", roles: ["admin", "editor"] },
   { key: "agenda", label: "Agenda", roles: ["admin", "editor"] },
@@ -119,6 +121,7 @@ export default function Panel() {
         <div className="panel-content">
           <Routes>
             <Route path="/" element={<Navigate to={`/panel/${visible[0]?.key ?? ""}`} replace />} />
+            <Route path="aprobaciones" element={<Approvals />} />
             <Route path="noticias" element={<NewsModule />} />
             <Route path="causas" element={<CausesModule />} />
             <Route path="agenda" element={<EventsModule />} />
@@ -143,6 +146,7 @@ export function roleLabel(role: string): string {
   return (
     {
       admin: "Administración",
+      admin_manager: "Administración (control)",
       editor: "Edición",
       moderator: "Moderación",
       referente: "Referente territorial",

@@ -862,3 +862,20 @@ footer img { width: 150px; }
   .archive-pager { gap: 12px; }
   .archive-pager .pager-arrow { flex: 1 1 auto; }
 }
+
+/* ───────────────────────── Aprobaciones ───────────────────────── */
+.approvals-list { display: flex; flex-direction: column; gap: 12px; }
+.approval-card { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 22px; background: var(--paper); border: 1px solid var(--line); border-left: 4px solid var(--gold); border-radius: 10px; }
+.approval-main { min-width: 0; }
+.approval-tag { display: inline-block; padding: 3px 9px; background: var(--cream); color: var(--cobalt); border-radius: 5px; font-size: 9px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.approval-main strong { display: block; margin: 8px 0 4px; font-size: 16px; color: var(--navy); }
+.approval-main small { color: var(--muted); font-size: 12px; }
+.approval-actions { display: flex; gap: 10px; flex: none; }
+.approval-actions .button { min-height: 42px; padding: 0 18px; font-size: 13px; }
+.approvals-empty { padding: 44px; text-align: center; background: var(--paper); border: 1px dashed var(--line); border-radius: 12px; }
+.approvals-empty strong { display: block; font-family: "Barlow Condensed", sans-serif; font-size: 26px; color: var(--navy); }
+.approvals-empty p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+@media (max-width: 780px) {
+  .approval-card { flex-direction: column; align-items: stretch; }
+  .approval-actions .button { flex: 1; }
+}

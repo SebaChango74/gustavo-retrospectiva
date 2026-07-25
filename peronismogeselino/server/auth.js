@@ -133,6 +133,7 @@ export function attachMember(db) {
           name: row.name,
           picture: row.picture,
           role: row.role,
+          adminTier: row.admin_tier ?? "builder",
           territoryId: row.territory_id,
           territoryName: row.territory_name ?? "",
         };

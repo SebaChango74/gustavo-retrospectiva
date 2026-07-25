@@ -49,6 +49,7 @@ export function Members() {
         role: row.role,
         status: row.status,
         territoryId: row.territory_id,
+        adminTier: row.admin_tier ?? "builder",
         ...patch,
       });
       members.reload();
@@ -122,6 +123,7 @@ export function Members() {
               <th>Correo</th>
               <th>Nombre</th>
               <th>Rol</th>
+              <th>Nivel</th>
               <th>Territorio</th>
               <th>Estado</th>
               <th>Último ingreso</th>
@@ -144,6 +146,19 @@ export function Members() {
                       </option>
                     ))}
                   </select>
+                </td>
+                <td>
+                  {row.role === "admin" ? (
+                    <select
+                      value={row.admin_tier ?? "builder"}
+                      onChange={(e) => update(row.id, { adminTier: e.target.value }, row)}
+                    >
+                      <option value="builder">Builder (todo)</option>
+                      <option value="manager">Manager (aprueba)</option>
+                    </select>
+                  ) : (
+                    <span className="panel-dim">—</span>
+                  )}
                 </td>
                 <td>
                   <select
