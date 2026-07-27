@@ -55,19 +55,19 @@ export function createApp(db) {
     if (req.secure || req.headers["x-forwarded-proto"] === "https") {
       res.setHeader("Strict-Transport-Security", "max-age=15552000; includeSubDomains");
     }
-    // Política de contenido: solo scripts propios y los de Google necesarios
-    // para el ingreso; mapas embebidos de Google; nada de plugins ni marcos
-    // ajenos. Bloquea la ejecución de scripts inyectados.
+    // Política de contenido: solo scripts propios. Lo único ajeno que se
+    // carga son las tipografías y los mapas embebidos. Bloquea la ejecución
+    // de scripts inyectados.
     res.setHeader(
       "Content-Security-Policy",
       [
         "default-src 'self'",
-        "script-src 'self' https://accounts.google.com https://apis.google.com",
+        "script-src 'self'",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src 'self' https://fonts.gstatic.com data:",
         "img-src 'self' data: blob: https:",
-        "connect-src 'self' https://accounts.google.com https://oauth2.googleapis.com",
-        "frame-src https://www.google.com https://accounts.google.com",
+        "connect-src 'self'",
+        "frame-src https://www.google.com",
         "object-src 'none'",
         "base-uri 'self'",
         "form-action 'self'",
@@ -237,10 +237,19 @@ function previewPage(wrongCode) {
 </form></body></html>`;
 }
 
+/**
+ * Las pruebas hacen decenas de ingresos seguidos y chocarían con el límite.
+ * Nunca se apaga en producción, aunque la variable esté puesta por error.
+ */
+function limiteApagado() {
+  return process.env.PG_RATE_LIMIT_OFF === "1" && process.env.NODE_ENV !== "production";
+}
+
 // Limitador de ritmo simple en memoria, suficiente para el volumen del portal.
 function rateLimit({ windowMs, max, methods }) {
   const hits = new Map();
   return (req, res, next) => {
+    if (limiteApagado()) return next();
     if (methods && !methods.includes(req.method)) return next();
     const now = Date.now();
     const key = req.ip || "local";

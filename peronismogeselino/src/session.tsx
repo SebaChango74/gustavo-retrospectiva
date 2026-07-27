@@ -8,12 +8,25 @@ import {
 } from "react";
 import { api, type Member } from "./api";
 
+export type Ingreso = {
+  nombre: string;
+  whatsapp: string;
+  afiliado?: string;
+  clave?: string;
+};
+
+export type RespuestaIngreso = {
+  member?: Member;
+  pendiente?: boolean;
+  whatsapp?: string;
+  mensaje?: string;
+};
+
 type SessionState = {
   member: Member | null;
   loading: boolean;
   refresh: () => Promise<void>;
-  loginWithGoogleCredential: (credential: string) => Promise<Member>;
-  loginDev: (email: string) => Promise<Member>;
+  ingresar: (datos: Ingreso) => Promise<RespuestaIngreso>;
   logout: () => Promise<void>;
 };
 
@@ -38,16 +51,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     refresh();
   }, [refresh]);
 
-  const loginWithGoogleCredential = useCallback(async (credential: string) => {
-    const data = await api.post<{ member: Member }>("/auth/google", { credential });
-    setMember(data.member);
-    return data.member;
-  }, []);
-
-  const loginDev = useCallback(async (email: string) => {
-    const data = await api.post<{ member: Member }>("/auth/dev", { email });
-    setMember(data.member);
-    return data.member;
+  const ingresar = useCallback(async (datos: Ingreso) => {
+    const data = await api.post<RespuestaIngreso>("/auth/ingresar", datos);
+    if (data.member) setMember(data.member);
+    return data;
   }, []);
 
   const logout = useCallback(async () => {
@@ -57,7 +64,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   return (
     <SessionContext.Provider
-      value={{ member, loading, refresh, loginWithGoogleCredential, loginDev, logout }}
+      value={{ member, loading, refresh, ingresar, logout }}
     >
       {children}
     </SessionContext.Provider>

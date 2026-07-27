@@ -36,16 +36,31 @@ function migrate(db) {
   );
   for (const migration of MIGRATIONS) {
     if (applied.has(migration.name)) continue;
+    // Las migraciones que rehacen una tabla necesitan las claves foráneas
+    // apagadas: si no, el DROP dispara los borrados en cascada de las tablas
+    // hijas (sesiones, referencias) y se pierden datos que queremos conservar.
+    const sinClaves = migration.foreignKeysOff === true;
+    if (sinClaves) db.exec("PRAGMA foreign_keys = OFF;");
     db.exec("BEGIN");
     try {
       db.exec(migration.sql);
       db.prepare("INSERT INTO _migrations (name) VALUES (?)").run(migration.name);
       db.exec("COMMIT");
-      console.log(`migración aplicada: ${migration.name}`);
     } catch (error) {
       db.exec("ROLLBACK");
+      if (sinClaves) db.exec("PRAGMA foreign_keys = ON;");
       throw error;
     }
+    if (sinClaves) {
+      db.exec("PRAGMA foreign_keys = ON;");
+      const rotas = db.prepare("PRAGMA foreign_key_check").all();
+      if (rotas.length) {
+        throw new Error(
+          `${migration.name} dejó ${rotas.length} referencias rotas; revisá la migración.`,
+        );
+      }
+    }
+    console.log(`migración aplicada: ${migration.name}`);
   }
 }
 

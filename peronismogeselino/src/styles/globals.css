@@ -552,10 +552,27 @@ footer img { width: 150px; }
 .panel-login h1 { margin: 0; font-family: "Barlow Condensed", sans-serif; font-size: clamp(48px, 6vw, 84px); line-height: .87; }
 .panel-login > p { max-width: 480px; margin: 0 0 12px; color: rgba(255,255,255,.72); }
 .panel-login .text-action { margin-top: 26px; }
-.google-login-zone { display: flex; flex-direction: column; gap: 14px; max-width: 460px; width: 100%; min-width: 0; }
-.dev-login { display: flex; flex-wrap: wrap; gap: 8px; min-width: 0; }
-.dev-login input { flex: 1 1 200px; min-width: 0; padding: 10px 12px; border: 1px solid rgba(255,255,255,.35); border-radius: 8px; background: rgba(255,255,255,.08); color: white; font: inherit; }
-.dev-login button { padding: 10px 16px; border: 0; border-radius: 8px; background: var(--sky); color: var(--navy); font-weight: 800; cursor: pointer; }
+/* Ingreso por nombre + WhatsApp */
+.ingreso { display: flex; flex-direction: column; gap: 18px; max-width: 460px; width: 100%; min-width: 0; }
+.ingreso-campo { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ingreso-campo > span { font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: rgba(255,255,255,.78); }
+.ingreso-campo > span em { font-style: normal; font-weight: 500; text-transform: none; letter-spacing: 0; color: rgba(255,255,255,.5); }
+.ingreso-campo input { width: 100%; min-width: 0; padding: 12px 14px; border: 1px solid rgba(255,255,255,.35); border-radius: 8px; background: rgba(255,255,255,.08); color: white; font: inherit; }
+.ingreso-campo input::placeholder { color: rgba(255,255,255,.4); }
+.ingreso-campo input:focus { outline: 2px solid var(--sky); outline-offset: 1px; }
+.ingreso-campo small { font-size: 12px; color: rgba(255,255,255,.55); }
+.ingreso .button { align-self: flex-start; }
+.ingreso .button[disabled] { opacity: .6; cursor: progress; }
+.ingreso-nota { margin: 0; font-size: 13px; color: rgba(255,255,255,.6); }
+.ingreso-pendiente { max-width: 460px; padding: 20px 22px; border-radius: 12px; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); display: flex; flex-direction: column; gap: 8px; }
+.ingreso-pendiente strong { font-family: "Barlow Condensed", sans-serif; font-size: 26px; letter-spacing: .02em; }
+.ingreso-pendiente p { margin: 0; color: rgba(255,255,255,.8); }
+.ingreso-pendiente small { color: rgba(255,255,255,.55); }
+
+/* Dentro del panel el fondo es claro: hay que invertir los contrastes. */
+.panel-login .ingreso-campo > span { color: rgba(255,255,255,.78); }
+.panel-module .ingreso-campo > span { color: var(--ink); }
+.panel-module .ingreso-campo input { border-color: rgba(0,0,0,.2); background: white; color: var(--ink); }
 
 .panel-shell { min-height: 100vh; background: #eef1f4; color: var(--ink); }
 .panel-header { padding: 18px 3vw; display: flex; align-items: center; justify-content: space-between; gap: 20px; background: var(--navy); color: white; position: sticky; top: 0; z-index: 40; }
@@ -580,8 +597,9 @@ footer img { width: 150px; }
 .panel-table td { padding: 11px 14px; border-bottom: 1px solid rgba(7,27,51,.07); vertical-align: middle; }
 .panel-table tr:last-child td { border-bottom: 0; }
 .panel-table select, .panel-invite select, .panel-invite input { padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; background: white; font: inherit; font-size: 12px; }
-.panel-row-actions { white-space: nowrap; }
-.panel-row-actions button { margin-right: 8px; border: 0; background: none; color: var(--cobalt); font-size: 12px; font-weight: 700; cursor: pointer; }
+/* Con dos acciones (clave + eliminar) la última se salía de la tabla. */
+.panel-row-actions { display: flex; flex-wrap: wrap; gap: 4px 8px; }
+.panel-row-actions button { border: 0; background: none; color: var(--cobalt); font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .panel-row-actions button:last-child { color: var(--red); margin-right: 0; }
 .panel-empty { text-align: center; color: var(--muted); padding: 26px; }
 .panel-form { margin-bottom: 24px; padding: 22px; background: var(--paper); border: 1px solid var(--sky); border-radius: 10px; box-shadow: 0 14px 30px rgba(7,27,51,.08); }

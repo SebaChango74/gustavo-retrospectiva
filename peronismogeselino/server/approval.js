@@ -30,7 +30,7 @@ export function pendingItems(db) {
     const rows = db
       .prepare(`
         SELECT c.id, c.${titleCol} AS title, c.status, m.name AS author_name,
-          m.email AS author_email
+          m.phone AS author_email
         FROM ${table} c
         LEFT JOIN members m ON m.id = c.submitted_by
         WHERE c.pending = 1

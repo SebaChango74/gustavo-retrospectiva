@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { normalizarWhatsapp } from "./whatsapp.js";
 
 const SESSION_COOKIE = "pg_session";
 const SESSION_DAYS = 30;
@@ -129,7 +130,9 @@ export function attachMember(db) {
       if (row) {
         req.member = {
           id: row.id,
+          phone: row.phone,
           email: row.email,
+          affiliateNumber: row.affiliate_number ?? "",
           name: row.name,
           picture: row.picture,
           role: row.role,
@@ -162,40 +165,58 @@ export function requireGrant(grant) {
   };
 }
 
-/** Da de alta (o asciende) a los administradores definidos por entorno. */
-export function ensureAdmins(db) {
-  const emails = (process.env.PG_ADMIN_EMAILS || "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-  for (const email of emails) {
-    const existing = db.prepare("SELECT id FROM members WHERE email = ?").get(email);
-    if (existing) {
-      db.prepare("UPDATE members SET role = 'admin', status = 'active' WHERE id = ?").run(
-        existing.id,
-      );
-    } else {
-      db.prepare(
-        "INSERT INTO members (email, role, status) VALUES (?, 'admin', 'active')",
-      ).run(email);
-    }
-  }
+/** Solo los admins usan clave: son los únicos que aprueban y publican. */
+export function requiereClave(member) {
+  return Boolean(member) && member.role === "admin";
 }
 
-/** Verifica un ID token de Google Sign-In contra el endpoint oficial de
- *  tokeninfo. Sin dependencias y sin costo; apto para el volumen del portal. */
-export async function verifyGoogleIdToken(credential, clientId) {
-  const response = await fetch(
-    `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`,
-  );
-  if (!response.ok) return null;
-  const payload = await response.json();
-  if (payload.aud !== clientId) return null;
-  if (payload.email_verified !== "true" && payload.email_verified !== true) return null;
-  if (!payload.email) return null;
-  return {
-    email: String(payload.email).toLowerCase(),
-    name: payload.name || "",
-    picture: payload.picture || "",
-  };
+/** Guarda la clave derivada con scrypt y sal propia; nunca en texto plano. */
+export function hashClave(clave, salt = crypto.randomBytes(16).toString("hex")) {
+  const hash = crypto.scryptSync(String(clave), salt, 64).toString("hex");
+  return { hash, salt };
+}
+
+/** Comparación en tiempo constante contra la clave guardada. */
+export function verificarClave(clave, hashGuardado, salt) {
+  if (!hashGuardado || !salt) return false;
+  const { hash } = hashClave(clave, salt);
+  const a = Buffer.from(hash, "hex");
+  const b = Buffer.from(hashGuardado, "hex");
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(a, b);
+}
+
+/**
+ * Da de alta al administrador fundador definido por entorno.
+ * PG_ADMIN_PHONES: uno o más WhatsApp separados por coma.
+ * PG_ADMIN_KEY: clave inicial, solo se aplica si todavía no tienen una.
+ */
+export function ensureAdmins(db) {
+  const telefonos = (process.env.PG_ADMIN_PHONES || "")
+    .split(",")
+    .map((t) => normalizarWhatsapp(t))
+    .filter(Boolean);
+  const claveInicial = process.env.PG_ADMIN_KEY || "";
+
+  for (const phone of telefonos) {
+    const existente = db.prepare("SELECT id, key_hash FROM members WHERE phone = ?").get(phone);
+    const id = existente
+      ? (db
+          .prepare("UPDATE members SET role = 'admin', status = 'active' WHERE id = ?")
+          .run(existente.id),
+        existente.id)
+      : Number(
+          db
+            .prepare(
+              "INSERT INTO members (phone, name, role, status) VALUES (?, 'Administración', 'admin', 'active')",
+            )
+            .run(phone).lastInsertRowid,
+        );
+
+    const sinClave = !existente || !existente.key_hash;
+    if (claveInicial && sinClave) {
+      const { hash, salt } = hashClave(claveInicial);
+      db.prepare("UPDATE members SET key_hash = ?, key_salt = ? WHERE id = ?").run(hash, salt, id);
+    }
+  }
 }

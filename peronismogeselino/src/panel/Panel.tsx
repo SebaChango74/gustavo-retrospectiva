@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { useSession } from "../session";
-import { GoogleLogin } from "../GoogleLogin";
+import { Ingreso } from "../Ingreso";
 import { Crud, useList } from "./Crud";
 import { Members } from "./Members";
 import { Moderation } from "./Moderation";
@@ -9,6 +9,7 @@ import { Results } from "./Results";
 import { SettingsModule } from "./Settings";
 import { Peron365Admin } from "./Peron365Admin";
 import { Approvals } from "./Approvals";
+import { Solicitudes } from "./Solicitudes";
 import { dateLabel } from "../ui";
 
 const IMAGES = [
@@ -45,7 +46,8 @@ const MODULES: { key: string; label: string; roles: string[] }[] = [
   { key: "anuncios", label: "Anuncios", roles: ["admin", "editor", "moderator"] },
   { key: "materiales", label: "Materiales", roles: ["admin", "editor"] },
   { key: "moderacion", label: "Moderación", roles: ["admin", "moderator"] },
-  { key: "miembros", label: "Miembros e invitaciones", roles: ["admin"] },
+  { key: "solicitudes", label: "Pedidos de ingreso", roles: ["admin"] },
+  { key: "miembros", label: "Miembros", roles: ["admin"] },
   { key: "territorios", label: "Territorios", roles: ["admin"] },
   { key: "ajustes", label: "Ajustes", roles: ["admin"] },
 ];
@@ -67,9 +69,9 @@ export default function Panel() {
         <p>
           {member
             ? "Tu cuenta no tiene permisos de gestión. Hablá con la administración."
-            : "Ingresá con tu cuenta autorizada para administrar el portal."}
+            : "Entrá con tu nombre, tu WhatsApp y tu clave de administración."}
         </p>
-        {!member && <GoogleLogin onError={setLoginError} />}
+        {!member && <Ingreso onError={setLoginError} />}
         {loginError && <div className="panel-error">{loginError}</div>}
         <button className="text-action" onClick={() => navigate("/")}>
           ← Volver al portal
@@ -86,7 +88,7 @@ export default function Panel() {
         <div>
           <span className="brand-title">PANEL · PERONISMO GESELINO</span>
           <span className="brand-subtitle">
-            {member.name || member.email} · {roleLabel(member.role)}
+            {member.name || "Mi cuenta"} · {roleLabel(member.role)}
           </span>
         </div>
         <div className="panel-header-actions">
@@ -131,6 +133,7 @@ export default function Panel() {
             <Route path="anuncios" element={<AnnouncementsModule />} />
             <Route path="materiales" element={<MaterialsModule />} />
             <Route path="moderacion" element={<Moderation />} />
+            <Route path="solicitudes" element={<Solicitudes />} />
             <Route path="miembros" element={<Members />} />
             <Route path="territorios" element={<TerritoriesModule />} />
             <Route path="ajustes" element={<SettingsModule />} />

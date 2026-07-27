@@ -282,3 +282,70 @@ MIGRATIONS.push({
     ALTER TABLE materials ADD COLUMN submitted_by INTEGER;
   `,
 });
+
+MIGRATIONS.push({
+  name: "004_ingreso_por_whatsapp",
+  foreignKeysOff: true,
+  sql: `
+    -- El ingreso pasa a ser por WhatsApp + nombre. El correo deja de
+    -- identificar a nadie y queda como dato de contacto opcional, así que hay
+    -- que rehacer la tabla: antes era obligatorio y único.
+    -- legacy_alter_table evita que el RENAME reescriba las referencias que las
+    -- demás tablas ya tienen apuntando a "members".
+    PRAGMA legacy_alter_table = ON;
+
+    CREATE TABLE members_nuevo (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      -- WhatsApp normalizado (solo dígitos). Es la identidad de la persona.
+      phone TEXT,
+      name TEXT NOT NULL DEFAULT '',
+      -- Correo opcional, solo contacto.
+      email TEXT COLLATE NOCASE,
+      affiliate_number TEXT NOT NULL DEFAULT '',
+      picture TEXT NOT NULL DEFAULT '',
+      role TEXT NOT NULL DEFAULT 'member'
+        CHECK (role IN ('admin','editor','moderator','referente','member')),
+      admin_tier TEXT NOT NULL DEFAULT 'builder',
+      status TEXT NOT NULL DEFAULT 'invited'
+        CHECK (status IN ('invited','active','suspended')),
+      territory_id INTEGER REFERENCES territories(id) ON DELETE SET NULL,
+      invited_by INTEGER REFERENCES members(id) ON DELETE SET NULL,
+      -- Clave personal. Solo la usan quienes aprueban y publican (admins).
+      key_hash TEXT NOT NULL DEFAULT '',
+      key_salt TEXT NOT NULL DEFAULT '',
+      last_login_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    INSERT INTO members_nuevo
+      (id, phone, name, email, picture, role, admin_tier, status,
+       territory_id, invited_by, last_login_at, created_at)
+    SELECT id, NULL, name, NULLIF(email, ''), picture, role, admin_tier, status,
+           territory_id, invited_by, last_login_at, created_at
+    FROM members;
+
+    DROP TABLE members;
+    ALTER TABLE members_nuevo RENAME TO members;
+
+    -- Un WhatsApp = una persona; un correo = una persona. Índices parciales
+    -- para que puedan convivir muchas filas sin teléfono o sin correo.
+    CREATE UNIQUE INDEX idx_members_phone ON members(phone) WHERE phone IS NOT NULL;
+    CREATE UNIQUE INDEX idx_members_email ON members(email) WHERE email IS NOT NULL;
+
+    -- Solicitudes de ingreso: quedan acá hasta que un admin apruebe o rechace.
+    CREATE TABLE access_requests (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      phone TEXT NOT NULL UNIQUE,
+      name TEXT NOT NULL,
+      affiliate_number TEXT NOT NULL DEFAULT '',
+      note TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'pending'
+        CHECK (status IN ('pending','approved','rejected')),
+      decided_by INTEGER REFERENCES members(id) ON DELETE SET NULL,
+      decided_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    PRAGMA legacy_alter_table = OFF;
+  `,
+});

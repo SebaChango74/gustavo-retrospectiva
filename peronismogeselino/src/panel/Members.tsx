@@ -13,28 +13,50 @@ const STATUS_LABEL: Record<string, string> = {
 export function Members() {
   const members = useList("/admin/members");
   const territories = useList("/admin/territories");
-  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
   const [role, setRole] = useState("member");
+  const [clave, setClave] = useState("");
   const [territoryId, setTerritoryId] = useState("");
   const [error, setError] = useState("");
+  const [ok, setOk] = useState("");
 
   const territoryOptions = territories.data?.items ?? [];
 
   const invite = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
+    setOk("");
     try {
       await api.post("/admin/members", {
-        email,
+        phone,
         name,
         role,
+        clave: role === "admin" ? clave : "",
         territoryId: territoryId || null,
       });
-      setEmail("");
+      setPhone("");
       setName("");
       setRole("member");
+      setClave("");
       setTerritoryId("");
+      members.reload();
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  /** La clave de administración se define acá y se avisa por WhatsApp. */
+  const cambiarClave = async (row: any) => {
+    const nueva = window.prompt(
+      `Clave de administración para ${row.name || row.phone_display}.\nMínimo 8 caracteres. Pasásela por WhatsApp.`,
+    );
+    if (!nueva) return;
+    setError("");
+    setOk("");
+    try {
+      await api.put(`/admin/members/${row.id}/clave`, { clave: nueva });
+      setOk(`Clave actualizada. ${row.name || "El administrador"} tiene que volver a entrar.`);
       members.reload();
     } catch (err: any) {
       setError(err.message);
@@ -72,22 +94,24 @@ export function Members() {
     <section className="panel-module">
       <header className="panel-module-head">
         <div>
-          <h2>Miembros e invitaciones</h2>
+          <h2>Miembros</h2>
           <p>
-            La comunidad es por invitación: solo los correos de esta lista pueden ingresar con
-            Google.
+            Solo los WhatsApp de esta lista pueden entrar. Podés sumar a alguien directo desde acá,
+            o aprobarlo desde “Pedidos de ingreso”.
           </p>
         </div>
       </header>
 
       {error && <div className="panel-error">{error}</div>}
+      {ok && <div className="panel-ok">{ok}</div>}
 
       <form className="panel-invite" onSubmit={invite}>
         <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="correo@gmail.com"
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="WhatsApp: 2255 456789"
+          inputMode="tel"
           required
         />
         <input
@@ -111,8 +135,18 @@ export function Members() {
             </option>
           ))}
         </select>
+        {role === "admin" && (
+          <input
+            type="text"
+            value={clave}
+            onChange={(e) => setClave(e.target.value)}
+            placeholder="Clave (mínimo 8)"
+            minLength={8}
+            required
+          />
+        )}
         <button className="button button-cobalt" type="submit">
-          INVITAR
+          SUMAR
         </button>
       </form>
 
@@ -120,7 +154,7 @@ export function Members() {
         <table className="panel-table">
           <thead>
             <tr>
-              <th>Correo</th>
+              <th>WhatsApp</th>
               <th>Nombre</th>
               <th>Rol</th>
               <th>Nivel</th>
@@ -133,7 +167,15 @@ export function Members() {
           <tbody>
             {(members.data?.items ?? []).map((row: any) => (
               <tr key={row.id}>
-                <td>{row.email}</td>
+                <td>
+                  {row.phone_link ? (
+                    <a href={row.phone_link} target="_blank" rel="noreferrer">
+                      {row.phone_display}
+                    </a>
+                  ) : (
+                    <span className="panel-dim">sin WhatsApp</span>
+                  )}
+                </td>
                 <td>{row.name}</td>
                 <td>
                   <select
@@ -187,6 +229,11 @@ export function Members() {
                 </td>
                 <td>{row.last_login_at ? row.last_login_at.slice(0, 16) : "Nunca"}</td>
                 <td className="panel-row-actions">
+                  {row.role === "admin" && (
+                    <button onClick={() => cambiarClave(row)}>
+                      {row.tiene_clave ? "Cambiar clave" : "Poner clave"}
+                    </button>
+                  )}
                   <button onClick={() => remove(row.id)}>Eliminar</button>
                 </td>
               </tr>

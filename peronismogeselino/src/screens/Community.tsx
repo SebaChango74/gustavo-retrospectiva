@@ -2,7 +2,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, type EventItem } from "../api";
 import { useSession } from "../session";
-import { GoogleLogin } from "../GoogleLogin";
+import { Ingreso } from "../Ingreso";
 import { Arrow, LockIcon, dayOf, monthOf, timeOf } from "../ui";
 
 const IMG = "/peronismogeselino/images";
@@ -80,27 +80,27 @@ export default function Community() {
           </div>
         </div>
         <div className="community-login-panel tech-grid">
-          <span className="eyebrow light">ESPACIO PRIVADO · CON INVITACIÓN</span>
+          <span className="eyebrow light">ESPACIO PRIVADO · CON APROBACIÓN</span>
           <h1>BIENVENIDO A LA COMUNIDAD.</h1>
-          <p>Ingresá con la cuenta de Google que recibió la invitación por WhatsApp.</p>
-          <GoogleLogin onError={setLoginError} />
+          <p>Entrá con tu nombre y tu WhatsApp. No hace falta nada más.</p>
+          <Ingreso onError={setLoginError} />
           {loginError && <div className="panel-error">{loginError}</div>}
           <div className="invitation-note">
             <LockIcon />
             <span>
-              Google confirma tu identidad. El portal verifica que tu correo figure entre las
-              invitaciones. No usamos tu cuenta para nada más.
+              Tu WhatsApp queda guardado solo para identificarte dentro de la comunidad. No se
+              muestra a otros miembros ni se usa para nada más.
             </span>
           </div>
           <div className="login-links">
             <button
               onClick={() =>
                 window.alert(
-                  "Pedile la invitación a la persona que coordina tu territorio: se carga tu correo y listo.",
+                  "Si es tu primera vez, completá el formulario igual: tu pedido le llega a la mesa y cuando lo apruebe entrás con el mismo WhatsApp.",
                 )
               }
             >
-              ¿No recibiste tu invitación?
+              ¿Todavía no estás en la comunidad?
             </button>
             <button
               onClick={() =>
@@ -132,7 +132,7 @@ function Dashboard() {
   const [draft, setDraft] = useState("");
   const [error, setError] = useState("");
 
-  const firstName = (member!.name || member!.email).split(/[\s@]/)[0].toUpperCase();
+  const firstName = (member!.name || "Compañero").split(/[\s@]/)[0].toUpperCase();
 
   const loadOverview = useCallback(() => {
     api.get<Overview>("/community/overview").then(setOverview).catch(() => {});
@@ -201,7 +201,7 @@ function Dashboard() {
     }
   };
 
-  const initials = (member!.name || member!.email)
+  const initials = (member!.name || "Compañero")
     .split(/[\s@]/)
     .slice(0, 2)
     .map((p) => p[0]?.toUpperCase() ?? "")
@@ -234,7 +234,7 @@ function Dashboard() {
         >
           <span>{initials || "PG"}</span>
           <span>
-            {member!.name || member!.email}
+            {member!.name || "Mi cuenta"}
             <small>Cerrar sesión</small>
           </span>
         </button>
