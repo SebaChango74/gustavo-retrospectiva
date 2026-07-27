@@ -13,6 +13,7 @@ export type Ingreso = {
   whatsapp: string;
   afiliado?: string;
   clave?: string;
+  codigo?: string;
 };
 
 export type RespuestaIngreso = {

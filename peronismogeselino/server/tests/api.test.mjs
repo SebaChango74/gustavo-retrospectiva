@@ -614,3 +614,101 @@ test("la guía no viaja en el programa que baja el navegador", async () => {
     "el contenido de la guía no está en el programa",
   );
 });
+
+test("segundo factor: el código de seis dígitos es el estándar y tolera el reloj", async () => {
+  const { generarSecreto, codigoActual, codigoValido } = await import("../totp.js");
+  const secreto = generarSecreto();
+  const ahora = 1_800_000_000_000;
+
+  assert.match(codigoActual(secreto, ahora), /^\d{6}$/);
+  assert.ok(codigoValido(secreto, codigoActual(secreto, ahora), ahora));
+
+  // Un reloj corrido 30 segundos para cualquier lado sigue entrando.
+  assert.ok(codigoValido(secreto, codigoActual(secreto, ahora - 30_000), ahora));
+  assert.ok(codigoValido(secreto, codigoActual(secreto, ahora + 30_000), ahora));
+  // Dos minutos de diferencia, no.
+  assert.equal(codigoValido(secreto, codigoActual(secreto, ahora - 120_000), ahora), false);
+
+  assert.equal(codigoValido(secreto, "000000", ahora) && codigoActual(secreto, ahora) !== "000000", false);
+  assert.equal(codigoValido(secreto, "", ahora), false);
+  assert.equal(codigoValido(secreto, "12345", ahora), false);
+
+  // Dos secretos distintos no comparten código.
+  assert.notEqual(codigoActual(secreto, ahora), codigoActual(generarSecreto(), ahora));
+});
+
+test("segundo factor: con el WhatsApp y la clave no alcanza", async () => {
+  const { codigoActual } = await import("../totp.js");
+  const { cookie } = await login(ADMIN, { clave: CLAVE_ADMIN });
+
+  // Se prepara y se confirma con un código real.
+  const prep = await fetch(`${base}/peronismogeselino/api/admin/segundo-factor/preparar`, {
+    method: "POST",
+    headers: { cookie },
+  });
+  assert.equal(prep.status, 200);
+  const { secreto, direccion } = await prep.json();
+  assert.ok(direccion.startsWith("otpauth://totp/"), "trae la dirección para la app");
+
+  const limpio = secreto.replace(/\s/g, "");
+  const activar = await fetch(`${base}/peronismogeselino/api/admin/segundo-factor/activar`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", cookie },
+    body: JSON.stringify({ codigo: codigoActual(limpio) }),
+  });
+  assert.equal(activar.status, 200);
+  const { codigos } = await activar.json();
+  assert.equal(codigos.length, 8, "entrega códigos de recuperación");
+
+  // Ahora el WhatsApp y la clave, solos, no entran.
+  const sinCodigo = await login(ADMIN, { clave: CLAVE_ADMIN });
+  assert.equal(sinCodigo.response.status, 401);
+  const cuerpo = await sinCodigo.response.json();
+  assert.equal(cuerpo.codigoRequerido, true);
+
+  // Un código inventado tampoco.
+  assert.equal((await login(ADMIN, { clave: CLAVE_ADMIN, codigo: "111111" })).response.status, 401);
+
+  // El código real, sí.
+  const conCodigo = await login(ADMIN, { clave: CLAVE_ADMIN, codigo: codigoActual(limpio) });
+  assert.equal(conCodigo.response.status, 200);
+
+  // Un código de recuperación sirve una vez y se quema.
+  const primera = await login(ADMIN, { clave: CLAVE_ADMIN, codigo: codigos[0] });
+  assert.equal(primera.response.status, 200);
+  const segunda = await login(ADMIN, { clave: CLAVE_ADMIN, codigo: codigos[0] });
+  assert.equal(segunda.response.status, 401, "el código de recuperación no se reusa");
+
+  // Y se puede desactivar, pero solo con la clave.
+  const sesion = conCodigo.cookie;
+  const sinClave = await fetch(`${base}/peronismogeselino/api/admin/segundo-factor/desactivar`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", cookie: sesion },
+    body: JSON.stringify({ clave: "otra" }),
+  });
+  assert.equal(sinClave.status, 401);
+  const bien = await fetch(`${base}/peronismogeselino/api/admin/segundo-factor/desactivar`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", cookie: sesion },
+    body: JSON.stringify({ clave: CLAVE_ADMIN }),
+  });
+  assert.equal(bien.status, 200);
+  assert.equal((await login(ADMIN, { clave: CLAVE_ADMIN })).response.status, 200);
+});
+
+test("segundo factor: nadie se lo saca a otro, y el panel exige sesión", async () => {
+  // Sin sesión, ninguna ruta del panel responde.
+  for (const ruta of ["/admin/segundo-factor", "/admin/members", "/admin/pending"]) {
+    const r = await fetch(`${base}/peronismogeselino/api${ruta}`);
+    assert.equal(r.status, 401, `${ruta} sin sesión`);
+  }
+
+  // Un editor no puede activarse un segundo factor ni tocar el de nadie:
+  // las rutas trabajan siempre sobre la cuenta propia.
+  const { cookie } = await login(EDITOR);
+  const intento = await fetch(`${base}/peronismogeselino/api/admin/segundo-factor/preparar`, {
+    method: "POST",
+    headers: { cookie },
+  });
+  assert.equal(intento.status, 403);
+});

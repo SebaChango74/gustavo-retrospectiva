@@ -10,6 +10,7 @@ import { SettingsModule } from "./Settings";
 import { Peron365Admin } from "./Peron365Admin";
 import { Approvals } from "./Approvals";
 import { Solicitudes } from "./Solicitudes";
+import { Seguridad } from "./Seguridad";
 import { dateLabel } from "../ui";
 
 const IMAGES = [
@@ -49,6 +50,7 @@ const MODULES: { key: string; label: string; roles: string[] }[] = [
   { key: "solicitudes", label: "Pedidos de ingreso", roles: ["admin"] },
   { key: "miembros", label: "Miembros", roles: ["admin"] },
   { key: "territorios", label: "Territorios", roles: ["admin"] },
+  { key: "seguridad", label: "Seguridad de tu cuenta", roles: ["admin"] },
   { key: "ajustes", label: "Ajustes", roles: ["admin"] },
 ];
 
@@ -136,6 +138,7 @@ export default function Panel() {
             <Route path="solicitudes" element={<Solicitudes />} />
             <Route path="miembros" element={<Members />} />
             <Route path="territorios" element={<TerritoriesModule />} />
+            <Route path="seguridad" element={<Seguridad />} />
             <Route path="ajustes" element={<SettingsModule />} />
             <Route path="*" element={<Navigate to="/panel" replace />} />
           </Routes>

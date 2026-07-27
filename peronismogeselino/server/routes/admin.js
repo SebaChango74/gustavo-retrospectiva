@@ -1,8 +1,16 @@
 import { Router } from "express";
-import { requireGrant, canApprove, hashClave } from "../auth.js";
+import { requireGrant, requireMember, canApprove, hashClave, verificarClave } from "../auth.js";
 import { audit, intIn, parseJson, slugify, str } from "../util.js";
 import { APPROVABLE, approveItem, markPending, pendingItems, rejectItem } from "../approval.js";
 import { normalizarWhatsapp, mostrarWhatsapp, enlaceWhatsapp } from "../whatsapp.js";
+import {
+  codigoValido,
+  direccionOtpauth,
+  generarCodigosRespaldo,
+  generarSecreto,
+  huellaRespaldo,
+  secretoLegible,
+} from "../totp.js";
 
 /** Guarda la clave de un administrador. Sin clave, no la toca. */
 function aplicarClave(db, memberId, clave) {
@@ -15,6 +23,9 @@ function aplicarClave(db, memberId, clave) {
 
 export function adminRoutes(db) {
   const router = Router();
+
+  // Nada del panel sin sesión. Cada ruta además exige su permiso.
+  router.use(requireMember);
 
   // ─── Aprobaciones (lo que enviaron los editores) ──────────────────────────
   router.get("/pending", (req, res) => {
@@ -374,6 +385,85 @@ export function adminRoutes(db) {
     // Cambiar la clave cierra las sesiones abiertas de esa cuenta.
     db.prepare("DELETE FROM sessions WHERE member_id = ?").run(row.id);
     audit(db, req.member.id, "clave", "member", row.id);
+    res.json({ ok: true });
+  });
+
+  // ─── Segundo factor (siempre sobre la cuenta propia) ──────────────────────
+  // Nadie activa ni desactiva el segundo factor de otro: sería una puerta de
+  // atrás para sacárselo a un compañero y entrar con solo su clave.
+
+  router.get("/segundo-factor", (req, res) => {
+    const fila = db
+      .prepare("SELECT totp_activo FROM members WHERE id = ?")
+      .get(req.member.id);
+    const respaldos = db
+      .prepare("SELECT COUNT(*) AS n FROM recovery_codes WHERE member_id = ? AND used_at IS NULL")
+      .get(req.member.id).n;
+    res.json({
+      activo: Boolean(fila?.totp_activo),
+      respaldosSinUsar: respaldos,
+      disponible: req.member.role === "admin",
+    });
+  });
+
+  /** Paso 1: entrega un secreto nuevo para cargar en la app de códigos. */
+  router.post("/segundo-factor/preparar", (req, res) => {
+    if (req.member.role !== "admin") {
+      return res.status(403).json({ error: "El segundo factor es para la administración." });
+    }
+    const secreto = generarSecreto();
+    // Se guarda pero todavía inactivo: recién se exige cuando la persona
+    // demuestra, con un código, que la app lo tomó bien. Si no, se quedaría
+    // afuera de su propia cuenta.
+    db.prepare("UPDATE members SET totp_secret = ?, totp_activo = 0 WHERE id = ?").run(
+      secreto,
+      req.member.id,
+    );
+    const quien = req.member.name || mostrarWhatsapp(req.member.phone) || "administración";
+    res.json({
+      secreto: secretoLegible(secreto),
+      direccion: direccionOtpauth(secreto, quien),
+    });
+  });
+
+  /** Paso 2: confirma con un código y entrega los códigos de recuperación. */
+  router.post("/segundo-factor/activar", (req, res) => {
+    const fila = db.prepare("SELECT totp_secret FROM members WHERE id = ?").get(req.member.id);
+    if (!fila?.totp_secret) {
+      return res.status(400).json({ error: "Primero generá el código en «Preparar»." });
+    }
+    if (!codigoValido(fila.totp_secret, str(req.body?.codigo, 20))) {
+      return res.status(400).json({
+        error: "Ese código no coincide. Mirá el que figura ahora mismo en tu teléfono.",
+      });
+    }
+
+    db.prepare("UPDATE members SET totp_activo = 1 WHERE id = ?").run(req.member.id);
+    db.prepare("DELETE FROM recovery_codes WHERE member_id = ?").run(req.member.id);
+    const codigos = generarCodigosRespaldo();
+    const insertar = db.prepare(
+      "INSERT INTO recovery_codes (member_id, code_hash) VALUES (?, ?)",
+    );
+    for (const codigo of codigos) insertar.run(req.member.id, huellaRespaldo(codigo));
+
+    audit(db, req.member.id, "segundo_factor_activado", "member", req.member.id);
+    // Es la única vez que se ven: en la base solo queda su huella.
+    res.json({ ok: true, codigos });
+  });
+
+  /** Desactivar exige la clave: si no, alcanzaría con una sesión robada. */
+  router.post("/segundo-factor/desactivar", (req, res) => {
+    const fila = db
+      .prepare("SELECT key_hash, key_salt FROM members WHERE id = ?")
+      .get(req.member.id);
+    if (!verificarClave(str(req.body?.clave, 200), fila?.key_hash, fila?.key_salt)) {
+      return res.status(401).json({ error: "Clave incorrecta." });
+    }
+    db.prepare("UPDATE members SET totp_secret = '', totp_activo = 0 WHERE id = ?").run(
+      req.member.id,
+    );
+    db.prepare("DELETE FROM recovery_codes WHERE member_id = ?").run(req.member.id);
+    audit(db, req.member.id, "segundo_factor_desactivado", "member", req.member.id);
     res.json({ ok: true });
   });
 

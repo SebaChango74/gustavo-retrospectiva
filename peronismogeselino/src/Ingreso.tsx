@@ -22,7 +22,9 @@ export function Ingreso({ onError }: { onError: (message: string) => void }) {
   const [whatsapp, setWhatsapp] = useState("");
   const [afiliado, setAfiliado] = useState("");
   const [clave, setClave] = useState("");
+  const [codigo, setCodigo] = useState("");
   const [pideClave, setPideClave] = useState(false);
+  const [pideCodigo, setPideCodigo] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [pendiente, setPendiente] = useState<Respuesta | null>(null);
 
@@ -43,7 +45,7 @@ export function Ingreso({ onError }: { onError: (message: string) => void }) {
     onError("");
     setEnviando(true);
     try {
-      const r = await ingresar({ nombre, whatsapp, afiliado, clave });
+      const r = await ingresar({ nombre, whatsapp, afiliado, clave, codigo });
       if (r?.pendiente) {
         setPendiente(r);
       } else {
@@ -51,6 +53,7 @@ export function Ingreso({ onError }: { onError: (message: string) => void }) {
       }
     } catch (error: any) {
       if (error?.data?.claveRequerida) setPideClave(true);
+      if (error?.data?.codigoRequerido) setPideCodigo(true);
       onError(error?.message || "No pudimos completar el ingreso.");
     } finally {
       setEnviando(false);
@@ -119,6 +122,27 @@ export function Ingreso({ onError }: { onError: (message: string) => void }) {
             autoComplete="current-password"
             required
           />
+        </label>
+      )}
+
+      {pideCodigo && (
+        <label className="ingreso-campo">
+          <span>Código del teléfono</span>
+          <input
+            type="text"
+            value={codigo}
+            onChange={(e) => setCodigo(e.target.value)}
+            placeholder="000000"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            maxLength={14}
+            required
+            autoFocus
+          />
+          <small>
+            Los seis dígitos de tu aplicación de códigos. Si perdiste el teléfono, poné uno de tus
+            códigos de recuperación.
+          </small>
         </label>
       )}
 

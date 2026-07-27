@@ -359,3 +359,23 @@ MIGRATIONS.push({
     ALTER TABLE members ADD COLUMN oculto INTEGER NOT NULL DEFAULT 0;
   `,
 });
+
+MIGRATIONS.push({
+  name: "006_segundo_factor",
+  sql: `
+    -- Segundo factor para las cuentas que pueden cambiar la forma del portal:
+    -- el WhatsApp y la clave son dos cosas que se pueden robar juntas.
+    ALTER TABLE members ADD COLUMN totp_secret TEXT NOT NULL DEFAULT '';
+    ALTER TABLE members ADD COLUMN totp_activo INTEGER NOT NULL DEFAULT 0;
+
+    -- Códigos de un solo uso, para volver a entrar si se pierde el teléfono.
+    CREATE TABLE recovery_codes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      member_id INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+      code_hash TEXT NOT NULL,
+      used_at TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX idx_recovery_member ON recovery_codes(member_id, used_at);
+  `,
+});

@@ -15,6 +15,7 @@ import NewsList from "./screens/NewsList";
 import Peron365 from "./screens/Peron365";
 import Instalar from "./screens/Instalar";
 import Guia from "./screens/Guia";
+import { AvisoInstalar } from "./AvisoInstalar";
 
 export default function App() {
   const location = useLocation();
@@ -62,6 +63,7 @@ export default function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
+        {!chromeless && <AvisoInstalar />}
         {!chromeless && <MobileDock />}
         {!chromeless && <Footer />}
       </div>
@@ -165,6 +167,7 @@ function Footer() {
         <span>Información, memoria y organización.</span>
       </div>
       <div className="footer-links">
+        <button onClick={() => navigate("/instalar")}>Bajar la app</button>
         <button onClick={() => navigate("/presentacion")}>Guía del portal</button>
         <button onClick={() => navigate("/")}>Portal público</button>
         <button onClick={() => navigate("/causas")}>Causas vivas</button>
