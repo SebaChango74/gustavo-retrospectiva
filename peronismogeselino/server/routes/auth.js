@@ -11,6 +11,26 @@ import {
 } from "../auth.js";
 import { audit, str } from "../util.js";
 import { normalizarWhatsapp, mostrarWhatsapp } from "../whatsapp.js";
+import { codigoValido, huellaRespaldo } from "../totp.js";
+
+/**
+ * Acepta el código de seis dígitos del teléfono o, si se perdió el teléfono,
+ * uno de los códigos de recuperación. Cada código de recuperación sirve una
+ * sola vez: se marca usado en el momento.
+ */
+function verificarSegundoFactor(db, member, codigo) {
+  if (codigoValido(member.totp_secret, codigo)) return true;
+
+  const huella = huellaRespaldo(codigo);
+  const fila = db
+    .prepare("SELECT id FROM recovery_codes WHERE member_id = ? AND code_hash = ? AND used_at IS NULL")
+    .get(member.id, huella);
+  if (!fila) return false;
+
+  db.prepare("UPDATE recovery_codes SET used_at = datetime('now') WHERE id = ?").run(fila.id);
+  audit(db, member.id, "codigo_respaldo_usado", "member", member.id);
+  return true;
+}
 
 export function authRoutes(db) {
   const router = Router();
@@ -58,6 +78,26 @@ export function authRoutes(db) {
       if (!verificarClave(clave, member.key_hash, member.key_salt)) {
         audit(db, member.id, "login_fallido", "member", member.id, whatsapp);
         return res.status(401).json({ error: "Clave incorrecta.", claveRequerida: true });
+      }
+
+      // Segundo factor, si esta cuenta lo tiene activado.
+      if (member.totp_activo) {
+        const codigo = str(req.body?.codigo, 20);
+        if (!codigo) {
+          return res.status(401).json({
+            error: "Falta el código de tu teléfono.",
+            claveRequerida: true,
+            codigoRequerido: true,
+          });
+        }
+        if (!verificarSegundoFactor(db, member, codigo)) {
+          audit(db, member.id, "codigo_fallido", "member", member.id, whatsapp);
+          return res.status(401).json({
+            error: "Código incorrecto o vencido. Mirá el que figura ahora en tu teléfono.",
+            claveRequerida: true,
+            codigoRequerido: true,
+          });
+        }
       }
     }
 
