@@ -470,3 +470,68 @@ test("ingreso: a un miembro suspendido se le corta el acceso", async () => {
   const { response } = await login(suspendido);
   assert.equal(response.status, 403);
 });
+
+test("cuenta técnica: entra al panel pero no figura como miembro de la comunidad", async () => {
+  const tecnico = "1136360000";
+  const { cookie: adminCookie } = await login(ADMIN, { clave: CLAVE_ADMIN });
+
+  const antes = (
+    await (
+      await fetch(`${base}/peronismogeselino/api/community/overview`, { headers: { cookie: adminCookie } })
+    ).json()
+  ).stats.activeMembers;
+
+  crearMiembro({ phone: tecnico, name: "Equipo Técnico", role: "admin", clave: CLAVE_ADMIN });
+  db.prepare("UPDATE members SET oculto = 1 WHERE phone = ?").run(normalizarWhatsapp(tecnico));
+
+  // Entra y administra sin problema.
+  const { response, cookie } = await login(tecnico, { clave: CLAVE_ADMIN });
+  assert.equal(response.status, 200);
+  const panel = await fetch(`${base}/peronismogeselino/api/admin/news`, { headers: { cookie } });
+  assert.equal(panel.status, 200);
+
+  // Pero no suma al recuento de la comunidad.
+  const despues = (
+    await (
+      await fetch(`${base}/peronismogeselino/api/community/overview`, { headers: { cookie: adminCookie } })
+    ).json()
+  ).stats.activeMembers;
+  assert.equal(despues, antes, "la cuenta técnica no engrosa la comunidad");
+});
+
+test("colaboradores: se puede sumar un admin manager con correo y clave en un solo paso", async () => {
+  const { cookie } = await login(ADMIN, { clave: CLAVE_ADMIN });
+  const alta = await fetch(`${base}/peronismogeselino/api/admin/members`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", cookie },
+    body: JSON.stringify({
+      phone: "2255521000",
+      name: "Editorial Test",
+      email: "editorial@example.com",
+      role: "admin",
+      adminTier: "manager",
+      clave: "clave-editorial",
+    }),
+  });
+  assert.equal(alta.status, 200);
+
+  const fila = db
+    .prepare("SELECT * FROM members WHERE phone = ?")
+    .get(normalizarWhatsapp("2255521000"));
+  assert.equal(fila.admin_tier, "manager");
+  assert.equal(fila.email, "editorial@example.com");
+  assert.equal(fila.oculto, 0, "un colaborador sí figura en la comunidad");
+  assert.ok(fila.key_hash.length > 0, "quedó con clave");
+
+  // Entra con su clave y aprueba, pero no toca los ajustes.
+  const suyo = await login("2255521000", { nombre: "Editorial Test", clave: "clave-editorial" });
+  assert.equal(suyo.response.status, 200);
+  const bandeja = await fetch(`${base}/peronismogeselino/api/admin/pending`, {
+    headers: { cookie: suyo.cookie },
+  });
+  assert.equal(bandeja.status, 200);
+  const ajustes = await fetch(`${base}/peronismogeselino/api/admin/settings`, {
+    headers: { cookie: suyo.cookie },
+  });
+  assert.equal(ajustes.status, 403);
+});

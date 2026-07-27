@@ -301,7 +301,7 @@ export function adminRoutes(db) {
     const items = db
       .prepare(`
         SELECT m.id, m.phone, m.email, m.affiliate_number, m.name, m.role, m.admin_tier, m.status,
-          m.territory_id, m.last_login_at, m.created_at,
+          m.oculto, m.territory_id, m.last_login_at, m.created_at,
           CASE WHEN m.key_hash != '' THEN 1 ELSE 0 END AS tiene_clave,
           t.name AS territory_name
         FROM members m LEFT JOIN territories t ON t.id = m.territory_id
@@ -333,16 +333,23 @@ export function adminRoutes(db) {
     if (db.prepare("SELECT id FROM members WHERE phone = ?").get(phone)) {
       return res.status(400).json({ error: "Ese WhatsApp ya está en la comunidad." });
     }
+    const email = str(req.body?.email, 254).toLowerCase() || null;
+    if (email && db.prepare("SELECT id FROM members WHERE email = ?").get(email)) {
+      return res.status(400).json({ error: "Ese correo ya figura en otro miembro." });
+    }
     const info = db
       .prepare(`
-        INSERT INTO members (phone, name, affiliate_number, role, status, territory_id, invited_by)
-        VALUES (?, ?, ?, ?, 'invited', ?, ?)
+        INSERT INTO members
+          (phone, email, name, affiliate_number, role, admin_tier, status, territory_id, invited_by)
+        VALUES (?, ?, ?, ?, ?, ?, 'invited', ?, ?)
       `)
       .run(
         phone,
+        email,
         str(req.body?.name, 120),
         str(req.body?.affiliateNumber, 30),
         oneOf(req.body?.role, ["admin", "editor", "moderator", "referente", "member"], "member"),
+        req.body?.adminTier === "manager" ? "manager" : "builder",
         req.body?.territoryId ? Number(req.body.territoryId) : null,
         req.member.id,
       );
@@ -440,14 +447,18 @@ export function adminRoutes(db) {
       return res.status(400).json({ error: "No podés quitarte tu propio rol de administración." });
     }
     const tier = req.body?.adminTier === "manager" ? "manager" : "builder";
-    db.prepare(
-      "UPDATE members SET name = ?, role = ?, status = ?, territory_id = ?, admin_tier = ? WHERE id = ?",
-    ).run(
+    const oculto = req.body?.oculto === undefined ? row.oculto : req.body.oculto ? 1 : 0;
+    db.prepare(`
+      UPDATE members SET name = ?, role = ?, status = ?, territory_id = ?, admin_tier = ?,
+        oculto = ?
+      WHERE id = ?
+    `).run(
       str(req.body?.name ?? row.name, 120),
       role,
       status,
       req.body?.territoryId ? Number(req.body.territoryId) : null,
       tier,
+      oculto,
       row.id,
     );
     if (status === "suspended") {

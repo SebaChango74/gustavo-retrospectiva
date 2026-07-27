@@ -28,8 +28,9 @@ export function communityRoutes(db) {
       .get();
 
     const stats = {
+      // Las cuentas técnicas no son militancia: no se cuentan.
       activeMembers: db
-        .prepare("SELECT COUNT(*) AS n FROM members WHERE status = 'active'")
+        .prepare("SELECT COUNT(*) AS n FROM members WHERE status = 'active' AND oculto = 0")
         .get().n,
       territories: db.prepare("SELECT COUNT(*) AS n FROM territories").get().n,
       openThreads: db
@@ -184,7 +185,7 @@ export function communityRoutes(db) {
     const referentes = territory
       ? db
           .prepare(
-            "SELECT name FROM members WHERE territory_id = ? AND role = 'referente' AND status = 'active'",
+            "SELECT name FROM members WHERE territory_id = ? AND role = 'referente' AND status = 'active' AND oculto = 0",
           )
           .all(territory.id)
       : [];

@@ -187,7 +187,12 @@ export function verificarClave(clave, hashGuardado, salt) {
 }
 
 /**
- * Da de alta al administrador fundador definido por entorno.
+ * Da de alta la cuenta técnica de arranque definida por entorno.
+ *
+ * Nace **oculta**: quien construye y mantiene el portal necesita entrar al
+ * panel, pero no es militancia y no tiene por qué figurar en la comunidad.
+ * Desde el panel se puede hacer visible si algún día corresponde.
+ *
  * PG_ADMIN_PHONES: uno o más WhatsApp separados por coma.
  * PG_ADMIN_KEY: clave inicial, solo se aplica si todavía no tienen una.
  */
@@ -207,9 +212,10 @@ export function ensureAdmins(db) {
         existente.id)
       : Number(
           db
-            .prepare(
-              "INSERT INTO members (phone, name, role, status) VALUES (?, 'Administración', 'admin', 'active')",
-            )
+            .prepare(`
+              INSERT INTO members (phone, name, role, status, oculto)
+              VALUES (?, 'Equipo técnico', 'admin', 'active', 1)
+            `)
             .run(phone).lastInsertRowid,
         );
 

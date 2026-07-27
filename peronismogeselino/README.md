@@ -66,6 +66,11 @@ Abrí `http://localhost:4600/peronismogeselino`.
 `PG_ADMIN_KEY` les pone la clave inicial **solo si todavía no tienen una**.
 Con eso ya podés entrar al panel y sumar al resto desde ahí.
 
+La cuenta que crea el arranque nace como **cuenta técnica**: entra al panel
+pero no cuenta como miembro de la comunidad ni aparece en sus listas. Quien
+construye y mantiene el portal no tiene por qué figurar como militancia. En el
+panel → Miembros, la columna «Figura» permite cambiarlo.
+
 Para desarrollo con recarga en vivo:
 
 ```bash
@@ -87,7 +92,7 @@ cd peronismogeselino && npm test
 | Variable | Qué hace |
 |---|---|
 | `PORT` | Puerto del servidor (la plataforma lo define sola) |
-| `PG_ADMIN_PHONES` | WhatsApp (separados por coma) con rol administración |
+| `PG_ADMIN_PHONES` | WhatsApp (separados por coma) de la cuenta técnica de arranque |
 | `PG_ADMIN_KEY` | Clave inicial de esos administradores (solo si no tienen) |
 | `PG_DATA_DIR` | Carpeta de la base SQLite (montar volumen persistente) |
 | `PG_SECURE_COOKIES` | `1` fuerza cookies Secure (con `NODE_ENV=production` ya lo son) |
@@ -105,6 +110,9 @@ Sin Google, sin correo, sin verificación y sin costo: **nombre y WhatsApp**.
    directo de WhatsApp para escribirle antes de decidir.
 4. Al aprobar, esa persona entra con el mismo número. Un pedido rechazado no
    puede volver a intentarlo.
+
+Hay dos niveles de administración: **builder** (todo, incluidos ajustes) y
+**manager** (aprueba y controla editores, sin decidir diseño ni estructura).
 
 **Los administradores además llevan clave personal.** Son los únicos que
 aprueban, publican y borran: con solo conocer el número, cualquiera tomaría el

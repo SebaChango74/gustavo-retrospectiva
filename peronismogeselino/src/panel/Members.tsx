@@ -15,7 +15,9 @@ export function Members() {
   const territories = useList("/admin/territories");
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [role, setRole] = useState("member");
+  const [tier, setTier] = useState("manager");
   const [clave, setClave] = useState("");
   const [territoryId, setTerritoryId] = useState("");
   const [error, setError] = useState("");
@@ -31,13 +33,17 @@ export function Members() {
       await api.post("/admin/members", {
         phone,
         name,
+        email,
         role,
+        adminTier: role === "admin" ? tier : "builder",
         clave: role === "admin" ? clave : "",
         territoryId: territoryId || null,
       });
       setPhone("");
       setName("");
+      setEmail("");
       setRole("member");
+      setTier("manager");
       setClave("");
       setTerritoryId("");
       members.reload();
@@ -72,6 +78,7 @@ export function Members() {
         status: row.status,
         territoryId: row.territory_id,
         adminTier: row.admin_tier ?? "builder",
+        oculto: Boolean(row.oculto),
         ...patch,
       });
       members.reload();
@@ -120,6 +127,12 @@ export function Members() {
           onChange={(e) => setName(e.target.value)}
           placeholder="Nombre (opcional)"
         />
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Correo de contacto (opcional)"
+        />
         <select value={role} onChange={(e) => setRole(e.target.value)}>
           {ROLES.map((r) => (
             <option key={r} value={r}>
@@ -136,14 +149,20 @@ export function Members() {
           ))}
         </select>
         {role === "admin" && (
-          <input
-            type="text"
-            value={clave}
-            onChange={(e) => setClave(e.target.value)}
-            placeholder="Clave (mínimo 8)"
-            minLength={8}
-            required
-          />
+          <>
+            <select value={tier} onChange={(e) => setTier(e.target.value)}>
+              <option value="manager">Manager (aprueba y controla)</option>
+              <option value="builder">Builder (todo, incluidos ajustes)</option>
+            </select>
+            <input
+              type="text"
+              value={clave}
+              onChange={(e) => setClave(e.target.value)}
+              placeholder="Clave (mínimo 8)"
+              minLength={8}
+              required
+            />
+          </>
         )}
         <button className="button button-cobalt" type="submit">
           SUMAR
@@ -159,6 +178,7 @@ export function Members() {
               <th>Rol</th>
               <th>Nivel</th>
               <th>Territorio</th>
+              <th>Figura</th>
               <th>Estado</th>
               <th>Último ingreso</th>
               <th />
@@ -213,6 +233,16 @@ export function Members() {
                         {t.name}
                       </option>
                     ))}
+                  </select>
+                </td>
+                <td>
+                  <select
+                    value={row.oculto ? "no" : "si"}
+                    onChange={(e) => update(row.id, { oculto: e.target.value === "no" }, row)}
+                    title="Una cuenta técnica no cuenta como miembro ni aparece en la comunidad."
+                  >
+                    <option value="si">En la comunidad</option>
+                    <option value="no">Cuenta técnica</option>
                   </select>
                 </td>
                 <td>

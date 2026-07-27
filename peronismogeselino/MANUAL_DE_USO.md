@@ -319,6 +319,13 @@ mostrar recién cuando se decide.
   territorio y estado. Acá se suma gente directo y se define quién puede
   entrar. En los administradores aparece además «Poner clave» / «Cambiar
   clave»: cambiarla cierra sus sesiones abiertas al instante.
+
+  La columna **«Figura»** distingue dos cosas distintas: quien es parte de la
+  comunidad y quien solo la sostiene. Una **cuenta técnica** entra al panel
+  para construir y mantener el portal, pero no suma al recuento de miembros ni
+  aparece en las listas que ve la militancia. No todo el que hace funcionar
+  una herramienta política milita en ella, y el sistema no debería obligarlo a
+  decir que sí.
 - **Territorios** — los barrios y zonas de Villa Gesell.
 - **Ajustes** — valores generales (estadísticas de la portada, máximo de
   miembros, etc.) y el **registro de actividad** (auditoría: quién hizo qué).

@@ -349,3 +349,13 @@ MIGRATIONS.push({
     PRAGMA legacy_alter_table = OFF;
   `,
 });
+
+MIGRATIONS.push({
+  name: "005_cuentas_tecnicas",
+  sql: `
+    -- Una cuenta técnica (quien construye y mantiene el portal) necesita
+    -- entrar al panel sin figurar como militante: no suma al recuento de la
+    -- comunidad ni aparece en las listas que ven los miembros.
+    ALTER TABLE members ADD COLUMN oculto INTEGER NOT NULL DEFAULT 0;
+  `,
+});
