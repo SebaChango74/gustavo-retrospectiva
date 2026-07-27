@@ -35,8 +35,19 @@ export function AvisoInstalar() {
 
   useEffect(() => {
     if (yaInstalada() || silenciado()) return;
+
+    // En la primera visita también aparece el emergente de Perón 365. Dos
+    // cosas pidiendo atención a la vez es una sola cosa ignorada, y encima se
+    // tapan. La franja espera a que la pantalla esté libre.
+    const libre = () => !document.querySelector('[role="dialog"]');
+    let reloj = 0;
+    const revisar = () => {
+      if (libre()) setVisible(true);
+      else reloj = window.setTimeout(revisar, 700);
+    };
     // Un respiro antes de aparecer: que la persona vea el portal primero.
-    const reloj = window.setTimeout(() => setVisible(true), 2600);
+    reloj = window.setTimeout(revisar, 2600);
+
     const dejar = escucharInstalador(() => {
       if (yaInstalada()) setVisible(false);
     });
@@ -51,11 +62,7 @@ export function AvisoInstalar() {
 
   const donde = plataforma();
   const texto =
-    donde === "escritorio"
-      ? "Tenela también en el teléfono."
-      : hayInstalador()
-        ? "Instalala en tu teléfono. Diez segundos."
-        : "Podés tenerla como app, con su ícono.";
+    donde === "escritorio" ? "Tenela también en el teléfono." : "Tenela con su ícono.";
 
   return (
     <aside className="aviso-instalar" role="complementary" aria-label="Instalar la aplicación">

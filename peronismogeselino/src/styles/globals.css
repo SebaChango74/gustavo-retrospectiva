@@ -1083,3 +1083,14 @@ footer img { width: 150px; }
 @media (max-width: 900px) {
   .aviso-instalar { bottom: 79px; }
 }
+
+/* En pantallas angostas el nombre sobra: el ícono ya lo dice, y sin él el
+   texto entra en una línea en vez de partirse en tres. */
+@media (max-width: 520px) {
+  .aviso-instalar { grid-template-columns: 38px 1fr auto auto; gap: 10px; padding: 10px; }
+  .aviso-instalar > img { width: 38px; height: 38px; border-radius: 10px; }
+  .aviso-instalar-texto strong { display: none; }
+  .aviso-instalar-texto span { font-size: 14px; color: white; font-weight: 600; }
+  .aviso-instalar-si { padding: 10px 13px; font-size: 16px; }
+  .aviso-instalar-no { padding: 6px; }
+}
