@@ -4,6 +4,7 @@ import {
   escucharInstalador,
   hayInstalador,
   instalar,
+  marcarInstalarVista,
   navegadorIncrustado,
   plataforma,
   yaInstalada,
@@ -26,6 +27,10 @@ export default function Instalar() {
 
   const donde = plataforma();
   const incrustado = navegadorIncrustado();
+
+  // Quien llega hasta acá ya recibió el ofrecimiento: la franja del portal no
+  // tiene que volver a hacérselo durante esta visita.
+  useEffect(marcarInstalarVista, []);
 
   useEffect(() => escucharInstalador(() => {
     setListo(hayInstalador());

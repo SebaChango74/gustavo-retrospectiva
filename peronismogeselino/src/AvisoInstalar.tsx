@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { escucharInstalador, hayInstalador, plataforma, yaInstalada } from "./install";
+import {
+  escucharInstalador,
+  hayInstalador,
+  instalar,
+  plataforma,
+  yaInstalada,
+  yaVioInstalar,
+} from "./install";
 
 const RECORDADO = "pg-aviso-instalar";
 /** Si alguien lo cierra, no se lo volvemos a poner por dos semanas. */
@@ -34,7 +41,9 @@ export function AvisoInstalar() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (yaInstalada() || silenciado()) return;
+    // Si ya pasó por la pantalla de instalación, ofrecérsela otra vez sería
+    // un círculo: la franja lo devolvería justo al lugar del que vino.
+    if (yaInstalada() || silenciado() || yaVioInstalar()) return;
 
     // En la primera visita también aparece el emergente de Perón 365. Dos
     // cosas pidiendo atención a la vez es una sola cosa ignorada, y encima se
@@ -73,8 +82,14 @@ export function AvisoInstalar() {
       </div>
       <button
         className="aviso-instalar-si"
-        onClick={() => {
+        onClick={async () => {
           setVisible(false);
+          // Si el navegador puede instalar, se instala acá mismo: mandarlo a
+          // otra pantalla a tocar otro botón es una vuelta al pedo.
+          if (hayInstalador()) {
+            const aceptada = await instalar();
+            if (aceptada) return;
+          }
           navigate("/instalar");
         }}
       >

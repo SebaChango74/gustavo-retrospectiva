@@ -51,6 +51,29 @@ export async function instalar(): Promise<boolean> {
   return outcome === "accepted";
 }
 
+/**
+ * Quien ya pasó por la pantalla de instalación no necesita que se la
+ * ofrezcan de nuevo dos pantallas después: ya la vio y siguió de largo.
+ * Dura lo que dura la visita.
+ */
+const VISTA = "pg-instalar-vista";
+
+export function marcarInstalarVista() {
+  try {
+    window.sessionStorage.setItem(VISTA, "1");
+  } catch {
+    /* modo privado */
+  }
+}
+
+export function yaVioInstalar(): boolean {
+  try {
+    return window.sessionStorage.getItem(VISTA) === "1";
+  } catch {
+    return false;
+  }
+}
+
 /** Ya está instalada y abierta como aplicación. */
 export function yaInstalada(): boolean {
   if (typeof window === "undefined") return false;
