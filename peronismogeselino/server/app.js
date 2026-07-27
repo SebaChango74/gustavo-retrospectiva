@@ -121,6 +121,9 @@ export function createApp(db) {
     const api = express.Router();
     api.use(rateLimit({ windowMs: 60_000, max: 240 }));
     api.use("/auth", rateLimit({ windowMs: 60_000, max: 20, methods: ["POST"] }));
+    // El candado de la guía es una contraseña compartida: sin freno, se puede
+    // adivinar a fuerza de intentos.
+    api.use("/public/guia", rateLimit({ windowMs: 60_000, max: 12, methods: ["POST"] }));
     api.use(attachMember(db));
     api.use("/auth", authRoutes(db));
     api.use("/public", publicRoutes(db));

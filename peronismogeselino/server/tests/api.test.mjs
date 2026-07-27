@@ -563,3 +563,54 @@ test("la vista previa del enlace trae imagen y descripción", async () => {
   const imagen = await fetch(`${base}/peronismogeselino/images/og.jpg`);
   assert.equal(imagen.status, 200, "la imagen de vista previa existe");
 });
+
+test("la guía está bajo candado: hacen falta las dos cosas", async () => {
+  const url = `${base}/peronismogeselino/api/public/guia`;
+  const abrir = (cuerpo) =>
+    fetch(`${url}/abrir`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(cuerpo),
+    });
+
+  // Cerrada de entrada.
+  assert.equal((await fetch(url)).status, 401);
+
+  // La contraseña sola no alcanza: el WhatsApp tiene que tener acceso al panel.
+  assert.equal(
+    (await abrir({ whatsapp: "2255409999", clave: "PeronGeselino" })).status,
+    401,
+    "un número cualquiera con la contraseña no entra",
+  );
+  const comun = await abrir({ whatsapp: VECINA, clave: "PeronGeselino" });
+  assert.equal(comun.status, 401, "un miembro sin panel tampoco");
+
+  // El WhatsApp solo, tampoco.
+  assert.equal((await abrir({ whatsapp: ADMIN, clave: "otra cosa" })).status, 401);
+  assert.equal((await abrir({ whatsapp: ADMIN, clave: "" })).status, 401);
+
+  // Las dos juntas, sí.
+  const bien = await abrir({ whatsapp: ADMIN, clave: "PeronGeselino" });
+  assert.equal(bien.status, 200);
+  const datos = await bien.json();
+  assert.ok(datos.secciones.length >= 5, "devuelve el contenido");
+  assert.ok(datos.secciones.some((s) => s.modulos?.length), "incluye los módulos del panel");
+
+  // Y con la llave puesta, queda abierta.
+  const cookie = cookieFrom(bien);
+  assert.ok(cookie.startsWith("pg_guia="));
+  const otra = await fetch(url, { headers: { cookie } });
+  assert.equal(otra.status, 200);
+});
+
+test("la guía no viaja en el programa que baja el navegador", async () => {
+  // Si el texto estuviera del lado del cliente, el candado sería un adorno.
+  const html = await (await fetch(`${base}/peronismogeselino/`)).text();
+  const script = html.match(/src="([^"]*\.js)"/)?.[1];
+  assert.ok(script, "hay un archivo de programa");
+  const codigo = await (await fetch(`${base}${script}`)).text();
+  assert.ok(
+    !codigo.includes("La bandeja de entrada del portal"),
+    "el contenido de la guía no está en el programa",
+  );
+});

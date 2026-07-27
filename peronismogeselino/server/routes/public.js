@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { parseJson, publicEvent, mapsEmbedUrl } from "../util.js";
+import { parseJson, publicEvent, mapsEmbedUrl, str } from "../util.js";
+import { SECCIONES, abrirGuia, cookieGuia, guiaAbierta } from "../guia.js";
 
 export function publicRoutes(db) {
   const router = Router();
@@ -8,6 +9,22 @@ export function publicRoutes(db) {
     res.json({
       preview: Boolean(process.env.PG_PREVIEW_CODE),
     });
+  });
+
+  // ─── Guía de uso, bajo candado ────────────────────────────────────────────
+  router.post("/guia/abrir", (req, res) => {
+    const resultado = abrirGuia(db, {
+      whatsapp: str(req.body?.whatsapp, 40),
+      clave: str(req.body?.clave, 120),
+    });
+    if (!resultado.ok) return res.status(401).json({ error: resultado.error });
+    res.setHeader("Set-Cookie", cookieGuia());
+    res.json({ secciones: SECCIONES });
+  });
+
+  router.get("/guia", (req, res) => {
+    if (!guiaAbierta(req)) return res.status(401).json({ error: "Guía cerrada." });
+    res.json({ secciones: SECCIONES });
   });
 
   router.get("/home", (req, res) => {

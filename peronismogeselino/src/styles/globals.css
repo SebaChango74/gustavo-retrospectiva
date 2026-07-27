@@ -950,3 +950,71 @@ footer img { width: 150px; }
   .button.grande { width: 100%; justify-content: center; }
   .instalar-accion { align-self: stretch; }
 }
+
+/* ─── Guía de uso (bajo candado) ──────────────────────────────────────────── */
+.guia-cargando { min-height: 60vh; display: grid; place-items: center; color: var(--muted); }
+
+.guia-candado { min-height: 84vh; display: grid; place-items: center; padding: 8vh 5vw; background: var(--navy); }
+.guia-candado-caja { width: min(520px, 100%); display: flex; flex-direction: column; gap: 16px; color: white; }
+.guia-candado-caja svg { width: 30px; height: 30px; color: var(--sky); }
+.guia-candado-caja h1 { margin: 0; font-family: "Barlow Condensed", sans-serif; font-weight: 900; font-size: clamp(34px, 6vw, 54px); line-height: .92; }
+.guia-candado-caja > p { margin: 0 0 6px; color: rgba(255,255,255,.72); }
+
+.guia { max-width: 860px; margin: 0 auto; padding: clamp(40px, 6vw, 76px) 5vw clamp(60px, 8vw, 110px); }
+.guia-portada { display: flex; flex-direction: column; gap: 14px; padding-bottom: 34px; border-bottom: 3px solid var(--navy); }
+.guia-portada .eyebrow.light { color: var(--cobalt); }
+.guia-portada h1 { margin: 0; font-family: "Barlow Condensed", sans-serif; font-weight: 900; font-size: clamp(44px, 9vw, 88px); line-height: .88; letter-spacing: -.02em; color: var(--navy); }
+.guia-portada p { margin: 0; max-width: 52ch; color: var(--muted); font-size: 18px; }
+
+.guia-indice { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 2px 24px; margin: 30px 0 10px; }
+.guia-indice a { display: flex; gap: 12px; align-items: baseline; padding: 11px 0; border-bottom: 1px solid var(--line); color: var(--ink); text-decoration: none; font-weight: 600; font-size: 15.5px; }
+.guia-indice a:hover { color: var(--cobalt); }
+.guia-indice span { font-family: "Barlow Condensed", sans-serif; font-weight: 800; color: var(--sky-bright); font-variant-numeric: tabular-nums; }
+
+.guia-seccion { padding: clamp(38px, 5vw, 58px) 0; border-bottom: 1px solid var(--line); scroll-margin-top: 110px; }
+.guia-seccion:last-of-type { border-bottom: 0; }
+.guia-seccion-head { display: flex; flex-direction: column; gap: 10px; margin-bottom: 26px; }
+.guia-tag { font-size: 10.5px; letter-spacing: .19em; text-transform: uppercase; font-weight: 800; color: var(--cobalt); }
+.guia-seccion-head h2 { margin: 0; font-family: "Barlow Condensed", sans-serif; font-weight: 900; text-transform: uppercase; font-size: clamp(30px, 5vw, 46px); line-height: .96; color: var(--navy); }
+.guia-seccion-head p { margin: 0; max-width: 62ch; color: var(--muted); }
+
+.guia-pasos { list-style: none; margin: 0; padding: 0; }
+.guia-pasos li { display: grid; grid-template-columns: 40px 1fr; gap: 16px; padding: 15px 0; border-top: 1px solid var(--line); }
+.guia-pasos li:last-child { border-bottom: 1px solid var(--line); }
+.guia-num { font-family: "Barlow Condensed", sans-serif; font-weight: 900; font-size: 27px; line-height: 1.05; color: var(--cobalt); font-variant-numeric: tabular-nums; }
+.guia-pasos b { display: block; margin-bottom: 2px; }
+.guia-pasos small { display: block; color: var(--muted); font-size: 15.5px; line-height: 1.55; }
+
+.guia-tabla-wrap { overflow-x: auto; }
+.guia-tabla { border-collapse: collapse; width: 100%; min-width: 520px; font-size: 15.5px; }
+.guia-tabla th { text-align: left; padding: 10px 16px 10px 0; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--navy); }
+.guia-tabla td { padding: 13px 16px 13px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+
+.guia-modulos { display: grid; }
+.guia-modulo { padding: 19px 0; border-top: 1px solid var(--line); display: grid; gap: 7px; }
+.guia-modulo:last-child { border-bottom: 1px solid var(--line); }
+.guia-modulo-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.guia-modulo-nombre { font-family: "Barlow Condensed", sans-serif; font-weight: 800; text-transform: uppercase; font-size: 22px; color: var(--navy); }
+.guia-marca { font-size: 10px; letter-spacing: .13em; text-transform: uppercase; font-weight: 800; padding: 3px 8px; border-radius: 3px; background: rgba(11,63,134,.09); color: var(--cobalt); white-space: nowrap; }
+.guia-marca.limitada { background: none; border: 1px solid var(--line); color: var(--muted); }
+.guia-modulo p { margin: 0; font-size: 16px; max-width: 66ch; }
+.guia-detalle { color: var(--muted); font-size: 15px !important; }
+
+.guia-partes h3 { margin: 26px 0 6px; font-size: 18px; }
+.guia-partes p { margin: 0; color: var(--muted); max-width: 64ch; }
+
+.guia-lista { margin: 0; padding-left: 20px; }
+.guia-lista li { margin-bottom: 10px; max-width: 64ch; }
+.guia-lista li::marker { color: var(--cobalt); }
+
+.guia-aviso { margin-top: 24px; padding: 17px 20px; background: var(--paper); border: 1px solid var(--line); border-left: 3px solid var(--gold); border-radius: 0 7px 7px 0; display: grid; gap: 5px; }
+.guia-aviso b { font-size: 11px; letter-spacing: .15em; text-transform: uppercase; color: var(--gold); }
+.guia-aviso p { margin: 0; font-size: 15.5px; max-width: 64ch; }
+
+.guia-pie { padding-top: 34px; border-top: 1px solid var(--line); }
+.guia-pie p { margin: 0; color: var(--muted); font-size: 15px; }
+
+@media (max-width: 560px) {
+  .guia-pasos li { grid-template-columns: 30px 1fr; gap: 12px; }
+  .guia-num { font-size: 22px; }
+}

@@ -14,6 +14,7 @@ import News from "./screens/News";
 import NewsList from "./screens/NewsList";
 import Peron365 from "./screens/Peron365";
 import Instalar from "./screens/Instalar";
+import Guia from "./screens/Guia";
 
 export default function App() {
   const location = useLocation();
@@ -56,7 +57,7 @@ export default function App() {
             <Route path="/instalar" element={<Instalar />} />
             <Route path="/descargar" element={<Navigate to="/instalar" replace />} />
             <Route path="/app" element={<Navigate to="/instalar" replace />} />
-            <Route path="/guia" element={<Navigate to="/presentacion" replace />} />
+            <Route path="/guia" element={<Guia />} />
             <Route path="/panel/*" element={<Panel />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
