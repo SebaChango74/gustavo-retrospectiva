@@ -2,9 +2,13 @@ const BASE = `${import.meta.env.BASE_URL}api`;
 
 export class ApiError extends Error {
   status: number;
-  constructor(status: number, message: string) {
+  /** Cuerpo completo de la respuesta: algunos errores traen datos útiles
+   *  (por ejemplo, que ese ingreso necesita clave). */
+  data: any;
+  constructor(status: number, message: string, data?: any) {
     super(message);
     this.status = status;
+    this.data = data ?? null;
   }
 }
 
@@ -21,7 +25,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     // sin cuerpo JSON
   }
   if (!response.ok) {
-    throw new ApiError(response.status, data?.error || `Error ${response.status}`);
+    throw new ApiError(response.status, data?.error || `Error ${response.status}`, data);
   }
   return data as T;
 }
@@ -37,10 +41,13 @@ export const api = {
 
 export type Member = {
   id: number;
-  email: string;
+  phone: string | null;
+  email: string | null;
+  affiliateNumber: string;
   name: string;
   picture: string;
   role: "admin" | "editor" | "moderator" | "referente" | "member";
+  adminTier?: "builder" | "manager";
   territoryId: number | null;
   territoryName: string;
   panelAccess: boolean;

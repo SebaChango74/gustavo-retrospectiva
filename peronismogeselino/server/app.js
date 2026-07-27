@@ -45,11 +45,55 @@ export function createApp(db) {
   }
 
   // Encabezados de seguridad para todo el sitio.
-  app.use((_req, res, next) => {
+  app.use((req, res, next) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
     res.setHeader("X-Frame-Options", "SAMEORIGIN");
     res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+    // HSTS: solo cuando ya se sirve por HTTPS, para no bloquear pruebas locales.
+    if (req.secure || req.headers["x-forwarded-proto"] === "https") {
+      res.setHeader("Strict-Transport-Security", "max-age=15552000; includeSubDomains");
+    }
+    // Política de contenido: solo scripts propios. Lo único ajeno que se
+    // carga son las tipografías y los mapas embebidos. Bloquea la ejecución
+    // de scripts inyectados.
+    res.setHeader(
+      "Content-Security-Policy",
+      [
+        "default-src 'self'",
+        "script-src 'self'",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "font-src 'self' https://fonts.gstatic.com data:",
+        "img-src 'self' data: blob: https:",
+        "connect-src 'self'",
+        "frame-src https://www.google.com",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'self'",
+      ].join("; "),
+    );
+    next();
+  });
+
+  // Anti-CSRF: un sitio ajeno no puede provocar acciones con tu sesión. Si el
+  // navegador informa un origen y no es el propio, se rechaza.
+  app.use((req, res, next) => {
+    if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
+    const origin = req.headers.origin;
+    if (origin) {
+      const host = req.headers["x-forwarded-host"] || req.headers.host;
+      let originHost = "";
+      try {
+        originHost = new URL(origin).host;
+      } catch {
+        originHost = "";
+      }
+      if (originHost && host && originHost !== host) {
+        return res.status(403).json({ error: "Origen no permitido." });
+      }
+    }
     next();
   });
 
@@ -193,10 +237,19 @@ function previewPage(wrongCode) {
 </form></body></html>`;
 }
 
+/**
+ * Las pruebas hacen decenas de ingresos seguidos y chocarían con el límite.
+ * Nunca se apaga en producción, aunque la variable esté puesta por error.
+ */
+function limiteApagado() {
+  return process.env.PG_RATE_LIMIT_OFF === "1" && process.env.NODE_ENV !== "production";
+}
+
 // Limitador de ritmo simple en memoria, suficiente para el volumen del portal.
 function rateLimit({ windowMs, max, methods }) {
   const hits = new Map();
   return (req, res, next) => {
+    if (limiteApagado()) return next();
     if (methods && !methods.includes(req.method)) return next();
     const now = Date.now();
     const key = req.ip || "local";

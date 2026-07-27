@@ -276,7 +276,7 @@ function quoteParams(b) {
       str(b.context, 1500),
       str(b.topic, 60),
       status,
-      status === "verified" ? member.email : "",
+      status === "verified" ? member.name || member.phone || "" : "",
       status === "verified" ? new Date().toISOString() : null,
       b.active === false ? 0 : 1,
     ],

@@ -1,9 +1,54 @@
 import { Router } from "express";
-import { requireGrant } from "../auth.js";
+import { requireGrant, canApprove, hashClave } from "../auth.js";
 import { audit, intIn, parseJson, slugify, str } from "../util.js";
+import { APPROVABLE, approveItem, markPending, pendingItems, rejectItem } from "../approval.js";
+import { normalizarWhatsapp, mostrarWhatsapp, enlaceWhatsapp } from "../whatsapp.js";
+
+/** Guarda la clave de un administrador. Sin clave, no la toca. */
+function aplicarClave(db, memberId, clave) {
+  const texto = str(clave, 200);
+  if (texto.length < 8) return false;
+  const { hash, salt } = hashClave(texto);
+  db.prepare("UPDATE members SET key_hash = ?, key_salt = ? WHERE id = ?").run(hash, salt, memberId);
+  return true;
+}
 
 export function adminRoutes(db) {
   const router = Router();
+
+  // ─── Aprobaciones (lo que enviaron los editores) ──────────────────────────
+  router.get("/pending", (req, res) => {
+    if (!canApprove(req.member)) {
+      return res.status(403).json({ error: "No tenés permisos para aprobar." });
+    }
+    res.json({ items: pendingItems(db) });
+  });
+
+  router.post("/pending/:table/:id/approve", (req, res) => {
+    if (!canApprove(req.member)) {
+      return res.status(403).json({ error: "No tenés permisos para aprobar." });
+    }
+    const { table, id } = req.params;
+    if (!APPROVABLE[table]) return res.status(400).json({ error: "Sección inválida." });
+    if (!approveItem(db, table, id)) {
+      return res.status(404).json({ error: "No hay nada pendiente con ese identificador." });
+    }
+    audit(db, req.member.id, "approve", table, id);
+    res.json({ ok: true });
+  });
+
+  router.post("/pending/:table/:id/reject", (req, res) => {
+    if (!canApprove(req.member)) {
+      return res.status(403).json({ error: "No tenés permisos para aprobar." });
+    }
+    const { table, id } = req.params;
+    if (!APPROVABLE[table]) return res.status(400).json({ error: "Sección inválida." });
+    if (!rejectItem(db, table, id)) {
+      return res.status(404).json({ error: "No hay nada pendiente con ese identificador." });
+    }
+    audit(db, req.member.id, "reject", table, id, str(req.body?.reason, 300));
+    res.json({ ok: true });
+  });
 
   // ─── Noticias ──────────────────────────────────────────────────────────────
   router.get("/news", requireGrant("news"), (_req, res) => {
@@ -31,6 +76,7 @@ export function adminRoutes(db) {
         oneOf(b.status, ["draft", "published", "archived"], "draft"),
         str(b.publishedAt, 40) || new Date().toISOString(),
       );
+    markPending(db, "news", info.lastInsertRowid, req.member);
     audit(db, req.member.id, "create", "news", info.lastInsertRowid, title);
     res.json({ id: info.lastInsertRowid });
   });
@@ -54,6 +100,7 @@ export function adminRoutes(db) {
       str(b.publishedAt, 40) || new Date().toISOString(),
       row.id,
     );
+    markPending(db, "news", row.id, req.member);
     audit(db, req.member.id, "update", "news", row.id);
     res.json({ ok: true });
   });
@@ -84,6 +131,7 @@ export function adminRoutes(db) {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
       .run(...causeParams(b, title, slug));
+    markPending(db, "causes", info.lastInsertRowid, req.member);
     audit(db, req.member.id, "create", "causes", info.lastInsertRowid, title);
     res.json({ id: info.lastInsertRowid });
   });
@@ -118,6 +166,7 @@ export function adminRoutes(db) {
         );
       });
     }
+    markPending(db, "causes", row.id, req.member);
     audit(db, req.member.id, "update", "causes", row.id);
     res.json({ ok: true });
   });
@@ -154,6 +203,7 @@ export function adminRoutes(db) {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
       .run(...eventParams(b, title, startsAt));
+    markPending(db, "events", info.lastInsertRowid, req.member);
     audit(db, req.member.id, "create", "events", info.lastInsertRowid, title);
     res.json({ id: info.lastInsertRowid });
   });
@@ -168,6 +218,7 @@ export function adminRoutes(db) {
         visibility = ?, status = ?, updated_at = datetime('now')
       WHERE id = ?
     `).run(...eventParams(b, str(b.title, 200), str(b.startsAt, 40)), row.id);
+    markPending(db, "events", row.id, req.member);
     audit(db, req.member.id, "update", "events", row.id);
     res.json({ ok: true });
   });
@@ -249,19 +300,28 @@ export function adminRoutes(db) {
   router.get("/members", requireGrant("members"), (_req, res) => {
     const items = db
       .prepare(`
-        SELECT m.id, m.email, m.name, m.role, m.status, m.territory_id, m.last_login_at,
-          m.created_at, t.name AS territory_name
+        SELECT m.id, m.phone, m.email, m.affiliate_number, m.name, m.role, m.admin_tier, m.status,
+          m.oculto, m.territory_id, m.last_login_at, m.created_at,
+          CASE WHEN m.key_hash != '' THEN 1 ELSE 0 END AS tiene_clave,
+          t.name AS territory_name
         FROM members m LEFT JOIN territories t ON t.id = m.territory_id
         ORDER BY m.created_at DESC
       `)
-      .all();
+      .all()
+      .map((m) => ({
+        ...m,
+        phone_display: mostrarWhatsapp(m.phone),
+        phone_link: enlaceWhatsapp(m.phone),
+      }));
     res.json({ items });
   });
 
   router.post("/members", requireGrant("members"), (req, res) => {
-    const email = str(req.body?.email, 254).toLowerCase();
-    if (!email || !email.includes("@")) {
-      return res.status(400).json({ error: "Correo inválido." });
+    const phone = normalizarWhatsapp(req.body?.phone);
+    if (!phone) {
+      return res.status(400).json({
+        error: "WhatsApp inválido: código de área y número, sin el 0 ni el 15.",
+      });
     }
     const cap = Number(
       db.prepare("SELECT value FROM settings WHERE key = 'community_cap'").get()?.value || 500,
@@ -270,22 +330,108 @@ export function adminRoutes(db) {
     if (count >= cap) {
       return res.status(400).json({ error: `La comunidad alcanzó el máximo de ${cap} miembros.` });
     }
-    const existing = db.prepare("SELECT id FROM members WHERE email = ?").get(email);
-    if (existing) return res.status(400).json({ error: "Ese correo ya está invitado." });
+    if (db.prepare("SELECT id FROM members WHERE phone = ?").get(phone)) {
+      return res.status(400).json({ error: "Ese WhatsApp ya está en la comunidad." });
+    }
+    const email = str(req.body?.email, 254).toLowerCase() || null;
+    if (email && db.prepare("SELECT id FROM members WHERE email = ?").get(email)) {
+      return res.status(400).json({ error: "Ese correo ya figura en otro miembro." });
+    }
     const info = db
       .prepare(`
-        INSERT INTO members (email, name, role, status, territory_id, invited_by)
-        VALUES (?, ?, ?, 'invited', ?, ?)
+        INSERT INTO members
+          (phone, email, name, affiliate_number, role, admin_tier, status, territory_id, invited_by)
+        VALUES (?, ?, ?, ?, ?, ?, 'invited', ?, ?)
       `)
       .run(
+        phone,
         email,
         str(req.body?.name, 120),
+        str(req.body?.affiliateNumber, 30),
         oneOf(req.body?.role, ["admin", "editor", "moderator", "referente", "member"], "member"),
+        req.body?.adminTier === "manager" ? "manager" : "builder",
         req.body?.territoryId ? Number(req.body.territoryId) : null,
         req.member.id,
       );
-    audit(db, req.member.id, "invite", "member", info.lastInsertRowid, email);
+    // Si lo suman como administración, la clave viaja en el mismo alta.
+    aplicarClave(db, Number(info.lastInsertRowid), req.body?.clave);
+    audit(db, req.member.id, "invite", "member", info.lastInsertRowid, phone);
     res.json({ id: info.lastInsertRowid });
+  });
+
+  /** Cambiar o poner la clave de un administrador. */
+  router.put("/members/:id/clave", requireGrant("members"), (req, res) => {
+    const row = db.prepare("SELECT id, role FROM members WHERE id = ?").get(req.params.id);
+    if (!row) return res.status(404).json({ error: "Miembro no encontrado." });
+    if (row.role !== "admin") {
+      return res.status(400).json({ error: "Solo la administración usa clave." });
+    }
+    const clave = str(req.body?.clave, 200);
+    if (clave.length < 8) {
+      return res.status(400).json({ error: "La clave tiene que tener al menos 8 caracteres." });
+    }
+    aplicarClave(db, row.id, clave);
+    // Cambiar la clave cierra las sesiones abiertas de esa cuenta.
+    db.prepare("DELETE FROM sessions WHERE member_id = ?").run(row.id);
+    audit(db, req.member.id, "clave", "member", row.id);
+    res.json({ ok: true });
+  });
+
+  // ─── Solicitudes de ingreso ───────────────────────────────────────────────
+  router.get("/requests", requireGrant("members"), (_req, res) => {
+    const items = db
+      .prepare(
+        "SELECT * FROM access_requests WHERE status = 'pending' ORDER BY created_at ASC",
+      )
+      .all()
+      .map((r) => ({
+        ...r,
+        phone_display: mostrarWhatsapp(r.phone),
+        phone_link: enlaceWhatsapp(r.phone),
+      }));
+    res.json({ items });
+  });
+
+  router.post("/requests/:id/approve", requireGrant("members"), (req, res) => {
+    const row = db
+      .prepare("SELECT * FROM access_requests WHERE id = ? AND status = 'pending'")
+      .get(req.params.id);
+    if (!row) return res.status(404).json({ error: "Solicitud no encontrada." });
+
+    let miembroId = db.prepare("SELECT id FROM members WHERE phone = ?").get(row.phone)?.id;
+    if (!miembroId) {
+      miembroId = Number(
+        db
+          .prepare(`
+            INSERT INTO members (phone, name, affiliate_number, role, status, territory_id, invited_by)
+            VALUES (?, ?, ?, 'member', 'active', ?, ?)
+          `)
+          .run(
+            row.phone,
+            row.name,
+            row.affiliate_number,
+            req.body?.territoryId ? Number(req.body.territoryId) : null,
+            req.member.id,
+          ).lastInsertRowid,
+      );
+    }
+    db.prepare(
+      "UPDATE access_requests SET status = 'approved', decided_by = ?, decided_at = datetime('now') WHERE id = ?",
+    ).run(req.member.id, row.id);
+    audit(db, req.member.id, "aprobar_ingreso", "member", miembroId, row.phone);
+    res.json({ ok: true, memberId: miembroId, whatsapp: enlaceWhatsapp(row.phone) });
+  });
+
+  router.post("/requests/:id/reject", requireGrant("members"), (req, res) => {
+    const row = db
+      .prepare("SELECT * FROM access_requests WHERE id = ? AND status = 'pending'")
+      .get(req.params.id);
+    if (!row) return res.status(404).json({ error: "Solicitud no encontrada." });
+    db.prepare(
+      "UPDATE access_requests SET status = 'rejected', decided_by = ?, decided_at = datetime('now') WHERE id = ?",
+    ).run(req.member.id, row.id);
+    audit(db, req.member.id, "rechazar_ingreso", "access_request", row.id, row.phone);
+    res.json({ ok: true });
   });
 
   router.put("/members/:id", requireGrant("members"), (req, res) => {
@@ -300,13 +446,19 @@ export function adminRoutes(db) {
     if (row.id === req.member.id && role !== "admin") {
       return res.status(400).json({ error: "No podés quitarte tu propio rol de administración." });
     }
-    db.prepare(
-      "UPDATE members SET name = ?, role = ?, status = ?, territory_id = ? WHERE id = ?",
-    ).run(
+    const tier = req.body?.adminTier === "manager" ? "manager" : "builder";
+    const oculto = req.body?.oculto === undefined ? row.oculto : req.body.oculto ? 1 : 0;
+    db.prepare(`
+      UPDATE members SET name = ?, role = ?, status = ?, territory_id = ?, admin_tier = ?,
+        oculto = ?
+      WHERE id = ?
+    `).run(
       str(req.body?.name ?? row.name, 120),
       role,
       status,
       req.body?.territoryId ? Number(req.body.territoryId) : null,
+      tier,
+      oculto,
       row.id,
     );
     if (status === "suspended") {
@@ -389,6 +541,7 @@ export function adminRoutes(db) {
         oneOf(req.body?.status, ["draft", "published", "archived"], "published"),
         req.member.id,
       );
+    markPending(db, "announcements", info.lastInsertRowid, req.member);
     audit(db, req.member.id, "create", "announcement", info.lastInsertRowid, title);
     res.json({ id: info.lastInsertRowid });
   });
@@ -434,6 +587,7 @@ export function adminRoutes(db) {
         oneOf(req.body?.status, ["draft", "published", "archived"], "published"),
         req.member.id,
       );
+    markPending(db, "materials", info.lastInsertRowid, req.member);
     res.json({ id: info.lastInsertRowid });
   });
 
@@ -469,7 +623,7 @@ export function adminRoutes(db) {
       .all();
     const hidden = db
       .prepare(`
-        SELECT p.*, m.name AS member_name, m.email AS member_email, th.title AS thread_title
+        SELECT p.*, m.name AS member_name, COALESCE(NULLIF(m.name, ''), m.phone) AS member_email, th.title AS thread_title
         FROM posts p
         JOIN members m ON m.id = p.member_id
         JOIN threads th ON th.id = p.thread_id
@@ -561,7 +715,7 @@ export function adminRoutes(db) {
     res.json({
       items: db
         .prepare(`
-          SELECT a.*, m.email AS actor_email FROM audit_log a
+          SELECT a.*, COALESCE(NULLIF(m.name, ''), m.phone) AS actor_email FROM audit_log a
           LEFT JOIN members m ON m.id = a.actor_id
           ORDER BY a.id DESC LIMIT 200
         `)

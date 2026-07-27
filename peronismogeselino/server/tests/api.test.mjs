@@ -1,27 +1,53 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 
-process.env.PG_DEV = "1";
+// Las pruebas hacen muchos ingresos seguidos; el límite de ritmo se prueba aparte.
+process.env.PG_RATE_LIMIT_OFF = "1";
 
 const { openTestDb } = await import("../db.js");
 const { createApp } = await import("../app.js");
+const { hashClave } = await import("../auth.js");
+const { normalizarWhatsapp } = await import("../whatsapp.js");
 
 let server;
 let base;
 let db;
+
+// Números de prueba: código de área de Villa Gesell + abonado.
+const VECINA = "2255400001";
+const ADMIN = "2255400002";
+const EDITOR = "2255400003";
+const MANAGER = "2255400004";
+const CLAVE_ADMIN = "clave-de-prueba";
 
 function cookieFrom(response) {
   const header = response.headers.get("set-cookie") || "";
   return header.split(";")[0];
 }
 
-async function login(email) {
-  const response = await fetch(`${base}/peronismogeselino/api/auth/dev`, {
+async function login(whatsapp, extra = {}) {
+  const response = await fetch(`${base}/peronismogeselino/api/auth/ingresar`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ nombre: "Compañera Test", whatsapp, ...extra }),
   });
   return { response, cookie: cookieFrom(response) };
+}
+
+/** Alta directa en la base, como si ya estuviera aprobada. */
+function crearMiembro({ phone, name, role = "member", status = "active", tier = "builder", clave }) {
+  const id = Number(
+    db
+      .prepare(
+        "INSERT INTO members (phone, name, role, status, admin_tier) VALUES (?, ?, ?, ?, ?)",
+      )
+      .run(normalizarWhatsapp(phone), name, role, status, tier).lastInsertRowid,
+  );
+  if (clave) {
+    const { hash, salt } = hashClave(clave);
+    db.prepare("UPDATE members SET key_hash = ?, key_salt = ? WHERE id = ?").run(hash, salt, id);
+  }
+  return id;
 }
 
 before(async () => {
@@ -63,20 +89,49 @@ test("una actividad de miembros no expone su ubicación al público", async () =
   assert.equal(membersEvent.latitude, undefined);
 });
 
-test("un correo sin invitación no puede ingresar", async () => {
-  const { response } = await login("intruso@example.com");
-  assert.equal(response.status, 403);
+test("el WhatsApp se normaliza escriba como escriba la persona", () => {
+  const esperado = "542255456789";
+  for (const entrada of [
+    "2255456789",
+    "2255 45-6789",
+    "02255 456789",
+    "+54 2255 456789",
+    "+54 9 2255 456789",
+    "02255 15 456789",
+    "0054 2255 456789",
+  ]) {
+    assert.equal(normalizarWhatsapp(entrada), esperado, `falló con "${entrada}"`);
+  }
+  for (const invalido of ["", "1234", "no es un número", "0000000000"]) {
+    assert.equal(normalizarWhatsapp(invalido), "", `debió rechazar "${invalido}"`);
+  }
 });
 
-test("un miembro invitado ingresa y ve la comunidad; el público no", async () => {
-  db.prepare(
-    "INSERT INTO members (email, name, role, status) VALUES (?, ?, 'member', 'invited')",
-  ).run("vecina@example.com", "Vecina Test");
+test("quien no está en la comunidad no entra: queda como pedido de ingreso", async () => {
+  const { response } = await login("2255409999", { nombre: "Persona Nueva" });
+  assert.equal(response.status, 202, "no entra, pero el pedido se registra");
+  const data = await response.json();
+  assert.equal(data.pendiente, true);
+  assert.equal(data.member, undefined, "no devuelve sesión");
+
+  const fila = db
+    .prepare("SELECT * FROM access_requests WHERE phone = ?")
+    .get(normalizarWhatsapp("2255409999"));
+  assert.equal(fila.status, "pending");
+
+  // Insistir no da acceso ni duplica el pedido.
+  const otraVez = await login("2255409999", { nombre: "Persona Nueva" });
+  assert.equal(otraVez.response.status, 202);
+  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM access_requests").get().n, 1);
+});
+
+test("un miembro aprobado ingresa y ve la comunidad; el público no", async () => {
+  crearMiembro({ phone: VECINA, name: "Vecina Test", status: "invited" });
 
   const anon = await fetch(`${base}/peronismogeselino/api/community/overview`);
   assert.equal(anon.status, 401);
 
-  const { response, cookie } = await login("vecina@example.com");
+  const { response, cookie } = await login(VECINA);
   assert.equal(response.status, 200);
 
   const overview = await fetch(`${base}/peronismogeselino/api/community/overview`, {
@@ -96,16 +151,14 @@ test("un miembro invitado ingresa y ve la comunidad; el público no", async () =
 });
 
 test("el panel exige rol: miembro común no, administración sí", async () => {
-  const { cookie: memberCookie } = await login("vecina@example.com");
+  const { cookie: memberCookie } = await login(VECINA);
   const denied = await fetch(`${base}/peronismogeselino/api/admin/news`, {
     headers: { cookie: memberCookie },
   });
   assert.equal(denied.status, 403);
 
-  db.prepare(
-    "INSERT INTO members (email, name, role, status) VALUES (?, ?, 'admin', 'active')",
-  ).run("admin@example.com", "Admin Test");
-  const { cookie: adminCookie } = await login("admin@example.com");
+  crearMiembro({ phone: ADMIN, name: "Admin Test", role: "admin", clave: CLAVE_ADMIN });
+  const { cookie: adminCookie } = await login(ADMIN, { clave: CLAVE_ADMIN });
   const allowed = await fetch(`${base}/peronismogeselino/api/admin/news`, {
     headers: { cookie: adminCookie },
   });
@@ -113,7 +166,7 @@ test("el panel exige rol: miembro común no, administración sí", async () => {
 });
 
 test("el foro guarda mensajes y la moderación puede ocultarlos", async () => {
-  const { cookie } = await login("vecina@example.com");
+  const { cookie } = await login(VECINA);
   const posted = await fetch(`${base}/peronismogeselino/api/community/threads/1/posts`, {
     method: "POST",
     headers: { "Content-Type": "application/json", cookie },
@@ -122,7 +175,7 @@ test("el foro guarda mensajes y la moderación puede ocultarlos", async () => {
   assert.equal(posted.status, 200);
   const { id } = await posted.json();
 
-  const { cookie: adminCookie } = await login("admin@example.com");
+  const { cookie: adminCookie } = await login(ADMIN, { clave: CLAVE_ADMIN });
   const hidden = await fetch(`${base}/peronismogeselino/api/admin/moderation/posts/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json", cookie: adminCookie },
@@ -157,7 +210,7 @@ test("el Peronómetro entrega 50 preguntas y registra resultados anónimos", asy
 });
 
 test("valida entradas del panel", async () => {
-  const { cookie } = await login("admin@example.com");
+  const { cookie } = await login(ADMIN, { clave: CLAVE_ADMIN });
   const bad = await fetch(`${base}/peronismogeselino/api/admin/questions`, {
     method: "POST",
     headers: { "Content-Type": "application/json", cookie },
@@ -221,4 +274,264 @@ test("Perón 365: el archivo lista el día publicado", async () => {
   const data = await response.json();
   assert.ok(data.days.length >= 1);
   assert.ok(data.days[0].shortText.length > 0);
+});
+
+test("blindaje: encabezados de seguridad presentes", async () => {
+  const response = await fetch(`${base}/peronismogeselino/`);
+  const csp = response.headers.get("content-security-policy") || "";
+  assert.ok(csp.includes("default-src 'self'"), "CSP restringe el origen");
+  assert.ok(csp.includes("object-src 'none'"), "CSP bloquea plugins");
+  assert.ok(csp.includes("frame-ancestors 'self'"), "CSP evita ser embebido");
+  assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+  assert.equal(response.headers.get("x-frame-options"), "SAMEORIGIN");
+  assert.ok((response.headers.get("referrer-policy") || "").length > 0);
+});
+
+test("blindaje: anti-CSRF rechaza un origen ajeno", async () => {
+  const response = await fetch(`${base}/peronismogeselino/api/auth/ingresar`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Origin: "https://sitio-malicioso.example" },
+    body: JSON.stringify({ nombre: "Admin Test", whatsapp: ADMIN, clave: CLAVE_ADMIN }),
+  });
+  assert.equal(response.status, 403);
+});
+
+test("blindaje: sin la clave correcta, un administrador no entra", async () => {
+  const sinClave = await login(ADMIN);
+  assert.equal(sinClave.response.status, 401, "el WhatsApp solo no alcanza");
+  assert.equal((await sinClave.response.json()).claveRequerida, true);
+
+  const claveMala = await login(ADMIN, { clave: "cualquier-cosa" });
+  assert.equal(claveMala.response.status, 401);
+
+  const bien = await login(ADMIN, { clave: CLAVE_ADMIN });
+  assert.equal(bien.response.status, 200);
+});
+
+test("blindaje: la clave no se guarda en texto plano", () => {
+  const fila = db
+    .prepare("SELECT key_hash, key_salt FROM members WHERE phone = ?")
+    .get(normalizarWhatsapp(ADMIN));
+  assert.ok(fila.key_hash.length >= 64);
+  assert.ok(fila.key_salt.length > 0);
+  assert.ok(!fila.key_hash.includes(CLAVE_ADMIN));
+});
+
+test("blindaje: no se puede escalar el propio rol", async () => {
+  const { cookie } = await login(VECINA);
+  const attempt = await fetch(`${base}/peronismogeselino/api/admin/members`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", cookie },
+    body: JSON.stringify({ phone: "2255408888", role: "admin" }),
+  });
+  assert.equal(attempt.status, 403, "un miembro no puede crear administradores");
+});
+
+test("colaboradores: lo que carga un editor no sale hasta que un admin aprueba", async () => {
+  crearMiembro({ phone: EDITOR, name: "Editor Test", role: "editor" });
+  const { cookie: editorCookie } = await login(EDITOR);
+
+  // El editor publica una noticia
+  const created = await fetch(`${base}/peronismogeselino/api/admin/news`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", cookie: editorCookie },
+    body: JSON.stringify({ title: "Nota de un editor", summary: "Prueba", status: "published" }),
+  });
+  assert.equal(created.status, 200);
+  const { id } = await created.json();
+
+  // Queda pendiente: el portal público NO la muestra
+  const publicList = await fetch(`${base}/peronismogeselino/api/public/news?page=1`);
+  const publicData = await publicList.json();
+  assert.ok(
+    !publicData.news.some((n) => n.title === "Nota de un editor"),
+    "el contenido pendiente no se publica solo",
+  );
+
+  // El editor no puede aprobar
+  const editorApprove = await fetch(
+    `${base}/peronismogeselino/api/admin/pending/news/${id}/approve`,
+    { method: "POST", headers: { cookie: editorCookie } },
+  );
+  assert.equal(editorApprove.status, 403);
+
+  // El admin ve la bandeja y aprueba
+  const { cookie: adminCookie } = await login(ADMIN, { clave: CLAVE_ADMIN });
+  const pending = await fetch(`${base}/peronismogeselino/api/admin/pending`, {
+    headers: { cookie: adminCookie },
+  });
+  const pendingData = await pending.json();
+  assert.ok(pendingData.items.some((i) => i.id === id && i.table === "news"));
+
+  const approved = await fetch(
+    `${base}/peronismogeselino/api/admin/pending/news/${id}/approve`,
+    { method: "POST", headers: { cookie: adminCookie } },
+  );
+  assert.equal(approved.status, 200);
+
+  // Ahora sí aparece en el portal
+  const after = await fetch(`${base}/peronismogeselino/api/public/news?page=1`);
+  const afterData = await after.json();
+  assert.ok(afterData.news.some((n) => n.title === "Nota de un editor"), "aprobada: ya se ve");
+});
+
+test("colaboradores: el admin manager aprueba pero no toca los ajustes", async () => {
+  crearMiembro({
+    phone: MANAGER,
+    name: "Manager Test",
+    role: "admin",
+    tier: "manager",
+    clave: CLAVE_ADMIN,
+  });
+  const { cookie } = await login(MANAGER, { clave: CLAVE_ADMIN });
+
+  const canSeePending = await fetch(`${base}/peronismogeselino/api/admin/pending`, {
+    headers: { cookie },
+  });
+  assert.equal(canSeePending.status, 200, "el manager ve la bandeja de aprobación");
+
+  const settings = await fetch(`${base}/peronismogeselino/api/admin/settings`, {
+    headers: { cookie },
+  });
+  assert.equal(settings.status, 403, "el manager no entra a los ajustes");
+});
+
+test("ingreso: el admin aprueba un pedido y esa persona ya puede entrar", async () => {
+  const nuevo = "2255407777";
+
+  // 1. La persona pide entrar y no obtiene acceso.
+  const pedido = await login(nuevo, { nombre: "Compañero Nuevo", afiliado: "12345" });
+  assert.equal(pedido.response.status, 202);
+
+  const bloqueado = await fetch(`${base}/peronismogeselino/api/community/overview`, {
+    headers: { cookie: pedido.cookie },
+  });
+  assert.equal(bloqueado.status, 401, "el pedido no crea sesión");
+
+  // 2. El admin la ve en la bandeja.
+  const { cookie: adminCookie } = await login(ADMIN, { clave: CLAVE_ADMIN });
+  const bandeja = await fetch(`${base}/peronismogeselino/api/admin/requests`, {
+    headers: { cookie: adminCookie },
+  });
+  const items = (await bandeja.json()).items;
+  const fila = items.find((i) => i.phone === normalizarWhatsapp(nuevo));
+  assert.ok(fila, "el pedido aparece en la bandeja");
+  assert.equal(fila.affiliate_number, "12345");
+  assert.ok(fila.phone_link.startsWith("https://wa.me/549"), "hay enlace para responderle");
+
+  // 3. Un editor no puede aprobar ingresos.
+  const { cookie: editorCookie } = await login(EDITOR);
+  const editorIntenta = await fetch(
+    `${base}/peronismogeselino/api/admin/requests/${fila.id}/approve`,
+    { method: "POST", headers: { cookie: editorCookie } },
+  );
+  assert.equal(editorIntenta.status, 403);
+
+  // 4. El admin aprueba y la persona entra con el mismo WhatsApp.
+  const aprobado = await fetch(
+    `${base}/peronismogeselino/api/admin/requests/${fila.id}/approve`,
+    { method: "POST", headers: { cookie: adminCookie } },
+  );
+  assert.equal(aprobado.status, 200);
+
+  const entra = await login(nuevo, { nombre: "Compañero Nuevo" });
+  assert.equal(entra.response.status, 200);
+  const comunidad = await fetch(`${base}/peronismogeselino/api/community/overview`, {
+    headers: { cookie: entra.cookie },
+  });
+  assert.equal(comunidad.status, 200);
+});
+
+test("ingreso: un pedido rechazado no vuelve a colarse", async () => {
+  const rechazado = "2255406666";
+  await login(rechazado, { nombre: "No Corresponde" });
+
+  const { cookie: adminCookie } = await login(ADMIN, { clave: CLAVE_ADMIN });
+  const items = (
+    await (
+      await fetch(`${base}/peronismogeselino/api/admin/requests`, { headers: { cookie: adminCookie } })
+    ).json()
+  ).items;
+  const fila = items.find((i) => i.phone === normalizarWhatsapp(rechazado));
+
+  const respuesta = await fetch(
+    `${base}/peronismogeselino/api/admin/requests/${fila.id}/reject`,
+    { method: "POST", headers: { cookie: adminCookie } },
+  );
+  assert.equal(respuesta.status, 200);
+
+  const reintento = await login(rechazado, { nombre: "No Corresponde" });
+  assert.equal(reintento.response.status, 403);
+});
+
+test("ingreso: a un miembro suspendido se le corta el acceso", async () => {
+  const suspendido = "2255405555";
+  crearMiembro({ phone: suspendido, name: "Suspendido Test", status: "suspended" });
+  const { response } = await login(suspendido);
+  assert.equal(response.status, 403);
+});
+
+test("cuenta técnica: entra al panel pero no figura como miembro de la comunidad", async () => {
+  const tecnico = "1136360000";
+  const { cookie: adminCookie } = await login(ADMIN, { clave: CLAVE_ADMIN });
+
+  const antes = (
+    await (
+      await fetch(`${base}/peronismogeselino/api/community/overview`, { headers: { cookie: adminCookie } })
+    ).json()
+  ).stats.activeMembers;
+
+  crearMiembro({ phone: tecnico, name: "Equipo Técnico", role: "admin", clave: CLAVE_ADMIN });
+  db.prepare("UPDATE members SET oculto = 1 WHERE phone = ?").run(normalizarWhatsapp(tecnico));
+
+  // Entra y administra sin problema.
+  const { response, cookie } = await login(tecnico, { clave: CLAVE_ADMIN });
+  assert.equal(response.status, 200);
+  const panel = await fetch(`${base}/peronismogeselino/api/admin/news`, { headers: { cookie } });
+  assert.equal(panel.status, 200);
+
+  // Pero no suma al recuento de la comunidad.
+  const despues = (
+    await (
+      await fetch(`${base}/peronismogeselino/api/community/overview`, { headers: { cookie: adminCookie } })
+    ).json()
+  ).stats.activeMembers;
+  assert.equal(despues, antes, "la cuenta técnica no engrosa la comunidad");
+});
+
+test("colaboradores: se puede sumar un admin manager con correo y clave en un solo paso", async () => {
+  const { cookie } = await login(ADMIN, { clave: CLAVE_ADMIN });
+  const alta = await fetch(`${base}/peronismogeselino/api/admin/members`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", cookie },
+    body: JSON.stringify({
+      phone: "2255521000",
+      name: "Editorial Test",
+      email: "editorial@example.com",
+      role: "admin",
+      adminTier: "manager",
+      clave: "clave-editorial",
+    }),
+  });
+  assert.equal(alta.status, 200);
+
+  const fila = db
+    .prepare("SELECT * FROM members WHERE phone = ?")
+    .get(normalizarWhatsapp("2255521000"));
+  assert.equal(fila.admin_tier, "manager");
+  assert.equal(fila.email, "editorial@example.com");
+  assert.equal(fila.oculto, 0, "un colaborador sí figura en la comunidad");
+  assert.ok(fila.key_hash.length > 0, "quedó con clave");
+
+  // Entra con su clave y aprueba, pero no toca los ajustes.
+  const suyo = await login("2255521000", { nombre: "Editorial Test", clave: "clave-editorial" });
+  assert.equal(suyo.response.status, 200);
+  const bandeja = await fetch(`${base}/peronismogeselino/api/admin/pending`, {
+    headers: { cookie: suyo.cookie },
+  });
+  assert.equal(bandeja.status, 200);
+  const ajustes = await fetch(`${base}/peronismogeselino/api/admin/settings`, {
+    headers: { cookie: suyo.cookie },
+  });
+  assert.equal(ajustes.status, 403);
 });

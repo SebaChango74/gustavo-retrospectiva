@@ -5,47 +5,85 @@ import {
   sessionCookie,
   clearSessionCookie,
   readSessionToken,
-  verifyGoogleIdToken,
   hasPanelAccess,
+  requiereClave,
+  verificarClave,
 } from "../auth.js";
 import { audit, str } from "../util.js";
+import { normalizarWhatsapp, mostrarWhatsapp } from "../whatsapp.js";
 
 export function authRoutes(db) {
   const router = Router();
 
-  // Ingreso real con Google. El cliente envía el ID token (credential) que
-  // entrega Google Identity Services; el servidor lo verifica y comprueba que
-  // el correo esté invitado.
-  router.post("/google", async (req, res) => {
-    const clientId = process.env.PG_GOOGLE_CLIENT_ID || "";
-    if (!clientId) {
-      return res.status(503).json({
-        error: "El ingreso con Google todavía no está configurado (PG_GOOGLE_CLIENT_ID).",
+  /**
+   * Ingreso: nombre + WhatsApp. Sin costo, sin verificación externa.
+   *
+   * - Si el número ya es miembro activo, entra.
+   * - Si es admin, además le pedimos su clave: son los únicos que publican
+   *   y borran, y con solo el número cualquiera tomaría el control.
+   * - Si el número no está, queda como solicitud a la espera de aprobación.
+   */
+  router.post("/ingresar", (req, res) => {
+    const nombre = str(req.body?.nombre, 80);
+    const whatsapp = normalizarWhatsapp(req.body?.whatsapp);
+    const afiliado = str(req.body?.afiliado, 30);
+    const clave = str(req.body?.clave, 200);
+
+    if (!whatsapp) {
+      return res.status(400).json({
+        error: "Revisá el WhatsApp: poné código de área y número, sin el 0 ni el 15.",
       });
     }
-    const credential = str(req.body?.credential, 4096);
-    if (!credential) return res.status(400).json({ error: "Falta la credencial de Google." });
+    if (nombre.length < 3) {
+      return res.status(400).json({ error: "Escribí tu nombre y apellido." });
+    }
 
-    let profile;
-    try {
-      profile = await verifyGoogleIdToken(credential, clientId);
-    } catch {
-      profile = null;
+    const member = db.prepare("SELECT * FROM members WHERE phone = ?").get(whatsapp);
+
+    if (!member) return registrarSolicitud(db, res, { whatsapp, nombre, afiliado });
+
+    if (member.status === "suspended") {
+      return res.status(403).json({ error: "Tu acceso está suspendido. Hablá con la moderación." });
     }
-    if (!profile) {
-      return res.status(401).json({ error: "No pudimos verificar tu cuenta de Google." });
+
+    if (requiereClave(member)) {
+      if (!member.key_hash) {
+        return res.status(403).json({
+          error: "Tu cuenta de administración todavía no tiene clave. Pedila a quien te sumó.",
+        });
+      }
+      if (!clave) {
+        return res.status(401).json({ error: "Falta tu clave.", claveRequerida: true });
+      }
+      if (!verificarClave(clave, member.key_hash, member.key_salt)) {
+        audit(db, member.id, "login_fallido", "member", member.id, whatsapp);
+        return res.status(401).json({ error: "Clave incorrecta.", claveRequerida: true });
+      }
     }
-    return finishLogin(db, res, profile);
+
+    db.prepare(`
+      UPDATE members SET
+        name = CASE WHEN ? != '' THEN ? ELSE name END,
+        affiliate_number = CASE WHEN ? != '' THEN ? ELSE affiliate_number END,
+        status = 'active',
+        last_login_at = datetime('now')
+      WHERE id = ?
+    `).run(nombre, nombre, afiliado, afiliado, member.id);
+
+    const { token, expires } = createSession(db, member.id);
+    res.setHeader("Set-Cookie", sessionCookie(token, expires));
+    audit(db, member.id, "login", "member", member.id, whatsapp);
+
+    return res.json({ member: perfil(db, member.id) });
   });
 
-  // Ingreso de desarrollo: solo existe cuando el servidor corre con PG_DEV=1.
-  if (process.env.PG_DEV === "1") {
-    router.post("/dev", (req, res) => {
-      const email = str(req.body?.email, 254).toLowerCase();
-      if (!email) return res.status(400).json({ error: "Falta el correo." });
-      return finishLogin(db, res, { email, name: req.body?.name || email.split("@")[0], picture: "" });
-    });
-  }
+  /** Si el WhatsApp ya es admin, el formulario pide la clave desde el vamos. */
+  router.post("/consultar", (req, res) => {
+    const whatsapp = normalizarWhatsapp(req.body?.whatsapp);
+    if (!whatsapp) return res.json({ claveRequerida: false });
+    const member = db.prepare("SELECT role, status FROM members WHERE phone = ?").get(whatsapp);
+    res.json({ claveRequerida: Boolean(member) && member.role === "admin" });
+  });
 
   router.post("/logout", (req, res) => {
     destroySession(db, readSessionToken(req));
@@ -61,48 +99,52 @@ export function authRoutes(db) {
   return router;
 }
 
-function finishLogin(db, res, profile) {
-  const member = db
-    .prepare("SELECT * FROM members WHERE email = ?")
-    .get(profile.email);
+/** Deja el pedido de ingreso a la vista de los admins, sin dar acceso. */
+function registrarSolicitud(db, res, { whatsapp, nombre, afiliado }) {
+  const previa = db.prepare("SELECT * FROM access_requests WHERE phone = ?").get(whatsapp);
 
-  if (!member) {
+  if (previa?.status === "rejected") {
     return res.status(403).json({
-      error:
-        "Tu correo no figura entre las invitaciones. Escribile a quien te invitó para que te sume.",
+      error: "Tu pedido de ingreso fue rechazado. Si creés que es un error, hablá con la mesa.",
     });
   }
-  if (member.status === "suspended") {
-    return res.status(403).json({ error: "Tu acceso está suspendido. Hablá con la moderación." });
+  if (previa) {
+    // Actualizamos los datos por si los corrigió, pero no reabrimos nada.
+    db.prepare(
+      "UPDATE access_requests SET name = ?, affiliate_number = ? WHERE id = ?",
+    ).run(nombre, afiliado, previa.id);
+  } else {
+    db.prepare(
+      "INSERT INTO access_requests (phone, name, affiliate_number) VALUES (?, ?, ?)",
+    ).run(whatsapp, nombre, afiliado);
   }
 
-  db.prepare(`
-    UPDATE members SET
-      name = CASE WHEN ? != '' THEN ? ELSE name END,
-      picture = ?,
-      status = 'active',
-      last_login_at = datetime('now')
-    WHERE id = ?
-  `).run(profile.name, profile.name, profile.picture, member.id);
+  return res.status(202).json({
+    pendiente: true,
+    whatsapp: mostrarWhatsapp(whatsapp),
+    mensaje:
+      "Recibimos tu pedido. Cuando la mesa lo apruebe vas a poder entrar con este mismo WhatsApp.",
+  });
+}
 
-  const { token, expires } = createSession(db, member.id);
-  res.setHeader("Set-Cookie", sessionCookie(token, expires));
-  audit(db, member.id, "login", "member", member.id, profile.email);
-
-  const fresh = db
+function perfil(db, id) {
+  const fila = db
     .prepare(`
       SELECT m.*, t.name AS territory_name FROM members m
       LEFT JOIN territories t ON t.id = m.territory_id WHERE m.id = ?
     `)
-    .get(member.id);
-  const payload = {
-    id: fresh.id,
-    email: fresh.email,
-    name: fresh.name,
-    picture: fresh.picture,
-    role: fresh.role,
-    territoryId: fresh.territory_id,
-    territoryName: fresh.territory_name ?? "",
+    .get(id);
+  const datos = {
+    id: fila.id,
+    phone: fila.phone,
+    email: fila.email,
+    affiliateNumber: fila.affiliate_number ?? "",
+    name: fila.name,
+    picture: fila.picture,
+    role: fila.role,
+    adminTier: fila.admin_tier ?? "builder",
+    territoryId: fila.territory_id,
+    territoryName: fila.territory_name ?? "",
   };
-  res.json({ member: { ...payload, panelAccess: hasPanelAccess(payload) } });
+  return { ...datos, panelAccess: hasPanelAccess(datos) };
 }

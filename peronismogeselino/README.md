@@ -9,7 +9,7 @@ técnica y visualmente del resto de la web.
 - **La app nueva** vive completa dentro de esta carpeta: portal público,
   comunidad privada, panel de control, agenda con Google Maps y Peronómetro.
 - **Sin IA en producción** y **sin servicios pagos**: base SQLite embebida,
-  Google Sign-In gratuito y mapas por iframe sin clave.
+  ingreso por WhatsApp con aprobación y mapas por iframe sin clave.
 
 El prototipo visual aprobado está en `_handoff/peronismo-geselino` y es la
 referencia de diseño: no cambiar portada, Peronómetro, colores, tipografías,
@@ -43,7 +43,7 @@ Rutas principales:
 | `/peronismogeselino` | Portal público |
 | `/peronismogeselino/causas` · `/agenda` · `/juegos` | Secciones públicas |
 | `/peronismogeselino/juegos/jugar` | Peronómetro jugable |
-| `/peronismogeselino/comunidad` | Comunidad privada (Google + invitación) |
+| `/peronismogeselino/comunidad` | Comunidad privada (WhatsApp + aprobación) |
 | `/peronismogeselino/panel` | Panel de control (roles) |
 | `/peronismogeselino/api/*` | API REST |
 
@@ -56,14 +56,20 @@ cd peronismogeselino
 npm install
 npm run build          # compila la SPA a dist/
 cd ..
-PG_DEV=1 PG_ADMIN_EMAILS=tu-correo@gmail.com PORT=4600 node peronismogeselino/server/index.js
+PG_ADMIN_PHONES="2255 400000" PG_ADMIN_KEY=una-clave-larga \
+  PORT=4600 node peronismogeselino/server/index.js
 ```
 
 Abrí `http://localhost:4600/peronismogeselino`.
 
-Con `PG_DEV=1` aparece un **ingreso de desarrollo** (correo sin Google) para
-probar comunidad y panel sin configurar nada. `PG_ADMIN_EMAILS` da rol de
-administración a esos correos. **Nunca** usar `PG_DEV=1` en producción.
+`PG_ADMIN_PHONES` crea (o asciende) esos WhatsApp como administración, y
+`PG_ADMIN_KEY` les pone la clave inicial **solo si todavía no tienen una**.
+Con eso ya podés entrar al panel y sumar al resto desde ahí.
+
+La cuenta que crea el arranque nace como **cuenta técnica**: entra al panel
+pero no cuenta como miembro de la comunidad ni aparece en sus listas. Quien
+construye y mantiene el portal no tiene por qué figurar como militancia. En el
+panel → Miembros, la columna «Figura» permite cambiarlo.
 
 Para desarrollo con recarga en vivo:
 
@@ -73,8 +79,9 @@ npm run dev        # Vite en :5199 (proxy del API a :4600)
 npm run dev:server # API en :4600 (en otra terminal)
 ```
 
-Pruebas automatizadas (10 casos: seeds, visibilidad de eventos, auth,
-roles, foro y moderación, Peronómetro, validaciones y bloqueo de rutas):
+Pruebas automatizadas (23 casos: seeds, visibilidad de eventos, ingreso por
+WhatsApp, pedidos de ingreso, claves de administración, roles, foro y
+moderación, Peronómetro, validaciones y bloqueo de rutas):
 
 ```bash
 cd peronismogeselino && npm test
@@ -85,25 +92,36 @@ cd peronismogeselino && npm test
 | Variable | Qué hace |
 |---|---|
 | `PORT` | Puerto del servidor (la plataforma lo define sola) |
-| `PG_GOOGLE_CLIENT_ID` | Client ID de Google para el ingreso real |
-| `PG_ADMIN_EMAILS` | Correos (separados por coma) con rol administración |
+| `PG_ADMIN_PHONES` | WhatsApp (separados por coma) de la cuenta técnica de arranque |
+| `PG_ADMIN_KEY` | Clave inicial de esos administradores (solo si no tienen) |
 | `PG_DATA_DIR` | Carpeta de la base SQLite (montar volumen persistente) |
-| `PG_DEV` | `1` habilita ingreso de desarrollo. Solo local |
 | `PG_SECURE_COOKIES` | `1` fuerza cookies Secure (con `NODE_ENV=production` ya lo son) |
+| `PG_RATE_LIMIT_OFF` | `1` apaga el límite de ritmo. Solo pruebas; se ignora en producción |
 
-## Configurar el ingreso con Google (gratis)
+## Cómo se entra a la comunidad
 
-1. Entrar a <https://console.cloud.google.com> → crear proyecto
-   «Peronismo Geselino».
-2. **APIs y servicios → Pantalla de consentimiento OAuth**: tipo «Externo»,
-   nombre y correo. No pide verificación porque solo se usa el ingreso básico.
-3. **Credenciales → Crear credencial → ID de cliente OAuth → Aplicación web**:
-   - Orígenes de JavaScript autorizados: `https://gustavobarrera.com`
-     (y `http://localhost:4600` para pruebas).
-4. Copiar el Client ID y definir `PG_GOOGLE_CLIENT_ID` en el servidor.
+Sin Google, sin correo, sin verificación y sin costo: **nombre y WhatsApp**.
 
-El servidor valida cada credencial contra Google y después exige que el correo
-esté en **Miembros e invitaciones** del panel. Nadie entra sin invitación.
+1. La persona completa el formulario en `/comunidad`. El número de afiliado al
+   PJ es opcional.
+2. Si ese WhatsApp ya es miembro, entra. Si no, queda como **pedido de
+   ingreso** y no obtiene ninguna sesión.
+3. La administración lo ve en el panel → **Pedidos de ingreso**, con enlace
+   directo de WhatsApp para escribirle antes de decidir.
+4. Al aprobar, esa persona entra con el mismo número. Un pedido rechazado no
+   puede volver a intentarlo.
+
+Hay dos niveles de administración: **builder** (todo, incluidos ajustes) y
+**manager** (aprueba y controla editores, sin decidir diseño ni estructura).
+
+**Los administradores además llevan clave personal.** Son los únicos que
+aprueban, publican y borran: con solo conocer el número, cualquiera tomaría el
+control. La clave se guarda derivada con scrypt y sal propia, nunca en texto
+plano, y se define desde el panel → Miembros → «Poner clave».
+
+El WhatsApp se normaliza al guardarlo, así que da igual cómo lo escriba la
+persona: `2255 456789`, `02255 15 456789` y `+54 9 2255 456789` son el mismo
+número.
 
 ## Despliegue (Railway u otra plataforma con nixpacks)
 
@@ -123,16 +141,17 @@ paso manual.
 
 - [ ] Revisión histórica y editorial de las 50 preguntas (panel → Preguntas).
 - [ ] Cargar la dirección real de las actividades (hoy Villa Gesell genérica).
-- [ ] Configurar `PG_GOOGLE_CLIENT_ID` y probar el ingreso real.
-- [ ] Cargar la lista de correos invitados y roles en el panel.
+- [ ] Definir `PG_ADMIN_PHONES` y `PG_ADMIN_KEY` para el primer ingreso.
+- [ ] Cambiar esa clave desde el panel y sacar `PG_ADMIN_KEY` del entorno.
+- [ ] Cargar los WhatsApp de colaboradores y sus roles en el panel.
 - [ ] Montar el volumen persistente (`PG_DATA_DIR`).
-- [ ] Quitar `PG_DEV` del entorno de producción.
+- [ ] Verificar que `PG_RATE_LIMIT_OFF` **no** esté definida.
 
 ## Costos externos potenciales
 
 | Servicio | Costo |
 |---|---|
-| Google Sign-In (Identity Services) | **$0** |
+| Ingreso por WhatsApp (sin servicio externo) | **$0** |
 | Google Maps por iframe embed (sin clave) | **$0** |
 | Google Fonts (Barlow Condensed + Manrope) | **$0** |
 | SQLite embebido (node:sqlite) | **$0** |
@@ -147,6 +166,9 @@ paso manual.
   `/peronismogeselino`; en la base solo se guarda el hash del token.
 - Roles verificados en el servidor en cada endpoint (administrador, editor,
   moderador, referente territorial).
+- Nadie entra sin aprobación: un WhatsApp desconocido genera un pedido, no una
+  sesión. Los administradores suman clave personal (scrypt + sal); cambiarla
+  cierra sus sesiones abiertas.
 - Una actividad de miembros **nunca** envía dirección, coordenadas ni enlace
   de Maps al público (probado por tests).
 - Rate limiting en el API y en el ingreso; validación y truncado de entradas;

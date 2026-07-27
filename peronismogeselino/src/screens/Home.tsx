@@ -264,7 +264,7 @@ export default function Home() {
           />
         </div>
         <div className="community-promo-copy">
-          <span className="eyebrow">ESPACIO PRIVADO · CON INVITACIÓN</span>
+          <span className="eyebrow">ESPACIO PRIVADO · CON APROBACIÓN</span>
           <h2>LA COMUNIDAD SE CONSTRUYE HABLANDO.</h2>
           <p>
             Debates, propuestas, territorio y organización en un espacio cuidado para el peronismo

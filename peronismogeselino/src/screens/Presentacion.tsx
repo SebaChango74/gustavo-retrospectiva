@@ -80,8 +80,8 @@ export default function Presentacion() {
             <span className="guide-icon">✦</span>
             <h3>LA COMUNIDAD</h3>
             <p>
-              Espacio privado con invitación e ingreso con Google: foro por causas y por barrio,
-              anuncios de conducción, materiales y territorios. Hasta 500 miembros.
+              Espacio privado con aprobación: se entra con nombre y WhatsApp. Foro por causas y
+              por barrio, anuncios de conducción, materiales y territorios. Hasta 500 miembros.
             </p>
           </article>
         </div>
@@ -136,9 +136,9 @@ export default function Presentacion() {
             <span className="guide-tag now">AL APROBAR</span>
             <h3>Salida oficial</h3>
             <p>
-              Dirección definitiva dentro del entorno de gustavobarrera.com, ingreso real con
-              Google, lista de invitados cargada, dirección real en el mapa y revisión final de las
-              50 preguntas.
+              Dirección definitiva dentro del entorno de gustavobarrera.com, comunidad abierta a
+              los primeros compañeros, dirección real en el mapa y revisión final de las 50
+              preguntas.
             </p>
           </div>
           <div className="guide-roadmap-item">

@@ -229,18 +229,32 @@ en el foro (se crea como máximo un tema por fecha).
 
 ## 3. La Comunidad (espacio privado)
 
-**Qué es.** El área cerrada, solo por invitación. Es donde se organiza el
-trabajo real: debate, propuestas, territorio y agenda interna. Pensada para
-hasta 500 miembros.
+**Qué es.** El área cerrada, con aprobación. Es donde se organiza el trabajo
+real: debate, propuestas, territorio y agenda interna. Pensada para hasta 500
+miembros.
 
-**Por qué es cerrada y por qué con Google.** El trabajo político territorial
-necesita un espacio cuidado, sin trolls ni intrusos. Por eso:
+**Cómo se entra: nombre y WhatsApp.** Nada de contraseñas, correos ni cuentas
+de Google. La militancia ya usa WhatsApp todos los días; pedirle otra cosa es
+poner una puerta que nadie quiere cruzar.
 
-- **Se entra con Google** — Google confirma que sos quien decís ser (no hay
-  que inventar ni recordar una contraseña nueva).
-- **Pero Google no da la membresía.** Después de confirmar tu identidad, el
-  portal verifica que **tu correo esté en la lista de invitados**. Si no está,
-  no entra. Nadie se auto-invita.
+- **Nombre y apellido, y el WhatsApp.** El número de afiliado al PJ es
+  opcional: sirve para el trabajo interno, no para entrar.
+- **El número es la identidad.** Da igual cómo lo escriba cada uno
+  (`2255 456789`, `02255 15 456789`, `+54 9 2255 456789`): el sistema lo
+  guarda siempre igual, así que nadie termina con dos cuentas.
+- **Nadie se auto-invita.** Si ese WhatsApp no está en la comunidad, no entra:
+  queda un **pedido de ingreso** que la mesa aprueba o rechaza. Un pedido
+  rechazado no puede volver a intentarlo.
+
+**Por qué es cerrada.** El trabajo político territorial necesita un espacio
+cuidado, sin trolls ni intrusos. La aprobación manual es justamente eso: alguien
+de la mesa mira quién es antes de abrirle la puerta, y tiene el WhatsApp a un
+clic para preguntarle si no lo ubica.
+
+**Quiénes llevan clave además del WhatsApp.** Solo los administradores. Son los
+únicos que aprueban, publican y borran; si alcanzara con saber su número,
+cualquiera podría tomar el control del portal. Los miembros comunes y los
+editores no usan clave.
 
 **Qué hay adentro:**
 
@@ -298,8 +312,20 @@ mostrar recién cuando se decide.
 - **Materiales** — documentos y enlaces para la militancia.
 - **Moderación** — conversaciones del foro: abrir, fijar, cerrar, ocultar
   mensajes.
-- **Miembros e invitaciones** — la lista de correos autorizados, con su rol,
-  territorio y estado. Acá se invita gente y se define quién puede entrar.
+- **Pedidos de ingreso** — quienes completaron el formulario de la comunidad y
+  esperan respuesta. Cada uno con su WhatsApp enlazado para escribirle antes de
+  decidir. Aprobar lo convierte en miembro; rechazar le cierra la puerta.
+- **Miembros** — la lista de WhatsApp autorizados, con su rol, nivel,
+  territorio y estado. Acá se suma gente directo y se define quién puede
+  entrar. En los administradores aparece además «Poner clave» / «Cambiar
+  clave»: cambiarla cierra sus sesiones abiertas al instante.
+
+  La columna **«Figura»** distingue dos cosas distintas: quien es parte de la
+  comunidad y quien solo la sostiene. Una **cuenta técnica** entra al panel
+  para construir y mantener el portal, pero no suma al recuento de miembros ni
+  aparece en las listas que ve la militancia. No todo el que hace funcionar
+  una herramienta política milita en ella, y el sistema no debería obligarlo a
+  decir que sí.
 - **Territorios** — los barrios y zonas de Villa Gesell.
 - **Ajustes** — valores generales (estadísticas de la portada, máximo de
   miembros, etc.) y el **registro de actividad** (auditoría: quién hizo qué).
@@ -350,9 +376,10 @@ definitivo distingue:
 - **La información pública nunca expone datos privados.** Una actividad de
   miembros no envía su dirección al portal público (verificado por pruebas
   automáticas). El territorio de un miembro no se publica.
-- **Ingreso real y controlado.** Google confirma la identidad; el portal
-  exige invitación. La sesión se puede revocar; si se suspende a un miembro,
-  pierde el acceso al instante.
+- **Ingreso controlado.** Un WhatsApp desconocido genera un pedido, nunca una
+  sesión. La sesión se puede revocar; si se suspende a un miembro, pierde el
+  acceso al instante. Las claves de administración se guardan derivadas (scrypt
+  con sal propia), nunca en texto plano.
 - **Nada de datos innecesarios.** El Peronómetro y Perón 365 guardan solo
   métricas anónimas. No se piden datos personales para jugar o compartir.
 - **Todo cambio queda registrado** (auditoría de roles, invitaciones, bajas y
@@ -405,8 +432,9 @@ En esta versión, prácticamente nada: no usa IA ni servicios pagos por uso. El
 detalle está en el README y en el documento de arquitectura y costos.
 
 **¿Cómo se suma un colaborador?**
-Se lo invita desde el panel (Miembros e invitaciones) cargando su correo y
-asignándole un rol. Entra con ese correo por Google.
+Desde el panel → **Miembros**, cargando su WhatsApp y asignándole un rol. Entra
+con ese número. Si el rol es de administración, en el mismo alta se le define la
+clave y hay que pasársela por WhatsApp.
 
 ---
 

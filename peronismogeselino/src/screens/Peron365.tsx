@@ -50,7 +50,7 @@ function DayView() {
   const toggleSave = async () => {
     if (!day) return;
     if (!member) {
-      setNote("Guardar frases es para miembros de la comunidad (con invitación).");
+      setNote("Guardar frases es para miembros de la comunidad.");
       return;
     }
     try {

@@ -6,8 +6,6 @@ export function publicRoutes(db) {
 
   router.get("/config", (_req, res) => {
     res.json({
-      googleClientId: process.env.PG_GOOGLE_CLIENT_ID || "",
-      devLogin: process.env.PG_DEV === "1",
       preview: Boolean(process.env.PG_PREVIEW_CODE),
     });
   });
@@ -17,31 +15,31 @@ export function publicRoutes(db) {
     const news = db
       .prepare(`
         SELECT slug, tag, title, summary, image, featured, published_at
-        FROM news WHERE status = 'published'
+        FROM news WHERE status = 'published' AND pending = 0
         ORDER BY featured DESC, published_at DESC LIMIT 6
       `)
       .all();
     const cause = db
       .prepare(`
         SELECT slug, title, summary, status_label, progress, progress_from, progress_next
-        FROM causes WHERE status = 'published'
+        FROM causes WHERE status = 'published' AND pending = 0
         ORDER BY updated_at DESC LIMIT 1
       `)
       .get();
     const events = db
       .prepare(`
         SELECT * FROM events
-        WHERE status = 'published' AND datetime(starts_at) >= datetime('now', '-1 day')
+        WHERE status = 'published' AND pending = 0 AND datetime(starts_at) >= datetime('now', '-1 day')
         ORDER BY starts_at ASC LIMIT 4
       `)
       .all()
       .map((row) => withEmbed(publicEvent(row, isMember), row, isMember));
     const settings = getSettings(db);
     const causesCount = db
-      .prepare("SELECT COUNT(*) AS n FROM causes WHERE status = 'published'")
+      .prepare("SELECT COUNT(*) AS n FROM causes WHERE status = 'published' AND pending = 0")
       .get().n;
     const newsTotal = db
-      .prepare("SELECT COUNT(*) AS n FROM news WHERE status = 'published'")
+      .prepare("SELECT COUNT(*) AS n FROM news WHERE status = 'published' AND pending = 0")
       .get().n;
     res.json({
       news,
@@ -60,14 +58,14 @@ export function publicRoutes(db) {
   router.get("/news", (req, res) => {
     const pageSize = 6;
     const total = db
-      .prepare("SELECT COUNT(*) AS n FROM news WHERE status = 'published'")
+      .prepare("SELECT COUNT(*) AS n FROM news WHERE status = 'published' AND pending = 0")
       .get().n;
     const pages = Math.max(1, Math.ceil(total / pageSize));
     const page = Math.min(pages, Math.max(1, Number(req.query.page) || 1));
     const rows = db
       .prepare(`
         SELECT slug, tag, title, summary, image, published_at
-        FROM news WHERE status = 'published'
+        FROM news WHERE status = 'published' AND pending = 0
         ORDER BY published_at DESC
         LIMIT ? OFFSET ?
       `)
@@ -79,7 +77,7 @@ export function publicRoutes(db) {
     const item = db
       .prepare(`
         SELECT slug, tag, title, summary, body, image, featured, published_at
-        FROM news WHERE slug = ? AND status = 'published'
+        FROM news WHERE slug = ? AND status = 'published' AND pending = 0
       `)
       .get(req.params.slug);
     if (!item) return res.status(404).json({ error: "Noticia no encontrada." });
@@ -91,7 +89,7 @@ export function publicRoutes(db) {
       .prepare(`
         SELECT slug, title, summary, status_label, progress, progress_from, progress_next,
           lead_image, updated_at
-        FROM causes WHERE status = 'published' ORDER BY updated_at DESC
+        FROM causes WHERE status = 'published' AND pending = 0 ORDER BY updated_at DESC
       `)
       .all();
     res.json({ causes: rows });
@@ -99,7 +97,7 @@ export function publicRoutes(db) {
 
   router.get("/causes/:slug", (req, res) => {
     const cause = db
-      .prepare("SELECT * FROM causes WHERE slug = ? AND status = 'published'")
+      .prepare("SELECT * FROM causes WHERE slug = ? AND status = 'published' AND pending = 0")
       .get(req.params.slug);
     if (!cause) return res.status(404).json({ error: "Causa no encontrada." });
     const timeline = db
@@ -134,7 +132,7 @@ export function publicRoutes(db) {
     const rows = db
       .prepare(`
         SELECT * FROM events
-        WHERE status = 'published' AND datetime(starts_at) >= datetime('now', '-1 day')
+        WHERE status = 'published' AND pending = 0 AND datetime(starts_at) >= datetime('now', '-1 day')
         ORDER BY starts_at ASC LIMIT 30
       `)
       .all();
