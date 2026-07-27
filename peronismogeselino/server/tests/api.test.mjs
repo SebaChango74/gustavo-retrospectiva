@@ -535,3 +535,31 @@ test("colaboradores: se puede sumar un admin manager con correo y clave en un so
   });
   assert.equal(ajustes.status, 403);
 });
+
+test("direcciones cortas: /pg y /app llevan a la instalación", async () => {
+  for (const [corta, destino] of [
+    ["/pg", "/peronismogeselino/instalar"],
+    ["/app", "/peronismogeselino/instalar"],
+    ["/bajar", "/peronismogeselino/instalar"],
+    ["/peronismo", "/peronismogeselino/"],
+  ]) {
+    const r = await fetch(`${base}${corta}`, { redirect: "manual" });
+    assert.equal(r.status, 302, `${corta} debe redirigir`);
+    assert.equal(r.headers.get("location"), destino);
+  }
+
+  // Y el destino existe de verdad.
+  const destino = await fetch(`${base}/peronismogeselino/instalar`);
+  assert.equal(destino.status, 200);
+});
+
+test("la vista previa del enlace trae imagen y descripción", async () => {
+  const html = await (await fetch(`${base}/peronismogeselino/`)).text();
+  assert.ok(html.includes('property="og:title"'), "tiene título de vista previa");
+  assert.ok(
+    html.includes("https://gustavobarrera.com/peronismogeselino/images/og.jpg"),
+    "la imagen apunta a una dirección absoluta",
+  );
+  const imagen = await fetch(`${base}/peronismogeselino/images/og.jpg`);
+  assert.equal(imagen.status, 200, "la imagen de vista previa existe");
+});

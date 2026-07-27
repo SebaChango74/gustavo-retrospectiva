@@ -99,6 +99,23 @@ export function createApp(db) {
 
   const appBase = STANDALONE ? "" : "/peronismogeselino";
 
+  // ─── Direcciones cortas ───────────────────────────────────────────────────
+  // Un enlace que circula por grupos de WhatsApp tiene que entrar de un
+  // renglón y poder dictarse por teléfono. Van antes que todo lo demás.
+  if (!APP_DISABLED && !STANDALONE) {
+    const ATAJOS = {
+      "/pg": "/peronismogeselino/instalar",
+      "/app": "/peronismogeselino/instalar",
+      "/bajar": "/peronismogeselino/instalar",
+      "/peronismo": "/peronismogeselino/",
+    };
+    for (const [corta, destino] of Object.entries(ATAJOS)) {
+      // 302 y no 301: un permanente queda cacheado para siempre en el
+      // teléfono de la gente y después no hay forma de cambiarlo.
+      app.get(corta, (_req, res) => res.redirect(302, destino));
+    }
+  }
+
   if (!APP_DISABLED) {
     // ─── API ─────────────────────────────────────────────────────────────────
     const api = express.Router();
