@@ -712,3 +712,27 @@ test("segundo factor: nadie se lo saca a otro, y el panel exige sesión", async 
   });
   assert.equal(intento.status, 403);
 });
+
+test("caché: la página y el motor nunca se guardan; los archivos con huella, para siempre", async () => {
+  const pedir = (ruta) => fetch(`${base}${ruta}`);
+  const cache = async (ruta) => (await pedir(ruta)).headers.get("cache-control") || "";
+
+  // La página dice qué versión hay que usar: si se guarda, se sigue viendo la
+  // versión vieja después de publicar. Este fue un error real.
+  for (const ruta of ["/peronismogeselino/", "/peronismogeselino/instalar"]) {
+    const valor = await cache(ruta);
+    assert.match(valor, /no-cache/, `${ruta} no se puede guardar (dio "${valor}")`);
+  }
+
+  // El service worker, lo mismo: gobierna todo lo demás.
+  const sw = await cache("/peronismogeselino/sw.js");
+  assert.match(sw, /no-cache/, `sw.js no se puede guardar (dio "${sw}")`);
+
+  // Los archivos con huella en el nombre sí, para siempre: si cambian, cambia
+  // el nombre.
+  const html = await (await pedir("/peronismogeselino/")).text();
+  const archivo = html.match(/\/peronismogeselino\/(assets\/index-[^"]+\.js)/)?.[1];
+  assert.ok(archivo, "la página apunta a un archivo con huella");
+  const conHuella = await cache(`/peronismogeselino/${archivo}`);
+  assert.match(conHuella, /immutable/, `los archivos con huella se guardan (dio "${conHuella}")`);
+});

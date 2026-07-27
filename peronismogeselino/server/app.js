@@ -141,6 +141,7 @@ export function createApp(db) {
 
     // ─── SPA ─────────────────────────────────────────────────────────────────
     if (fs.existsSync(DIST_DIR)) {
+      const estaticos = { index: "index.html", setHeaders: cacheEstatico };
       if (STANDALONE) {
         // Compatibilidad: el contenido guarda imágenes como
         // /peronismogeselino/images/…; acá también resuelven.
@@ -150,27 +151,24 @@ export function createApp(db) {
             if (path.extname(req.path)) return next();
             res.redirect(301, req.path === "/" || req.path === "" ? "/" : req.path);
           },
-          express.static(DIST_DIR, { maxAge: "1h" }),
+          express.static(DIST_DIR, { setHeaders: cacheEstatico }),
         );
-        app.use(express.static(DIST_DIR, { index: "index.html", maxAge: "1h" }));
+        app.use(express.static(DIST_DIR, estaticos));
         // El respaldo SPA es solo para páginas: un archivo inexistente (JS/CSS
         // de una versión vieja, imagen borrada) debe dar 404, nunca HTML.
         app.get(/^\/(?!api\/).*/, (req, res) => {
           if (path.extname(req.path)) {
             return res.status(404).type("text/plain").send("No encontrado");
           }
-          res.sendFile(path.join(DIST_DIR, "index.html"));
+          enviarPagina(res);
         });
       } else {
-        app.use(
-          "/peronismogeselino",
-          express.static(DIST_DIR, { index: "index.html", maxAge: "1h" }),
-        );
+        app.use("/peronismogeselino", express.static(DIST_DIR, estaticos));
         app.get(/^\/peronismogeselino(?!\/api\/)(\/.*)?$/, (req, res) => {
           if (path.extname(req.path)) {
             return res.status(404).type("text/plain").send("No encontrado");
           }
-          res.sendFile(path.join(DIST_DIR, "index.html"));
+          enviarPagina(res);
         });
       }
     } else {
@@ -255,6 +253,38 @@ function previewPage(wrongCode) {
   <button type="submit">ENTRAR</button>
   ${wrongCode ? '<div class="err">La clave no es correcta.</div>' : ""}
 </form></body></html>`;
+}
+
+/**
+ * Cuánto puede guardar el navegador cada cosa.
+ *
+ * Los archivos con huella en el nombre (index-a1b2c3.js) se pueden guardar
+ * para siempre: si cambia el contenido, cambia el nombre. La página y el
+ * service worker, en cambio, nunca: son los que dicen qué versión hay que
+ * usar. Guardarlos una hora significaba seguir viendo la versión vieja una
+ * hora después de publicar, por más veces que se desplegara.
+ */
+function cacheEstatico(res, ruta) {
+  const archivo = path.basename(ruta);
+  if (archivo === "sw.js" || ruta.endsWith(".html")) {
+    res.setHeader("Cache-Control", "no-cache, must-revalidate");
+    return;
+  }
+  if (archivo === "manifest.webmanifest") {
+    res.setHeader("Cache-Control", "public, max-age=300");
+    return;
+  }
+  if (/\/assets\/[^/]+-[A-Za-z0-9_-]{6,}\.(js|css)$/.test(ruta.replace(/\\/g, "/"))) {
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    return;
+  }
+  res.setHeader("Cache-Control", "public, max-age=86400");
+}
+
+/** La página siempre se revalida: es la que apunta a la versión actual. */
+function enviarPagina(res) {
+  res.setHeader("Cache-Control", "no-cache, must-revalidate");
+  res.sendFile(path.join(DIST_DIR, "index.html"));
 }
 
 /**
