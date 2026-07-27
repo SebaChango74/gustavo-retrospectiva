@@ -22,7 +22,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
-      .register(`${BASE}sw.js`, { scope: BASE })
+      .register(`${BASE}sw.js?v=${__PG_BUILD__}`, { scope: BASE })
       // Buscar versión nueva en cada arranque. Sin esto, quien tiene la app
       // instalada puede quedarse semanas con una versión vieja.
       .then((registro) => registro.update().catch(() => {}))

@@ -724,9 +724,20 @@ test("caché: la página y el motor nunca se guardan; los archivos con huella, p
     assert.match(valor, /no-cache/, `${ruta} no se puede guardar (dio "${valor}")`);
   }
 
-  // El service worker, lo mismo: gobierna todo lo demás.
+  // El service worker, ni el navegador ni la red de distribución: gobierna
+  // todo lo demás, y una copia vieja congela la app entera.
   const sw = await cache("/peronismogeselino/sw.js");
-  assert.match(sw, /no-cache/, `sw.js no se puede guardar (dio "${sw}")`);
+  assert.match(sw, /no-store/, `sw.js no se puede guardar (dio "${sw}")`);
+  const swCdn =
+    (await pedir("/peronismogeselino/sw.js")).headers.get("cdn-cache-control") || "";
+  assert.match(swCdn, /no-store/, "tampoco la red de distribución");
+
+  // Y la página lo pide con un sello distinto en cada versión, para que una
+  // copia guardada en el borde no pueda servirse igual.
+  const paginaHtml = await (await pedir("/peronismogeselino/")).text();
+  const programa = paginaHtml.match(/\/peronismogeselino\/(assets\/index-[^"]+\.js)/)?.[1];
+  const fuente = await (await pedir(`/peronismogeselino/${programa}`)).text();
+  assert.ok(fuente.includes("sw.js?v="), "el motor se pide con sello de versión");
 
   // Los archivos con huella en el nombre sí, para siempre: si cambian, cambia
   // el nombre.

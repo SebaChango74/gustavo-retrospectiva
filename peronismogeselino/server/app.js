@@ -266,7 +266,15 @@ function previewPage(wrongCode) {
  */
 function cacheEstatico(res, ruta) {
   const archivo = path.basename(ruta);
-  if (archivo === "sw.js" || ruta.endsWith(".html")) {
+  if (archivo === "sw.js") {
+    // no-store y no solo no-cache: la red de distribución de Cloudflare
+    // guarda los .js por su extensión, y una copia vieja del motor deja a la
+    // gente con una versión vieja de todo lo demás.
+    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("CDN-Cache-Control", "no-store");
+    return;
+  }
+  if (ruta.endsWith(".html")) {
     res.setHeader("Cache-Control", "no-cache, must-revalidate");
     return;
   }
