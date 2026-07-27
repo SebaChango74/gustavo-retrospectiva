@@ -3,6 +3,9 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import "./styles/globals.css";
+// Debe importarse acá: el navegador avisa que la app es instalable apenas
+// carga la página, y si nadie escucha en ese momento, el aviso se pierde.
+import "./install";
 
 // "/peronismogeselino/" en modo integrado, "/" en modo independiente.
 const BASE = import.meta.env.BASE_URL;
