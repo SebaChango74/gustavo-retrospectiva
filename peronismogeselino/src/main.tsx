@@ -30,9 +30,15 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
 
     // Cuando entra una versión nueva, recargar una sola vez para que la
     // persona no siga usando la anterior sin enterarse.
+    //
+    // Solo si ya había una versión andando. En la primera visita el motor
+    // toma control por primera vez y eso también dispara este aviso: recargar
+    // ahí es una recarga porque sí, que además borra lo que la persona
+    // estuviera haciendo.
+    const habiaVersionPrevia = Boolean(navigator.serviceWorker.controller);
     let recargando = false;
     navigator.serviceWorker.addEventListener("controllerchange", () => {
-      if (recargando) return;
+      if (!habiaVersionPrevia || recargando) return;
       recargando = true;
       window.location.reload();
     });

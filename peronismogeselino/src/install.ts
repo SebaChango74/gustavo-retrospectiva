@@ -52,26 +52,24 @@ export async function instalar(): Promise<boolean> {
 }
 
 /**
- * Quien ya pasó por la pantalla de instalación no necesita que se la
- * ofrezcan de nuevo dos pantallas después: ya la vio y siguió de largo.
- * Dura lo que dura la visita.
+ * «Esta persona pidió instalar»: vive acá y no en el estado de la pantalla.
+ *
+ * Cuando se limpia el `?instalar=1` de la dirección, React vuelve a montar el
+ * componente y cualquier estado suyo se pierde — la hoja se cerraba sola. La
+ * intención es del visitante, no de un componente, así que sobrevive a eso.
  */
-const VISTA = "pg-instalar-vista";
+let pedida = false;
 
-export function marcarInstalarVista() {
-  try {
-    window.sessionStorage.setItem(VISTA, "1");
-  } catch {
-    /* modo privado */
-  }
+export function pedirInstalacion() {
+  pedida = true;
 }
 
-export function yaVioInstalar(): boolean {
-  try {
-    return window.sessionStorage.getItem(VISTA) === "1";
-  } catch {
-    return false;
-  }
+export function instalacionPedida(): boolean {
+  return pedida;
+}
+
+export function cancelarInstalacion() {
+  pedida = false;
 }
 
 /** Ya está instalada y abierta como aplicación. */

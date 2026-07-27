@@ -13,7 +13,6 @@ import Presentacion from "./screens/Presentacion";
 import News from "./screens/News";
 import NewsList from "./screens/NewsList";
 import Peron365 from "./screens/Peron365";
-import Instalar from "./screens/Instalar";
 import Guia from "./screens/Guia";
 import { AvisoInstalar } from "./AvisoInstalar";
 
@@ -55,15 +54,15 @@ export default function App() {
             <Route path="/presentacion" element={<Presentacion />} />
             <Route path="/peron365" element={<Peron365 />} />
             <Route path="/peron365/:date" element={<Peron365 />} />
-            <Route path="/instalar" element={<Instalar />} />
-            <Route path="/descargar" element={<Navigate to="/instalar" replace />} />
-            <Route path="/app" element={<Navigate to="/instalar" replace />} />
+            <Route path="/instalar" element={<Navigate to="/?instalar=1" replace />} />
+            <Route path="/descargar" element={<Navigate to="/?instalar=1" replace />} />
+            <Route path="/app" element={<Navigate to="/?instalar=1" replace />} />
             <Route path="/guia" element={<Guia />} />
             <Route path="/panel/*" element={<Panel />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
-        {!chromeless && <AvisoInstalar />}
+        <AvisoInstalar />
         {!chromeless && <MobileDock />}
         {!chromeless && <Footer />}
       </div>
@@ -167,7 +166,7 @@ function Footer() {
         <span>Información, memoria y organización.</span>
       </div>
       <div className="footer-links">
-        <button onClick={() => navigate("/instalar")}>Bajar la app</button>
+        <button onClick={() => navigate("/?instalar=1")}>Bajar la app</button>
         <button onClick={() => navigate("/presentacion")}>Guía del portal</button>
         <button onClick={() => navigate("/")}>Portal público</button>
         <button onClick={() => navigate("/causas")}>Causas vivas</button>

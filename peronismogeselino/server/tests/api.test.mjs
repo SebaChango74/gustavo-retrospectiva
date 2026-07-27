@@ -538,9 +538,9 @@ test("colaboradores: se puede sumar un admin manager con correo y clave en un so
 
 test("direcciones cortas: /pg y /app llevan a la instalación", async () => {
   for (const [corta, destino] of [
-    ["/pg", "/peronismogeselino/instalar"],
-    ["/app", "/peronismogeselino/instalar"],
-    ["/bajar", "/peronismogeselino/instalar"],
+    ["/pg", "/peronismogeselino/?instalar=1"],
+    ["/app", "/peronismogeselino/?instalar=1"],
+    ["/bajar", "/peronismogeselino/?instalar=1"],
     ["/peronismo", "/peronismogeselino/"],
   ]) {
     const r = await fetch(`${base}${corta}`, { redirect: "manual" });
@@ -548,8 +548,8 @@ test("direcciones cortas: /pg y /app llevan a la instalación", async () => {
     assert.equal(r.headers.get("location"), destino);
   }
 
-  // Y el destino existe de verdad.
-  const destino = await fetch(`${base}/peronismogeselino/instalar`);
+  // El destino es el portal, no una página aparte: una sola pantalla.
+  const destino = await fetch(`${base}/peronismogeselino/?instalar=1`);
   assert.equal(destino.status, 200);
 });
 

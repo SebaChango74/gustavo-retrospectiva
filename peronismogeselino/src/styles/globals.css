@@ -898,59 +898,6 @@ footer img { width: 150px; }
   .approval-actions .button { flex: 1; }
 }
 
-/* ─── Pantalla de instalación ─────────────────────────────────────────────
-   Su trabajo es que nadie sienta que "entra a una web": se toca un botón y
-   el teléfono instala la app. */
-.instalar { background: var(--navy); color: white; min-height: 100vh; }
-.instalar-hero { padding: clamp(48px, 8vw, 96px) 5vw clamp(40px, 6vw, 72px); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 380px); gap: clamp(32px, 5vw, 72px); align-items: center; }
-.instalar-hero-copy { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
-.instalar-hero-copy h1 { margin: 0; font-family: "Barlow Condensed", "Arial Narrow", sans-serif; font-weight: 900; font-size: clamp(40px, 7vw, 82px); line-height: .9; letter-spacing: -.02em; }
-.instalar-hero-copy > p { margin: 0; max-width: 46ch; color: rgba(255,255,255,.74); font-size: clamp(16px, 1.5vw, 19px); }
-
-.instalar-accion { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; margin-top: 8px; }
-.button.grande { min-height: 62px; padding: 0 34px; font-size: 21px; letter-spacing: .09em; }
-.instalar-reintento { margin: 0; font-size: 14px; color: var(--sky); }
-
-.instalar-hecho { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; padding: 22px 24px; border-radius: 12px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2); }
-.instalar-hecho strong { font-family: "Barlow Condensed", sans-serif; font-size: 26px; letter-spacing: .01em; }
-.instalar-hecho p { margin: 0; color: rgba(255,255,255,.72); }
-
-.instalar-pasos { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; max-width: 500px; }
-.instalar-pasos li { display: grid; grid-template-columns: 42px 1fr; gap: 16px; align-items: start; padding: 16px 0; border-top: 1px solid rgba(255,255,255,.16); }
-.instalar-pasos li:last-child { border-bottom: 1px solid rgba(255,255,255,.16); }
-.instalar-num { font-family: "Barlow Condensed", sans-serif; font-weight: 900; font-size: 30px; line-height: 1; color: var(--sky-bright); font-variant-numeric: tabular-nums; }
-.instalar-pasos b { display: block; font-size: 17px; margin-bottom: 3px; }
-.instalar-pasos small { display: block; color: rgba(255,255,255,.62); font-size: 14.5px; line-height: 1.5; }
-.instalar-aviso { grid-template-columns: 1fr !important; border-left: 3px solid var(--gold); padding-left: 16px !important; }
-.instalar-aviso b { color: var(--gold); }
-
-/* Teléfono decorativo: da la idea de "app instalada" sin prometer nada falso. */
-.instalar-hero-figura { display: flex; justify-content: center; }
-.instalar-telefono { width: min(280px, 70vw); aspect-ratio: 9 / 17.5; padding: 10px; border-radius: 34px; background: #05101f; border: 1px solid rgba(255,255,255,.18); box-shadow: 0 30px 70px rgba(0,0,0,.45); }
-.instalar-pantalla { position: relative; height: 100%; border-radius: 26px; overflow: hidden; background: var(--cobalt-deep); }
-.instalar-pantalla img { height: 100%; object-fit: cover; opacity: .5; }
-.instalar-icono { position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.instalar-icono img { width: 62px; height: 62px; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,.4); }
-.instalar-icono span { font-size: 12px; font-weight: 700; color: white; text-shadow: 0 1px 4px rgba(0,0,0,.6); }
-
-.instalar-ventajas { padding: clamp(36px, 5vw, 60px) 5vw; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: clamp(20px, 3vw, 40px); border-top: 1px solid rgba(255,255,255,.14); }
-.instalar-ventajas h2 { margin: 0 0 8px; font-family: "Barlow Condensed", sans-serif; font-size: 22px; letter-spacing: .04em; color: var(--sky); }
-.instalar-ventajas p { margin: 0; color: rgba(255,255,255,.7); font-size: 15.5px; }
-
-.instalar-cierre { padding: 0 5vw clamp(48px, 7vw, 80px); display: flex; flex-wrap: wrap; align-items: center; gap: 18px; }
-.instalar-cierre p { margin: 0; color: rgba(255,255,255,.62); }
-.instalar .button-outline { border: 1px solid rgba(255,255,255,.45); color: white; background: none; }
-
-@media (max-width: 860px) {
-  .instalar-hero { grid-template-columns: 1fr; padding-top: clamp(32px, 7vw, 56px); }
-  /* En el celular el teléfono dibujado sobra: la persona ya tiene uno en la
-     mano y lo único que quiere es el botón. Fuera, sin empujar nada. */
-  .instalar-hero-figura { display: none; }
-  .instalar-hero-copy h1 { font-size: clamp(38px, 11vw, 60px); }
-  .button.grande { width: 100%; justify-content: center; }
-  .instalar-accion { align-self: stretch; }
-}
-
 /* ─── Guía de uso (bajo candado) ──────────────────────────────────────────── */
 .guia-cargando { min-height: 60vh; display: grid; place-items: center; color: var(--muted); }
 
@@ -1094,3 +1041,33 @@ footer img { width: 150px; }
   .aviso-instalar-si { padding: 10px 13px; font-size: 16px; }
   .aviso-instalar-no { padding: 6px; }
 }
+
+/* ─── Cómo instalar, encima del portal ────────────────────────────────────── */
+.hoja-fondo { position: fixed; inset: 0; z-index: 90; background: rgba(7,27,51,.62); display: flex; align-items: flex-end; justify-content: center; padding: 16px; backdrop-filter: blur(3px); animation: hoja-aparece .2s ease both; }
+@keyframes hoja-aparece { from { opacity: 0; } to { opacity: 1; } }
+
+.hoja { position: relative; width: min(480px, 100%); max-height: 86vh; overflow-y: auto; padding: 24px 22px 26px; border-radius: 18px; background: var(--navy); color: white; box-shadow: 0 24px 60px rgba(0,0,0,.45); animation: hoja-sube .28s cubic-bezier(.16,.84,.44,1) both; }
+@keyframes hoja-sube { from { transform: translateY(22px); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .hoja-fondo, .hoja { animation: none; } }
+.hoja:focus { outline: none; }
+
+.hoja-cerrar { position: absolute; top: 12px; right: 12px; border: 0; background: rgba(255,255,255,.1); color: rgba(255,255,255,.75); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 14px; line-height: 1; }
+.hoja-cerrar:hover { background: rgba(255,255,255,.2); color: white; }
+
+.hoja-head { display: flex; align-items: center; gap: 13px; margin-bottom: 20px; padding-right: 36px; }
+.hoja-head img { width: 50px; height: 50px; border-radius: 12px; flex: 0 0 auto; }
+.hoja-head strong { display: block; font-family: "Barlow Condensed", sans-serif; font-size: 25px; letter-spacing: .01em; line-height: 1.1; }
+.hoja-head span { display: block; font-size: 14px; color: rgba(255,255,255,.68); }
+
+.hoja .button.grande { width: 100%; justify-content: center; min-height: 58px; font-size: 20px; letter-spacing: .09em; }
+
+.hoja-pasos { list-style: none; margin: 0; padding: 0; }
+.hoja-pasos li { display: grid; grid-template-columns: 34px 1fr; gap: 14px; padding: 14px 0; border-top: 1px solid rgba(255,255,255,.15); }
+.hoja-pasos li:last-child { border-bottom: 1px solid rgba(255,255,255,.15); }
+.hoja-num { font-family: "Barlow Condensed", sans-serif; font-weight: 900; font-size: 26px; line-height: 1; color: var(--sky-bright); font-variant-numeric: tabular-nums; }
+.hoja-pasos b { display: block; font-size: 16.5px; margin-bottom: 2px; }
+.hoja-pasos small { display: block; color: rgba(255,255,255,.64); font-size: 14.5px; line-height: 1.5; }
+.hoja-aviso { grid-template-columns: 1fr !important; border-left: 3px solid var(--gold); padding-left: 14px !important; }
+.hoja-aviso b { color: var(--gold); }
+
+@media (min-width: 700px) { .hoja-fondo { align-items: center; } }

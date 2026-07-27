@@ -103,10 +103,13 @@ export function createApp(db) {
   // Un enlace que circula por grupos de WhatsApp tiene que entrar de un
   // renglón y poder dictarse por teléfono. Van antes que todo lo demás.
   if (!APP_DISABLED && !STANDALONE) {
+    // Las de descarga llevan al portal con el «cómo instalar» abierto encima:
+    // una sola pantalla, sin mandar a nadie a una página aparte que después
+    // le ofrece volver.
     const ATAJOS = {
-      "/pg": "/peronismogeselino/instalar",
-      "/app": "/peronismogeselino/instalar",
-      "/bajar": "/peronismogeselino/instalar",
+      "/pg": "/peronismogeselino/?instalar=1",
+      "/app": "/peronismogeselino/?instalar=1",
+      "/bajar": "/peronismogeselino/?instalar=1",
       "/peronismo": "/peronismogeselino/",
     };
     for (const [corta, destino] of Object.entries(ATAJOS)) {
