@@ -68,7 +68,8 @@ export function createApp(db) {
         "font-src 'self' https://fonts.gstatic.com data:",
         "img-src 'self' data: blob: https:",
         "connect-src 'self'",
-        "frame-src https://www.google.com",
+        // Maps embebidos y el reproductor de YouTube (la variante sin cookies).
+        "frame-src https://www.google.com https://www.youtube-nocookie.com",
         "object-src 'none'",
         "base-uri 'self'",
         "form-action 'self'",

@@ -82,6 +82,7 @@ export type NewsItem = {
   summary: string;
   body?: string;
   image: string;
+  video?: string;
   featured: number;
   published_at: string;
 };

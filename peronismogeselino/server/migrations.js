@@ -388,3 +388,13 @@ MIGRATIONS.push({
     ALTER TABLE events ADD COLUMN image TEXT NOT NULL DEFAULT '';
   `,
 });
+
+MIGRATIONS.push({
+  name: "008_video_youtube",
+  sql: `
+    -- Noticias y causas pueden llevar un video de YouTube. Si hay video,
+    -- reemplaza a la imagen en el portal.
+    ALTER TABLE news ADD COLUMN video TEXT NOT NULL DEFAULT '';
+    ALTER TABLE causes ADD COLUMN video TEXT NOT NULL DEFAULT '';
+  `,
+});

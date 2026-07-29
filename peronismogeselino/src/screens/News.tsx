@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Foto } from "../foto";
+import { VideoEmbed } from "../video";
 import { useNavigate, useParams } from "react-router-dom";
 import { api, type NewsItem } from "../api";
 import { Arrow, ShareIcon, dateLabel } from "../ui";
@@ -87,11 +88,13 @@ export default function News() {
       </div>
 
       <div className="section news-article">
-        {item.image && (
+        {item.video ? (
+          <VideoEmbed video={item.video} titulo={item.title} />
+        ) : item.image ? (
           <div className="cause-lead-image">
             <Foto valor={item.image} />
           </div>
-        )}
+        ) : null}
         <div className="news-article-body">
           {paragraphs.map((paragraph, index) => (
             <p key={index}>{paragraph}</p>

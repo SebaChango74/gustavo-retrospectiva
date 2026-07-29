@@ -848,3 +848,81 @@ test("fotos: una foto con encuadre pegado sigue contando como en uso", async () 
   const cuerpo = await intento.json();
   assert.ok(cuerpo.usos.some((u) => u.includes("Nota con encuadre")));
 });
+
+test("agenda: vivas y vencidas nunca se mezclan, y el cierre manda", async () => {
+  const { ahoraLocal } = await import("../util.js");
+  const { cookie } = await login(ADMIN, { clave: CLAVE_ADMIN });
+  const ahora = ahoraLocal();
+  const dia = (dias) => {
+    const d = new Date(`${ahora}:00`);
+    d.setDate(d.getDate() + dias);
+    return d.toISOString().slice(0, 16);
+  };
+  const crear = (title, startsAt, endsAt) =>
+    fetch(`${base}/peronismogeselino/api/admin/events`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", cookie },
+      body: JSON.stringify({ title, startsAt, endsAt, status: "published" }),
+    });
+
+  // El caso que fallaba: empezó hace 5 días pero vence en 5. Sigue viva.
+  await crear("Larga todavía viva", dia(-5), dia(5));
+  // Venció ayer: afuera en el momento en que venció.
+  await crear("Vencida ayer", dia(-5), dia(-1));
+  // Sin cierre, fue ayer: desaparece al día siguiente.
+  await crear("De ayer sin cierre", dia(-1), "");
+  // Sin cierre, es hoy: viva todo el día aunque la hora ya haya pasado.
+  await crear("De hoy sin cierre", `${ahora.slice(0, 10)}T00:05`, "");
+
+  const publica = await (await fetch(`${base}/peronismogeselino/api/public/events`)).json();
+  const titulos = publica.events.map((e) => e.title);
+
+  assert.ok(titulos.includes("Larga todavía viva"), "una actividad con cierre futuro sigue viva");
+  assert.ok(titulos.includes("De hoy sin cierre"), "la de hoy vive hasta la medianoche");
+  assert.ok(!titulos.includes("Vencida ayer"), "la vencida desaparece");
+  assert.ok(!titulos.includes("De ayer sin cierre"), "sin cierre, desaparece al día siguiente");
+
+  // Y el orden es cronológico por inicio.
+  const inicios = publica.events.map((e) => e.startsAt);
+  assert.deepEqual(inicios, [...inicios].sort(), "orden cronológico");
+});
+
+test("video: cualquier forma del enlace de YouTube se guarda canónica; otra cosa se rechaza", async () => {
+  const { youtubeId, normalizarVideo } = await import("../util.js");
+  for (const forma of [
+    "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    "https://youtu.be/dQw4w9WgXcQ?si=abc123",
+    "https://www.youtube.com/shorts/dQw4w9WgXcQ",
+    "https://m.youtube.com/watch?v=dQw4w9WgXcQ&t=30s",
+    "youtube.com/live/dQw4w9WgXcQ",
+  ]) {
+    assert.equal(youtubeId(forma), "dQw4w9WgXcQ", `falló con ${forma}`);
+  }
+  assert.equal(normalizarVideo("").valor, "", "vacío es válido: sin video");
+  assert.ok(normalizarVideo("https://vimeo.com/12345").error, "otro sitio se rechaza");
+  assert.ok(normalizarVideo("cualquier texto").error);
+
+  // Por el API: se guarda canónico y sale en el portal.
+  const { cookie } = await login(ADMIN, { clave: CLAVE_ADMIN });
+  const alta = await fetch(`${base}/peronismogeselino/api/admin/news`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", cookie },
+    body: JSON.stringify({
+      title: "Nota con video",
+      video: "https://youtu.be/dQw4w9WgXcQ?si=xyz",
+      status: "published",
+    }),
+  });
+  assert.equal(alta.status, 200);
+
+  const rechazo = await fetch(`${base}/peronismogeselino/api/admin/news`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", cookie },
+    body: JSON.stringify({ title: "Video trucho", video: "https://malicioso.example/v.mp4" }),
+  });
+  assert.equal(rechazo.status, 400, "un enlace que no es de YouTube no entra");
+
+  const portada = await (await fetch(`${base}/peronismogeselino/api/public/home`)).json();
+  const nota = portada.news.find((n) => n.title === "Nota con video");
+  assert.equal(nota.video, "https://www.youtube.com/watch?v=dQw4w9WgXcQ", "guardado canónico");
+});

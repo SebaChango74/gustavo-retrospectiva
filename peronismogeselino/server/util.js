@@ -33,6 +33,68 @@ export function audit(db, actorId, action, entity, entityId, detail = "") {
   ).run(actorId ?? null, action, entity, entityId ?? null, String(detail).slice(0, 500));
 }
 
+/**
+ * Reconoce un enlace de YouTube en cualquiera de sus formas (watch, youtu.be,
+ * shorts, live, embed) y devuelve el identificador del video, o null si no es
+ * de YouTube. Solo se aceptan videos de ahí: es lo que pidió la mesa y evita
+ * incrustar cualquier cosa.
+ */
+export function youtubeId(url) {
+  const texto = String(url ?? "").trim();
+  if (!texto) return null;
+  let u;
+  try {
+    u = new URL(texto.startsWith("http") ? texto : `https://${texto}`);
+  } catch {
+    return null;
+  }
+  const host = u.hostname.replace(/^www\.|^m\./, "");
+  let id = "";
+  if (host === "youtu.be") {
+    id = u.pathname.slice(1).split("/")[0];
+  } else if (host === "youtube.com" || host === "youtube-nocookie.com") {
+    const partes = u.pathname.split("/").filter(Boolean);
+    if (u.pathname === "/watch") id = u.searchParams.get("v") ?? "";
+    else if (["shorts", "embed", "live", "v"].includes(partes[0])) id = partes[1] ?? "";
+  } else {
+    return null;
+  }
+  return /^[A-Za-z0-9_-]{11}$/.test(id) ? id : null;
+}
+
+/**
+ * Guarda el video en su forma canónica, venga como venga el enlace.
+ * Devuelve { error } si el texto no es un video de YouTube.
+ */
+export function normalizarVideo(url) {
+  const texto = String(url ?? "").trim();
+  if (!texto) return { valor: "" };
+  const id = youtubeId(texto);
+  if (!id) {
+    return { error: "El video tiene que ser un enlace de YouTube (youtube.com o youtu.be)." };
+  }
+  return { valor: `https://www.youtube.com/watch?v=${id}` };
+}
+
+/**
+ * La hora de Villa Gesell, en el mismo formato naive que guardan los campos
+ * de fecha del panel ("2026-12-01T18:00"). Las fechas se comparan siempre en
+ * hora local: contra el datetime('now') de SQLite, que es UTC, todo vencería
+ * tres horas antes.
+ */
+export function ahoraLocal() {
+  const partes = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "America/Argentina/Buenos_Aires",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date());
+  return partes.replace(" ", "T");
+}
+
 /** Convierte una fila de evento a su versión pública: una actividad de
  *  miembros nunca expone dirección, coordenadas ni enlace de Maps. */
 export function publicEvent(row, isMember) {

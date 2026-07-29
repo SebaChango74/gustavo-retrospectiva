@@ -1,6 +1,6 @@
 import express, { Router } from "express";
 import { requireGrant, requireMember, can, canApprove, hashClave, verificarClave } from "../auth.js";
-import { audit, intIn, parseJson, slugify, str } from "../util.js";
+import { audit, intIn, normalizarVideo, parseJson, slugify, str } from "../util.js";
 import { APPROVABLE, approveItem, markPending, pendingItems, rejectItem } from "../approval.js";
 import { normalizarWhatsapp, mostrarWhatsapp, enlaceWhatsapp } from "../whatsapp.js";
 import {
@@ -79,11 +79,13 @@ export function adminRoutes(db) {
     const b = req.body ?? {};
     const title = str(b.title, 200);
     if (!title) return res.status(400).json({ error: "El título es obligatorio." });
+    const video = normalizarVideo(b.video);
+    if (video.error) return res.status(400).json({ error: video.error });
     const slug = str(b.slug, 80) || uniqueSlug(db, "news", slugify(title));
     const info = db
       .prepare(`
-        INSERT INTO news (slug, tag, title, summary, body, image, featured, status, published_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO news (slug, tag, title, summary, body, image, video, featured, status, published_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
       .run(
         slug,
@@ -92,6 +94,7 @@ export function adminRoutes(db) {
         str(b.summary, 500),
         str(b.body, 20000),
         str(b.image, 500),
+        video.valor,
         b.featured ? 1 : 0,
         oneOf(b.status, ["draft", "published", "archived"], "draft"),
         str(b.publishedAt, 40) || new Date().toISOString(),
@@ -105,8 +108,10 @@ export function adminRoutes(db) {
     const row = db.prepare("SELECT id FROM news WHERE id = ?").get(req.params.id);
     if (!row) return res.status(404).json({ error: "Noticia no encontrada." });
     const b = req.body ?? {};
+    const video = normalizarVideo(b.video);
+    if (video.error) return res.status(400).json({ error: video.error });
     db.prepare(`
-      UPDATE news SET tag = ?, title = ?, summary = ?, body = ?, image = ?, featured = ?,
+      UPDATE news SET tag = ?, title = ?, summary = ?, body = ?, image = ?, video = ?, featured = ?,
         status = ?, published_at = ?, updated_at = datetime('now')
       WHERE id = ?
     `).run(
@@ -115,6 +120,7 @@ export function adminRoutes(db) {
       str(b.summary, 500),
       str(b.body, 20000),
       str(b.image, 500),
+      video.valor,
       b.featured ? 1 : 0,
       oneOf(b.status, ["draft", "published", "archived"], "draft"),
       str(b.publishedAt, 40) || new Date().toISOString(),
@@ -142,13 +148,16 @@ export function adminRoutes(db) {
     const b = req.body ?? {};
     const title = str(b.title, 300);
     if (!title) return res.status(400).json({ error: "El título es obligatorio." });
+    if (normalizarVideo(b.video).error) {
+      return res.status(400).json({ error: normalizarVideo(b.video).error });
+    }
     const slug = str(b.slug, 80) || uniqueSlug(db, "causes", slugify(title));
     const info = db
       .prepare(`
         INSERT INTO causes (slug, title, summary, status_label, progress, progress_from,
-          progress_next, lead_image, brief_title, brief_body, bullets, key_fact_value,
+          progress_next, lead_image, video, brief_title, brief_body, bullets, key_fact_value,
           key_fact_label, next_steps, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
       .run(...causeParams(b, title, slug));
     markPending(db, "causes", info.lastInsertRowid, req.member);
@@ -161,12 +170,15 @@ export function adminRoutes(db) {
     if (!row) return res.status(404).json({ error: "Causa no encontrada." });
     const b = req.body ?? {};
     const title = str(b.title, 300);
+    if (normalizarVideo(b.video).error) {
+      return res.status(400).json({ error: normalizarVideo(b.video).error });
+    }
     const params = causeParams(b, title, row.slug);
     db.prepare(`
       UPDATE causes SET slug = ?, title = ?, summary = ?, status_label = ?, progress = ?,
-        progress_from = ?, progress_next = ?, lead_image = ?, brief_title = ?, brief_body = ?,
-        bullets = ?, key_fact_value = ?, key_fact_label = ?, next_steps = ?, status = ?,
-        updated_at = datetime('now')
+        progress_from = ?, progress_next = ?, lead_image = ?, video = ?, brief_title = ?,
+        brief_body = ?, bullets = ?, key_fact_value = ?, key_fact_label = ?, next_steps = ?,
+        status = ?, updated_at = datetime('now')
       WHERE id = ?
     `).run(...params, row.id);
     if (Array.isArray(b.timeline)) {
@@ -897,6 +909,7 @@ function causeParams(b, title, slug) {
     str(b.progressFrom, 120),
     str(b.progressNext, 120),
     str(b.leadImage, 500),
+    normalizarVideo(b.video).valor ?? "",
     str(b.briefTitle, 120) || "¿QUÉ ESTÁ PASANDO?",
     str(b.briefBody, 4000),
     JSON.stringify(Array.isArray(b.bullets) ? b.bullets.map((x) => str(x, 300)) : []),

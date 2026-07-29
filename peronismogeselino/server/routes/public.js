@@ -1,6 +1,23 @@
 import { Router } from "express";
-import { parseJson, publicEvent, mapsEmbedUrl, str } from "../util.js";
+import { ahoraLocal, parseJson, publicEvent, mapsEmbedUrl, str } from "../util.js";
 import { SECCIONES, abrirGuia, cookieGuia, guiaAbierta } from "../guia.js";
+
+/**
+ * Qué actividades siguen vivas, en orden cronológico. La regla de la mesa:
+ * con fecha de cierre, desaparece en el momento en que vence; sin fecha de
+ * cierre, desaparece al día siguiente del inicio. Así nunca conviven
+ * actividades vivas con vencidas. Todo en hora de Villa Gesell.
+ * Recibe ahoraLocal() dos veces.
+ */
+const EVENTOS_VIVOS = `
+  SELECT * FROM events
+  WHERE status = 'published' AND pending = 0
+    AND (
+      (ends_at IS NOT NULL AND ends_at != '' AND datetime(ends_at) >= datetime(?))
+      OR ((ends_at IS NULL OR ends_at = '') AND date(starts_at) >= date(?))
+    )
+  ORDER BY starts_at ASC
+`;
 
 export function publicRoutes(db) {
   const router = Router();
@@ -31,7 +48,7 @@ export function publicRoutes(db) {
     const isMember = Boolean(req.member);
     const news = db
       .prepare(`
-        SELECT slug, tag, title, summary, image, featured, published_at
+        SELECT slug, tag, title, summary, image, video, featured, published_at
         FROM news WHERE status = 'published' AND pending = 0
         ORDER BY featured DESC, published_at DESC LIMIT 6
       `)
@@ -44,12 +61,8 @@ export function publicRoutes(db) {
       `)
       .get();
     const events = db
-      .prepare(`
-        SELECT * FROM events
-        WHERE status = 'published' AND pending = 0 AND datetime(starts_at) >= datetime('now', '-1 day')
-        ORDER BY starts_at ASC LIMIT 4
-      `)
-      .all()
+      .prepare(`${EVENTOS_VIVOS} LIMIT 4`)
+      .all(ahoraLocal(), ahoraLocal())
       .map((row) => withEmbed(publicEvent(row, isMember), row, isMember));
     const settings = getSettings(db);
     const causesCount = db
@@ -81,7 +94,7 @@ export function publicRoutes(db) {
     const page = Math.min(pages, Math.max(1, Number(req.query.page) || 1));
     const rows = db
       .prepare(`
-        SELECT slug, tag, title, summary, image, published_at
+        SELECT slug, tag, title, summary, image, video, published_at
         FROM news WHERE status = 'published' AND pending = 0
         ORDER BY published_at DESC
         LIMIT ? OFFSET ?
@@ -93,7 +106,7 @@ export function publicRoutes(db) {
   router.get("/news/:slug", (req, res) => {
     const item = db
       .prepare(`
-        SELECT slug, tag, title, summary, body, image, featured, published_at
+        SELECT slug, tag, title, summary, body, image, video, featured, published_at
         FROM news WHERE slug = ? AND status = 'published' AND pending = 0
       `)
       .get(req.params.slug);
@@ -132,6 +145,7 @@ export function publicRoutes(db) {
         progressFrom: cause.progress_from,
         progressNext: cause.progress_next,
         leadImage: cause.lead_image,
+        video: cause.video ?? "",
         briefTitle: cause.brief_title,
         briefBody: cause.brief_body,
         bullets: parseJson(cause.bullets, []),
@@ -146,13 +160,7 @@ export function publicRoutes(db) {
 
   router.get("/events", (req, res) => {
     const isMember = Boolean(req.member);
-    const rows = db
-      .prepare(`
-        SELECT * FROM events
-        WHERE status = 'published' AND pending = 0 AND datetime(starts_at) >= datetime('now', '-1 day')
-        ORDER BY starts_at ASC LIMIT 30
-      `)
-      .all();
+    const rows = db.prepare(`${EVENTOS_VIVOS} LIMIT 30`).all(ahoraLocal(), ahoraLocal());
     res.json({
       events: rows.map((row) => withEmbed(publicEvent(row, isMember), row, isMember)),
       isMember,

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Foto } from "../foto";
+import { VideoMiniatura } from "../video";
 import { useNavigate } from "react-router-dom";
 import { api, type HomePayload } from "../api";
 import { Arrow, LockIcon, PeronometroLogo, SectionHeading, dayOf, monthOf, dateLabel, timeOf } from "../ui";
@@ -132,11 +133,15 @@ export default function Home() {
           {data.news.map((item, index) => (
             <article className={item.featured ? "news-card featured" : "news-card"} key={item.slug}>
               <button onClick={() => go(`/noticias/${item.slug}`)} aria-label={`Abrir ${item.title}`}>
-                {item.image && (
+                {item.video ? (
+                  <div className="news-image">
+                    <VideoMiniatura video={item.video} />
+                  </div>
+                ) : item.image ? (
                   <div className="news-image">
                     <Foto valor={item.image} />
                   </div>
-                )}
+                ) : null}
                 <div className="news-body">
                   <div className="meta">
                     <span>{item.tag}</span>

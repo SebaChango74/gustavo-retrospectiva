@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Foto } from "../foto";
+import { VideoEmbed } from "../video";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 import { Arrow, ShareIcon, dateLabel } from "../ui";
@@ -14,6 +15,7 @@ type CauseDetail = {
     progressFrom: string;
     progressNext: string;
     leadImage: string;
+  video?: string;
     briefTitle: string;
     briefBody: string;
     bullets: string[];
@@ -119,11 +121,13 @@ export default function Cause() {
 
       <div className="cause-layout section">
         <article className="cause-main">
-          {cause.leadImage && (
+          {cause.video ? (
+            <VideoEmbed video={cause.video} titulo={cause.title} />
+          ) : cause.leadImage ? (
             <div className="cause-lead-image">
               <Foto valor={cause.leadImage} />
             </div>
-          )}
+          ) : null}
           <section className="brief-box">
             <span className="eyebrow">EN 30 SEGUNDOS</span>
             <h2>{cause.briefTitle}</h2>

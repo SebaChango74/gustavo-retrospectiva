@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Foto } from "../foto";
 import { useNavigate } from "react-router-dom";
 import { api, type EventItem } from "../api";
@@ -13,6 +13,16 @@ export default function Agenda() {
   const { member } = useSession();
   const [data, setData] = useState<EventsPayload>({ events: [], isMember: false });
   const [featuredId, setFeaturedId] = useState<number | null>(null);
+  const despliegue = useRef<HTMLElement>(null);
+
+  // Elegir una actividad de la fila la despliega arriba; sin este
+  // desplazamiento parecía que tocar no hacía nada.
+  const elegir = (id: number) => {
+    setFeaturedId(id);
+    window.setTimeout(() => {
+      despliegue.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 60);
+  };
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
@@ -107,7 +117,7 @@ export default function Agenda() {
 
       <section className="agenda-detail section">
         {featured ? (
-          <article className="agenda-feature">
+          <article className="agenda-feature" ref={despliegue}>
             {featured.image && (
               <div className="agenda-foto">
                 <Foto valor={featured.image} alt={featured.title} />
@@ -207,7 +217,7 @@ export default function Agenda() {
         <aside className="agenda-side">
           <span className="eyebrow">TAMBIÉN EN AGENDA</span>
           {rest.map((event) => (
-            <button key={event.id} className="agenda-side-event as-button" onClick={() => setFeaturedId(event.id)}>
+            <button key={event.id} className="agenda-side-event as-button" onClick={() => elegir(event.id)}>
               <strong>
                 {dayOf(event.startsAt)} {monthOf(event.startsAt)}
               </strong>
