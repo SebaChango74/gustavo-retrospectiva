@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { attachMember, ensureAdmins } from "./auth.js";
+import { SUBIDAS_DIR, asegurarCarpeta } from "./media.js";
 import { publicRoutes } from "./routes/public.js";
 import { authRoutes } from "./routes/auth.js";
 import { adminRoutes } from "./routes/admin.js";
@@ -141,6 +142,21 @@ export function createApp(db) {
       res.status(500).json({ error: "Error interno del servidor." });
     });
     app.use(`${appBase}/api`, api);
+
+    // ─── Fotos subidas ───────────────────────────────────────────────────────
+    // Viven en el volumen persistente, no en la carpeta del programa: si no,
+    // cada despliegue las borraría. El nombre viene del contenido, así que
+    // nunca cambia y se pueden guardar para siempre.
+    asegurarCarpeta();
+    app.use(
+      `${appBase}/subidas`,
+      express.static(SUBIDAS_DIR, {
+        maxAge: "365d",
+        immutable: true,
+        index: false,
+        setHeaders: (res) => res.setHeader("X-Content-Type-Options", "nosniff"),
+      }),
+    );
 
     // ─── SPA ─────────────────────────────────────────────────────────────────
     if (fs.existsSync(DIST_DIR)) {

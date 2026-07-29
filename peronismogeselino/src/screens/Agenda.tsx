@@ -107,6 +107,11 @@ export default function Agenda() {
       <section className="agenda-detail section">
         {featured ? (
           <article className="agenda-feature">
+            {featured.image && (
+              <div className="agenda-foto">
+                <img src={featured.image} alt={featured.title} />
+              </div>
+            )}
             <div className="agenda-feature-head">
               <div className="agenda-big-date">
                 <strong>{dayOf(featured.startsAt)}</strong>

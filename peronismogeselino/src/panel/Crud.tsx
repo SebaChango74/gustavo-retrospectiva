@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { api } from "../api";
+import { ImagePicker } from "./ImagePicker";
 
 export type FieldOption = { value: string; label: string };
 
@@ -14,7 +15,8 @@ export type Field = {
     | "select"
     | "datetime"
     | "lines"
-    | "timeline";
+    | "timeline"
+    | "image";
   options?: FieldOption[];
   help?: string;
   placeholder?: string;
@@ -196,6 +198,10 @@ export function FieldInput({
   onChange: (value: any) => void;
 }) {
   const type = field.type ?? "text";
+
+  if (type === "image") {
+    return <ImagePicker value={value ?? ""} onChange={onChange} />;
+  }
 
   if (type === "checkbox") {
     return (

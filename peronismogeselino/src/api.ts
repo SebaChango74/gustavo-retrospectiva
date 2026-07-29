@@ -37,6 +37,10 @@ export const api = {
   put: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: "PUT", body: JSON.stringify(body ?? {}) }),
   del: <T>(path: string) => request<T>(path, { method: "DELETE" }),
+  // Sube una imagen como cuerpo crudo (sin formulario multipart, sin
+  // dependencias). El servidor la reconoce por su contenido.
+  upload: <T>(path: string, blob: Blob) =>
+    request<T>(path, { method: "POST", body: blob, headers: { "Content-Type": blob.type } }),
 };
 
 export type Member = {
@@ -62,6 +66,7 @@ export type EventItem = {
   endsAt?: string | null;
   visibility: "public" | "members";
   status: string;
+  image?: string;
   placeName?: string;
   address?: string;
   latitude?: number | null;

@@ -1071,3 +1071,18 @@ footer img { width: 150px; }
 .hoja-aviso b { color: var(--gold); }
 
 @media (min-width: 700px) { .hoja-fondo { align-items: center; } }
+
+/* ─── Selector de fotos del panel ─────────────────────────────────────────── */
+.img-picker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; margin: 8px 0; }
+.img-opcion { position: relative; aspect-ratio: 4 / 3; border: 2px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--cream); cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--muted); text-align: center; }
+.img-opcion img { width: 100%; height: 100%; object-fit: cover; }
+.img-opcion.sel { border-color: var(--cobalt); box-shadow: 0 0 0 2px var(--cobalt); }
+.img-opcion:hover { border-color: var(--sky-bright); }
+.img-ninguna { background: repeating-linear-gradient(45deg, var(--cream), var(--cream) 6px, #e9e2d4 6px, #e9e2d4 12px); }
+.img-subir { border-style: dashed; color: var(--cobalt); background: var(--cream-light); }
+.img-subir:disabled { opacity: .6; cursor: progress; }
+.img-picker-error { color: var(--red); font-weight: 600; }
+
+/* Foto de la actividad destacada en la agenda pública. */
+.agenda-foto { margin: -1px -1px 22px; border-radius: 14px 14px 0 0; overflow: hidden; max-height: 340px; }
+.agenda-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }

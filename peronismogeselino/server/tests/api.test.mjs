@@ -747,3 +747,76 @@ test("caché: la página y el motor nunca se guardan; los archivos con huella, p
   const conHuella = await cache(`/peronismogeselino/${archivo}`);
   assert.match(conHuella, /immutable/, `los archivos con huella se guardan (dio "${conHuella}")`);
 });
+
+// PNG 1x1 mínimo válido, en base64.
+const PNG_1x1 =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+
+test("fotos: un editor sube una imagen válida y se sirve; un archivo falso se rechaza", async () => {
+  crearMiembro({ phone: "2255410010", name: "Foto Editor", role: "editor" });
+  const { cookie } = await login("2255410010");
+
+  // Un archivo que dice ser imagen pero no lo es: rechazado.
+  const falso = await fetch(`${base}/peronismogeselino/api/admin/media`, {
+    method: "POST",
+    headers: { "Content-Type": "image/png", cookie },
+    body: Buffer.from("esto no es una imagen"),
+  });
+  assert.equal(falso.status, 400);
+
+  // Un PNG de verdad: aceptado.
+  const png = Buffer.from(PNG_1x1, "base64");
+  const ok = await fetch(`${base}/peronismogeselino/api/admin/media`, {
+    method: "POST",
+    headers: { "Content-Type": "image/png", cookie },
+    body: png,
+  });
+  assert.equal(ok.status, 200);
+  const { url } = await ok.json();
+  assert.match(url, /^\/peronismogeselino\/subidas\/[a-f0-9]{16}\.png$/);
+
+  // La foto subida se sirve de verdad.
+  const servida = await fetch(`${base}${url}`);
+  assert.equal(servida.status, 200);
+  assert.match(servida.headers.get("content-type") || "", /image\/png/);
+
+  // Aparece en el listado.
+  const lista = await (await fetch(`${base}/peronismogeselino/api/admin/media`, { headers: { cookie } })).json();
+  assert.ok(lista.items.some((i) => i.url === url));
+});
+
+test("fotos: un miembro común no puede subir", async () => {
+  const { cookie } = await login(VECINA);
+  const r = await fetch(`${base}/peronismogeselino/api/admin/media`, {
+    method: "POST",
+    headers: { "Content-Type": "image/png", cookie },
+    body: Buffer.from(PNG_1x1, "base64"),
+  });
+  assert.equal(r.status, 403);
+});
+
+test("fotos: la agenda guarda y publica su foto, sin filtrar la ubicación", async () => {
+  const { cookie } = await login(ADMIN, { clave: CLAVE_ADMIN });
+  const foto = "/peronismogeselino/subidas/abc123def4567890.png";
+
+  const creada = await fetch(`${base}/peronismogeselino/api/admin/events`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", cookie },
+    body: JSON.stringify({
+      title: "Acto con foto",
+      startsAt: "2026-12-01T18:00",
+      status: "published",
+      visibility: "members",
+      address: "Calle secreta 123",
+      image: foto,
+    }),
+  });
+  assert.equal(creada.status, 200);
+
+  // El público ve la foto pero no la dirección de una actividad de miembros.
+  const pub = await (await fetch(`${base}/peronismogeselino/api/public/events`)).json();
+  const evento = pub.events.find((e) => e.title === "Acto con foto");
+  assert.ok(evento, "la actividad aparece");
+  assert.equal(evento.image, foto, "la foto sí es pública");
+  assert.equal(evento.address, undefined, "la dirección sigue oculta");
+});

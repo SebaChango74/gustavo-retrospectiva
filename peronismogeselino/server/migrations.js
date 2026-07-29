@@ -379,3 +379,12 @@ MIGRATIONS.push({
     CREATE INDEX idx_recovery_member ON recovery_codes(member_id, used_at);
   `,
 });
+
+MIGRATIONS.push({
+  name: "007_foto_agenda",
+  sql: `
+    -- Las actividades de la agenda ahora pueden llevar foto, igual que las
+    -- noticias y las causas.
+    ALTER TABLE events ADD COLUMN image TEXT NOT NULL DEFAULT '';
+  `,
+});

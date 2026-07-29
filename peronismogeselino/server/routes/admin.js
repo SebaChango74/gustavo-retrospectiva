@@ -1,8 +1,17 @@
-import { Router } from "express";
-import { requireGrant, requireMember, canApprove, hashClave, verificarClave } from "../auth.js";
+import express, { Router } from "express";
+import { requireGrant, requireMember, can, canApprove, hashClave, verificarClave } from "../auth.js";
 import { audit, intIn, parseJson, slugify, str } from "../util.js";
 import { APPROVABLE, approveItem, markPending, pendingItems, rejectItem } from "../approval.js";
 import { normalizarWhatsapp, mostrarWhatsapp, enlaceWhatsapp } from "../whatsapp.js";
+import {
+  LIMITE_BYTES,
+  SUBIDAS_URL,
+  borrarImagen,
+  dondeSeUsa,
+  guardarImagen,
+  listarImagenes,
+  reconocerImagen,
+} from "../media.js";
 import {
   codigoValido,
   direccionOtpauth,
@@ -210,8 +219,8 @@ export function adminRoutes(db) {
     const info = db
       .prepare(`
         INSERT INTO events (title, summary, event_type, starts_at, ends_at, place_name,
-          address, latitude, longitude, google_maps_url, visibility, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          address, latitude, longitude, google_maps_url, visibility, status, image)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
       .run(...eventParams(b, title, startsAt));
     markPending(db, "events", info.lastInsertRowid, req.member);
@@ -226,7 +235,7 @@ export function adminRoutes(db) {
     db.prepare(`
       UPDATE events SET title = ?, summary = ?, event_type = ?, starts_at = ?, ends_at = ?,
         place_name = ?, address = ?, latitude = ?, longitude = ?, google_maps_url = ?,
-        visibility = ?, status = ?, updated_at = datetime('now')
+        visibility = ?, status = ?, image = ?, updated_at = datetime('now')
       WHERE id = ?
     `).run(...eventParams(b, str(b.title, 200), str(b.startsAt, 40)), row.id);
     markPending(db, "events", row.id, req.member);
@@ -385,6 +394,55 @@ export function adminRoutes(db) {
     // Cambiar la clave cierra las sesiones abiertas de esa cuenta.
     db.prepare("DELETE FROM sessions WHERE member_id = ?").run(row.id);
     audit(db, req.member.id, "clave", "member", row.id);
+    res.json({ ok: true });
+  });
+
+  // ─── Fotos ────────────────────────────────────────────────────────────────
+  // Cualquiera que cargue contenido puede subir fotos: sin esto un editor
+  // escribe la nota pero no puede ilustrarla.
+  const puedeSubir = (req, res, next) =>
+    can(req.member, "news") || can(req.member, "causes")
+      ? next()
+      : res.status(403).json({ error: "No tenés permisos para subir fotos." });
+
+  router.get("/media", puedeSubir, (_req, res) => {
+    res.json({ items: listarImagenes() });
+  });
+
+  /**
+   * La foto llega como cuerpo crudo, sin formulario de varias partes: así no
+   * hace falta ninguna dependencia. El navegador ya la redujo antes de
+   * mandarla, así que lo que llega acá pesa poco.
+   */
+  router.post("/media", puedeSubir, express.raw({ type: "image/*", limit: LIMITE_BYTES }), (req, res) => {
+    const buffer = req.body;
+    if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
+      return res.status(400).json({ error: "No llegó ninguna imagen." });
+    }
+    const reconocida = reconocerImagen(buffer);
+    if (!reconocida) {
+      return res.status(400).json({
+        error: "El archivo no es una imagen válida. Sirven JPG, PNG y WebP.",
+      });
+    }
+    const { nombre, url } = guardarImagen(buffer, reconocida.ext);
+    audit(db, req.member.id, "subir_foto", "media", null, nombre);
+    res.json({ nombre, url });
+  });
+
+  router.delete("/media/:nombre", puedeSubir, (req, res) => {
+    const url = `${SUBIDAS_URL}/${req.params.nombre}`;
+    const usos = dondeSeUsa(db, url);
+    if (usos.length && req.query.igual !== "1") {
+      return res.status(409).json({
+        error: "Esta foto está en uso.",
+        usos,
+      });
+    }
+    if (!borrarImagen(req.params.nombre)) {
+      return res.status(404).json({ error: "Esa foto no existe." });
+    }
+    audit(db, req.member.id, "borrar_foto", "media", null, req.params.nombre);
     res.json({ ok: true });
   });
 
@@ -865,6 +923,7 @@ function eventParams(b, title, startsAt) {
     str(b.googleMapsUrl, 800),
     b.visibility === "members" ? "members" : "public",
     ["draft", "published", "cancelled"].includes(b.status) ? b.status : "draft",
+    str(b.image, 500),
   ];
 }
 

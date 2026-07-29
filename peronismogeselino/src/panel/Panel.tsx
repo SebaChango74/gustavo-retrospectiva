@@ -13,22 +13,6 @@ import { Solicitudes } from "./Solicitudes";
 import { Seguridad } from "./Seguridad";
 import { dateLabel } from "../ui";
 
-const IMAGES = [
-  "/peronismogeselino/images/hero-gustavo-v2.png",
-  "/peronismogeselino/images/gestion-obras.jpg",
-  "/peronismogeselino/images/comunidad-grupo.jpg",
-  "/peronismogeselino/images/gustavo-infancias.jpg",
-  "/peronismogeselino/images/gustavo-abrazo.jpg",
-  "/peronismogeselino/images/gustavo-ninez.jpg",
-  "/peronismogeselino/images/hero-mar.jpg",
-  "/peronismogeselino/images/peronometro-peron.png",
-];
-
-const imageOptions = [
-  { value: "", label: "Sin imagen" },
-  ...IMAGES.map((src) => ({ value: src, label: src.split("/").pop() ?? src })),
-];
-
 const contentStatus = [
   { value: "draft", label: "Borrador" },
   { value: "published", label: "Publicado" },
@@ -179,7 +163,7 @@ function NewsModule() {
         { key: "tag", label: "Etiqueta", placeholder: "Villa Gesell / Provincia / Comunidad" },
         { key: "summary", label: "Resumen", type: "textarea" },
         { key: "body", label: "Cuerpo (opcional)", type: "textarea" },
-        { key: "image", label: "Imagen", type: "select", options: imageOptions },
+        { key: "image", label: "Imagen", type: "image" },
         { key: "publishedAt", label: "Fecha de publicación", type: "datetime" },
         { key: "status", label: "Estado", type: "select", options: contentStatus },
         { key: "featured", label: "Noticia destacada (tarjeta grande)", type: "checkbox" },
@@ -227,7 +211,7 @@ function CausesModule() {
         { key: "progress", label: "Avance (0-100)", type: "number" },
         { key: "progressFrom", label: "Leyenda izquierda de la barra" },
         { key: "progressNext", label: "Leyenda derecha de la barra" },
-        { key: "leadImage", label: "Imagen principal", type: "select", options: imageOptions },
+        { key: "leadImage", label: "Imagen principal", type: "image" },
         { key: "briefTitle", label: "Título del resumen", placeholder: "¿QUÉ ESTÁ PASANDO?" },
         { key: "briefBody", label: "Resumen en 30 segundos", type: "textarea" },
         { key: "bullets", label: "Puntos clave", type: "lines" },
@@ -318,6 +302,7 @@ function EventsModule() {
         { key: "title", label: "Título", required: true },
         { key: "eventType", label: "Tipo", placeholder: "ACTIVIDAD DE LA COMUNIDAD" },
         { key: "summary", label: "Descripción", type: "textarea" },
+        { key: "image", label: "Foto", type: "image" },
         { key: "startsAt", label: "Comienza", type: "datetime", required: true },
         { key: "endsAt", label: "Termina (opcional)", type: "datetime" },
         { key: "placeName", label: "Nombre del lugar", placeholder: "Casa Peronista" },
@@ -367,11 +352,13 @@ function EventsModule() {
         googleMapsUrl: "",
         visibility: "public",
         status: "draft",
+        image: "",
       }}
       fromRow={(row) => ({
         title: row.title,
         eventType: row.event_type,
         summary: row.summary,
+        image: row.image ?? "",
         startsAt: row.starts_at ?? "",
         endsAt: row.ends_at ?? "",
         placeName: row.place_name,

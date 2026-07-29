@@ -45,6 +45,8 @@ export function publicEvent(row, isMember) {
     endsAt: row.ends_at,
     visibility: row.visibility,
     status: row.status,
+    // La foto no revela dónde es: va siempre, también en las de miembros.
+    image: row.image ?? "",
   };
   if (row.visibility === "public" || isMember) {
     return {
