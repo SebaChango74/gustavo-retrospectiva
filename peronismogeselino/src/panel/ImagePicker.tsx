@@ -1,5 +1,32 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api";
+import { conEncuadre, fotoPosicion, fotoSrc } from "../foto";
+
+/**
+ * Busca la cara más grande de la foto, si el navegador sabe hacerlo (Chrome
+ * en Android sabe; otros no, y ahí queda el encuadre a mano). Devuelve el
+ * centro de la cara en porcentajes, o null.
+ */
+async function buscarCara(blob: Blob): Promise<{ x: number; y: number } | null> {
+  const Detector = (window as any).FaceDetector;
+  if (!Detector) return null;
+  try {
+    const bitmap = await createImageBitmap(blob);
+    const caras = await new Detector({ fastMode: true }).detect(bitmap);
+    if (!caras.length) return null;
+    const caja = caras
+      .map((c: any) => c.boundingBox)
+      .sort((a: any, b: any) => b.width * b.height - a.width * a.height)[0];
+    const punto = {
+      x: Math.round(((caja.x + caja.width / 2) / bitmap.width) * 100),
+      y: Math.round(((caja.y + caja.height / 2) / bitmap.height) * 100),
+    };
+    bitmap.close?.();
+    return punto;
+  } catch {
+    return null;
+  }
+}
 
 /** Las fotos que ya vinieron cargadas con el sitio. */
 const INCLUIDAS = [
@@ -79,7 +106,10 @@ export function ImagePicker({
       for (const file of Array.from(files)) {
         const blob = await achicar(file);
         const { url } = await api.upload<{ url: string }>("/admin/media", blob);
-        onChange(url);
+        // Si el navegador encuentra una cara, el recorte apunta ahí solo.
+        // Si no, queda el encuadre a mano de acá abajo.
+        const cara = await buscarCara(blob);
+        onChange(cara ? conEncuadre(url, cara.x, cara.y) : url);
       }
       cargar();
     } catch (e: any) {
@@ -109,7 +139,7 @@ export function ImagePicker({
           <button
             type="button"
             key={url}
-            className={`img-opcion${value === url ? " sel" : ""}`}
+            className={`img-opcion${fotoSrc(value) === url ? " sel" : ""}`}
             onClick={() => onChange(url)}
             title={url.split("/").pop()}
           >
@@ -138,6 +168,46 @@ export function ImagePicker({
 
       {error && <small className="img-picker-error">{error}</small>}
       <small>Sacá una foto o elegí una del teléfono. Se achica sola antes de subir.</small>
+
+      {value && <Encuadre value={value} onChange={onChange} />}
+    </div>
+  );
+}
+
+/**
+ * El encuadre: se toca la parte importante de la foto (la cara) y las
+ * tarjetas recortan alrededor de ese punto. A la derecha se ve el resultado
+ * en vivo, con la misma forma que la tarjeta del portal.
+ */
+function Encuadre({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const elegir = (e: React.MouseEvent<HTMLImageElement>) => {
+    const caja = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - caja.left) / caja.width) * 100;
+    const y = ((e.clientY - caja.top) / caja.height) * 100;
+    onChange(conEncuadre(value, x, y));
+  };
+
+  const posicion = fotoPosicion(value);
+  const [px, py] = posicion.split(" ").map((v) => parseFloat(v));
+
+  return (
+    <div className="encuadre">
+      <span className="encuadre-titulo">Encuadre</span>
+      <div className="encuadre-cuerpo">
+        <div className="encuadre-completa">
+          <img src={fotoSrc(value)} alt="" onClick={elegir} />
+          <span
+            className="encuadre-punto"
+            style={{ left: `${px}%`, top: `${py}%` }}
+            aria-hidden="true"
+          />
+        </div>
+        <div className="encuadre-muestra">
+          <img src={fotoSrc(value)} alt="" style={{ objectPosition: posicion }} />
+          <small>Así se ve en la tarjeta</small>
+        </div>
+      </div>
+      <small>Tocá la cara (o lo importante) en la foto grande: el recorte la sigue.</small>
     </div>
   );
 }

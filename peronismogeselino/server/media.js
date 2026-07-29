@@ -82,15 +82,22 @@ export function borrarImagen(nombre) {
   return true;
 }
 
-/** Dónde se está usando una foto: borrarla a ciegas rompe lo publicado. */
+/** Dónde se está usando una foto: borrarla a ciegas rompe lo publicado.
+ *  El valor guardado puede llevar el encuadre pegado («…jpg#e=48,22»),
+ *  así que se compara también contra esa forma. */
 export function dondeSeUsa(db, url) {
   const usos = [];
   const buscar = [
     ["news", "title", "image", "noticia"],
     ["causes", "title", "lead_image", "causa"],
+    ["events", "title", "image", "actividad"],
   ];
   for (const [tabla, titulo, columna, etiqueta] of buscar) {
-    const filas = db.prepare(`SELECT ${titulo} AS t FROM ${tabla} WHERE ${columna} = ?`).all(url);
+    const filas = db
+      .prepare(
+        `SELECT ${titulo} AS t FROM ${tabla} WHERE ${columna} = ? OR ${columna} LIKE ? || '#%'`,
+      )
+      .all(url, url);
     for (const fila of filas) usos.push(`${etiqueta}: ${fila.t}`);
   }
   return usos;

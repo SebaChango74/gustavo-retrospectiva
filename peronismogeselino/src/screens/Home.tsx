@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Foto } from "../foto";
 import { useNavigate } from "react-router-dom";
 import { api, type HomePayload } from "../api";
 import { Arrow, LockIcon, PeronometroLogo, SectionHeading, dayOf, monthOf, dateLabel, timeOf } from "../ui";
@@ -133,7 +134,7 @@ export default function Home() {
               <button onClick={() => go(`/noticias/${item.slug}`)} aria-label={`Abrir ${item.title}`}>
                 {item.image && (
                   <div className="news-image">
-                    <img src={item.image} alt="" />
+                    <Foto valor={item.image} />
                   </div>
                 )}
                 <div className="news-body">

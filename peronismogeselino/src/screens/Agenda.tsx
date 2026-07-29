@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Foto } from "../foto";
 import { useNavigate } from "react-router-dom";
 import { api, type EventItem } from "../api";
 import { useSession } from "../session";
@@ -109,7 +110,7 @@ export default function Agenda() {
           <article className="agenda-feature">
             {featured.image && (
               <div className="agenda-foto">
-                <img src={featured.image} alt={featured.title} />
+                <Foto valor={featured.image} alt={featured.title} />
               </div>
             )}
             <div className="agenda-feature-head">

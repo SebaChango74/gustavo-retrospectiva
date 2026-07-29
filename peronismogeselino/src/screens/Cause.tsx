@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Foto } from "../foto";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 import { Arrow, ShareIcon, dateLabel } from "../ui";
@@ -120,7 +121,7 @@ export default function Cause() {
         <article className="cause-main">
           {cause.leadImage && (
             <div className="cause-lead-image">
-              <img src={cause.leadImage} alt="" />
+              <Foto valor={cause.leadImage} />
             </div>
           )}
           <section className="brief-box">

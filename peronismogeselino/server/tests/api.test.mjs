@@ -820,3 +820,31 @@ test("fotos: la agenda guarda y publica su foto, sin filtrar la ubicación", asy
   assert.equal(evento.image, foto, "la foto sí es pública");
   assert.equal(evento.address, undefined, "la dirección sigue oculta");
 });
+
+test("fotos: una foto con encuadre pegado sigue contando como en uso", async () => {
+  const { cookie } = await login(ADMIN, { clave: CLAVE_ADMIN });
+
+  // Subir una foto real.
+  const subida = await fetch(`${base}/peronismogeselino/api/admin/media`, {
+    method: "POST",
+    headers: { "Content-Type": "image/png", cookie },
+    body: Buffer.from(PNG_1x1, "base64"),
+  });
+  const { url, nombre } = await subida.json();
+
+  // Usarla en una noticia, con el encuadre pegado a la dirección.
+  await fetch(`${base}/peronismogeselino/api/admin/news`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", cookie },
+    body: JSON.stringify({ title: "Nota con encuadre", image: `${url}#e=48,22`, status: "draft" }),
+  });
+
+  // Borrarla tiene que avisar que está en uso, no borrarla en silencio.
+  const intento = await fetch(`${base}/peronismogeselino/api/admin/media/${nombre}`, {
+    method: "DELETE",
+    headers: { cookie },
+  });
+  assert.equal(intento.status, 409, "avisa que está en uso");
+  const cuerpo = await intento.json();
+  assert.ok(cuerpo.usos.some((u) => u.includes("Nota con encuadre")));
+});

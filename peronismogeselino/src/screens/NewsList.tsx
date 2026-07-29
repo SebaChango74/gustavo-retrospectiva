@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Foto } from "../foto";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { api, type NewsArchive } from "../api";
 import { Arrow, dateLabel } from "../ui";
@@ -46,7 +47,7 @@ export default function NewsList() {
               >
                 {item.image && (
                   <div className="news-image">
-                    <img src={item.image} alt="" />
+                    <Foto valor={item.image} />
                   </div>
                 )}
                 <div className="news-body">

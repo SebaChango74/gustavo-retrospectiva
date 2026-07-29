@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Foto } from "../foto";
 import { useNavigate, useParams } from "react-router-dom";
 import { api, type NewsItem } from "../api";
 import { Arrow, ShareIcon, dateLabel } from "../ui";
@@ -88,7 +89,7 @@ export default function News() {
       <div className="section news-article">
         {item.image && (
           <div className="cause-lead-image">
-            <img src={item.image} alt="" />
+            <Foto valor={item.image} />
           </div>
         )}
         <div className="news-article-body">
