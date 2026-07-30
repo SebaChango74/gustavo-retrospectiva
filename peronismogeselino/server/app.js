@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { attachMember, ensureAdmins } from "./auth.js";
 import { SUBIDAS_DIR, asegurarCarpeta } from "./media.js";
+import { conVistaPrevia } from "./previa.js";
 import { publicRoutes } from "./routes/public.js";
 import { authRoutes } from "./routes/auth.js";
 import { adminRoutes } from "./routes/admin.js";
@@ -180,7 +181,7 @@ export function createApp(db) {
           if (path.extname(req.path)) {
             return res.status(404).type("text/plain").send("No encontrado");
           }
-          enviarPagina(res);
+          enviarPagina(req, res, db);
         });
       } else {
         app.use("/peronismogeselino", express.static(DIST_DIR, estaticos));
@@ -188,7 +189,7 @@ export function createApp(db) {
           if (path.extname(req.path)) {
             return res.status(404).type("text/plain").send("No encontrado");
           }
-          enviarPagina(res);
+          enviarPagina(req, res, db);
         });
       }
     } else {
@@ -309,10 +310,18 @@ function cacheEstatico(res, ruta) {
   res.setHeader("Cache-Control", "public, max-age=86400");
 }
 
-/** La página siempre se revalida: es la que apunta a la versión actual. */
-function enviarPagina(res) {
+/**
+ * La página siempre se revalida: es la que apunta a la versión actual. Antes
+ * de entregarla, la vista previa del enlace se reescribe con el contenido de
+ * la ruta: así compartir una nota muestra la nota, no la placa de la app.
+ */
+let plantillaHtml = null;
+function enviarPagina(req, res, db) {
   res.setHeader("Cache-Control", "no-cache, must-revalidate");
-  res.sendFile(path.join(DIST_DIR, "index.html"));
+  plantillaHtml ??= fs.readFileSync(path.join(DIST_DIR, "index.html"), "utf8");
+  const protocolo = req.headers["x-forwarded-proto"] || req.protocol || "https";
+  const origen = `${protocolo}://${req.headers.host}`;
+  res.type("html").send(conVistaPrevia(db, plantillaHtml, req.path, origen));
 }
 
 /**

@@ -926,3 +926,55 @@ test("video: cualquier forma del enlace de YouTube se guarda canónica; otra cos
   const nota = portada.news.find((n) => n.title === "Nota con video");
   assert.equal(nota.video, "https://www.youtube.com/watch?v=dQw4w9WgXcQ", "guardado canónico");
 });
+
+test("compartir una nota muestra la nota, no la placa genérica de la app", async () => {
+  const { cookie } = await login(ADMIN, { clave: CLAVE_ADMIN });
+  await fetch(`${base}/peronismogeselino/api/admin/news`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", cookie },
+    body: JSON.stringify({
+      title: "Gira por Tandil & Necochea",
+      summary: "Barrera acompañará a Ferraresi.",
+      image: "/peronismogeselino/subidas/aaaa111122223333.jpg#e=48,22",
+      status: "published",
+    }),
+  });
+
+  const html = await (
+    await fetch(`${base}/peronismogeselino/noticias/gira-por-tandil-necochea`)
+  ).text();
+
+  assert.ok(
+    html.includes('og:title" content="Gira por Tandil &amp; Necochea"'),
+    "el título de la vista previa es el de la nota (y escapado)",
+  );
+  assert.ok(html.includes("Barrera acompañará a Ferraresi."), "la descripción es el resumen");
+  assert.ok(
+    html.includes("/peronismogeselino/subidas/aaaa111122223333.jpg"),
+    "la imagen es la de la nota",
+  );
+  assert.ok(!html.includes("#e="), "el encuadre no viaja en la vista previa");
+  assert.ok(
+    html.includes("<title>Gira por Tandil &amp; Necochea — Peronismo Geselino</title>"),
+    "el título de la pestaña también",
+  );
+
+  // Una nota con video usa la miniatura del video.
+  const conVideo = await (
+    await fetch(`${base}/peronismogeselino/noticias/nota-con-video`)
+  ).text();
+  assert.ok(
+    conVideo.includes("i.ytimg.com/vi/dQw4w9WgXcQ"),
+    "con video, la vista previa es la miniatura del video",
+  );
+
+  // El resto de las páginas conservan la vista previa genérica.
+  const portada = await (await fetch(`${base}/peronismogeselino/`)).text();
+  assert.ok(portada.includes('og:title" content="Peronismo Geselino"'));
+
+  // Una nota inexistente o en borrador no filtra nada.
+  const inexistente = await (
+    await fetch(`${base}/peronismogeselino/noticias/no-existe`)
+  ).text();
+  assert.ok(inexistente.includes('og:title" content="Peronismo Geselino"'));
+});
