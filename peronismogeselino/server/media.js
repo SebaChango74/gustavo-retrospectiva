@@ -18,6 +18,8 @@ export const SUBIDAS_DIR = path.join(DATA_DIR, "subidas");
 export const SUBIDAS_URL = "/peronismogeselino/subidas";
 
 export const LIMITE_BYTES = 8 * 1024 * 1024;
+// Los PDF (guías, folletos) pesan más que una foto: hasta 25 MB.
+export const LIMITE_PDF = 25 * 1024 * 1024;
 
 /**
  * El tipo se decide por el contenido, no por lo que diga el navegador: un
@@ -45,6 +47,16 @@ const FIRMAS = [
 export function reconocerImagen(buffer) {
   if (!Buffer.isBuffer(buffer) || buffer.length < 12) return null;
   return FIRMAS.find((f) => f.prueba(buffer)) ?? null;
+}
+
+/** Un PDF de verdad empieza con "%PDF-". Se valida el contenido, no la
+ *  extensión: nadie sube un ejecutable disfrazado de guía. */
+export function esPdf(buffer) {
+  return (
+    Buffer.isBuffer(buffer) &&
+    buffer.length > 5 &&
+    buffer.subarray(0, 5).toString("latin1") === "%PDF-"
+  );
 }
 
 export function asegurarCarpeta() {
@@ -89,7 +101,9 @@ export function dondeSeUsa(db, url) {
   const usos = [];
   const buscar = [
     ["news", "title", "image", "noticia"],
+    ["news", "title", "attachment", "noticia (adjunto)"],
     ["causes", "title", "lead_image", "causa"],
+    ["causes", "title", "attachment", "causa (adjunto)"],
     ["events", "title", "image", "actividad"],
   ];
   for (const [tabla, titulo, columna, etiqueta] of buscar) {

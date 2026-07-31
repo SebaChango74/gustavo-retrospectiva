@@ -165,7 +165,7 @@ export const SECCIONES = [
         nombre: "Noticias",
         marca: "Carga y publica",
         texto:
-          "Lo que aparece en «Lo que está pasando». Cada nota lleva título, etiqueta, resumen, cuerpo, imagen y fecha.",
+          "Lo que aparece en «Lo que está pasando». Cada nota lleva título, etiqueta, resumen, cuerpo, imagen y fecha. Puede sumar un video de YouTube (reemplaza a la imagen) y un PDF para descargar (una guía, un folleto).",
         detalle:
           "La casilla «Destacada» la convierte en la tarjeta grande de la portada. Conviene tener una sola destacada por vez.",
       },

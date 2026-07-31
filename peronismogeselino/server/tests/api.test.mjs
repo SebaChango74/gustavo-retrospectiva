@@ -978,3 +978,70 @@ test("compartir una nota muestra la nota, no la placa genérica de la app", asyn
   ).text();
   assert.ok(inexistente.includes('og:title" content="Peronismo Geselino"'));
 });
+
+test("adjunto: se sube un PDF y una nota lo ofrece para descargar", async () => {
+  const { cookie } = await login(ADMIN, { clave: CLAVE_ADMIN });
+
+  // Un archivo que no es PDF: rechazado.
+  const falso = await fetch(`${base}/peronismogeselino/api/admin/media/pdf`, {
+    method: "POST",
+    headers: { "Content-Type": "application/pdf", cookie },
+    body: Buffer.from("no soy un pdf"),
+  });
+  assert.equal(falso.status, 400);
+
+  // Un PDF de verdad (empieza con %PDF-).
+  const pdf = Buffer.concat([Buffer.from("%PDF-1.4\n"), Buffer.alloc(2048, 0x20), Buffer.from("\n%%EOF")]);
+  const subida = await fetch(`${base}/peronismogeselino/api/admin/media/pdf`, {
+    method: "POST",
+    headers: { "Content-Type": "application/pdf", cookie },
+    body: pdf,
+  });
+  assert.equal(subida.status, 200);
+  const { url, nombre } = await subida.json();
+  assert.match(url, /^\/peronismogeselino\/subidas\/[a-f0-9]{16}\.pdf$/);
+
+  // Se sirve como PDF.
+  const servido = await fetch(`${base}${url}`);
+  assert.equal(servido.status, 200);
+  assert.match(servido.headers.get("content-type") || "", /application\/pdf/);
+
+  // Una nota con el PDF adjunto lo devuelve al público.
+  await fetch(`${base}/peronismogeselino/api/admin/news`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", cookie },
+    body: JSON.stringify({
+      title: "Guía para militantes",
+      attachment: url,
+      attachmentName: "Guia_Peronismo_Geselino.pdf",
+      status: "published",
+    }),
+  });
+  const nota = await (
+    await fetch(`${base}/peronismogeselino/api/public/news/guia-para-militantes`)
+  ).json();
+  assert.equal(nota.item.attachment, url, "la nota expone el PDF");
+  assert.equal(nota.item.attachment_name, "Guia_Peronismo_Geselino.pdf");
+
+  // Un adjunto que no sea un PDF de la propia carpeta se descarta.
+  await fetch(`${base}/peronismogeselino/api/admin/news`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", cookie },
+    body: JSON.stringify({
+      title: "Nota con adjunto trucho",
+      attachment: "https://malicioso.example/x.pdf",
+      status: "published",
+    }),
+  });
+  const trucha = await (
+    await fetch(`${base}/peronismogeselino/api/public/news/nota-con-adjunto-trucho`)
+  ).json();
+  assert.equal(trucha.item.attachment, "", "un enlace externo no se guarda como adjunto");
+
+  // Borrar el PDF en uso avisa antes.
+  const borrar = await fetch(`${base}/peronismogeselino/api/admin/media/${nombre}`, {
+    method: "DELETE",
+    headers: { cookie },
+  });
+  assert.equal(borrar.status, 409, "el PDF en uso no se borra en silencio");
+});

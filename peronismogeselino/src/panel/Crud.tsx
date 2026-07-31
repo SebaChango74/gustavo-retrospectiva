@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { api } from "../api";
 import { ImagePicker } from "./ImagePicker";
+import { PdfPicker } from "./PdfPicker";
 
 export type FieldOption = { value: string; label: string };
 
@@ -16,7 +17,8 @@ export type Field = {
     | "datetime"
     | "lines"
     | "timeline"
-    | "image";
+    | "image"
+    | "pdf";
   options?: FieldOption[];
   help?: string;
   placeholder?: string;
@@ -127,16 +129,31 @@ export function Crud({
         <div className="panel-form">
           <h3>{editing.id == null ? "Nuevo elemento" : `Editando #${editing.id}`}</h3>
           <div className="panel-form-grid">
-            {fields.map((field) => (
-              <FieldInput
-                key={field.key}
-                field={field}
-                value={editing.values[field.key]}
-                onChange={(value) =>
-                  setEditing({ ...editing, values: { ...editing.values, [field.key]: value } })
-                }
-              />
-            ))}
+            {fields.map((field) =>
+              field.type === "pdf" ? (
+                // El PDF maneja dos campos a la vez: la dirección y el nombre.
+                <PdfPicker
+                  key={field.key}
+                  value={editing.values[field.key] ?? ""}
+                  name={editing.values[`${field.key}Name`] ?? ""}
+                  onChange={(url, nombre) =>
+                    setEditing({
+                      ...editing,
+                      values: { ...editing.values, [field.key]: url, [`${field.key}Name`]: nombre },
+                    })
+                  }
+                />
+              ) : (
+                <FieldInput
+                  key={field.key}
+                  field={field}
+                  value={editing.values[field.key]}
+                  onChange={(value) =>
+                    setEditing({ ...editing, values: { ...editing.values, [field.key]: value } })
+                  }
+                />
+              ),
+            )}
           </div>
           {formError && <div className="panel-error">{formError}</div>}
           <div className="panel-form-actions">

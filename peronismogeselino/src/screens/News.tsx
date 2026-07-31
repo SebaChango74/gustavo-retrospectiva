@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Foto } from "../foto";
+import { Adjunto } from "../Adjunto";
 import { VideoEmbed } from "../video";
 import { useNavigate, useParams } from "react-router-dom";
 import { api, type NewsItem } from "../api";
@@ -100,6 +101,7 @@ export default function News() {
             <p key={index}>{paragraph}</p>
           ))}
         </div>
+        <Adjunto url={item.attachment} nombre={item.attachment_name} />
         <button className="text-action dark" onClick={() => go("/#noticias")}>
           ← Volver a las noticias
         </button>

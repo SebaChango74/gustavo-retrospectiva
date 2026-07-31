@@ -398,3 +398,15 @@ MIGRATIONS.push({
     ALTER TABLE causes ADD COLUMN video TEXT NOT NULL DEFAULT '';
   `,
 });
+
+MIGRATIONS.push({
+  name: "009_adjunto_pdf",
+  sql: `
+    -- Noticias y causas pueden llevar un PDF para descargar (una guía, un
+    -- folleto). Se guarda la dirección del archivo y el nombre para mostrar.
+    ALTER TABLE news ADD COLUMN attachment TEXT NOT NULL DEFAULT '';
+    ALTER TABLE news ADD COLUMN attachment_name TEXT NOT NULL DEFAULT '';
+    ALTER TABLE causes ADD COLUMN attachment TEXT NOT NULL DEFAULT '';
+    ALTER TABLE causes ADD COLUMN attachment_name TEXT NOT NULL DEFAULT '';
+  `,
+});

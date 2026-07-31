@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Foto } from "../foto";
+import { Adjunto } from "../Adjunto";
 import { VideoEmbed } from "../video";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
@@ -16,6 +17,8 @@ type CauseDetail = {
     progressNext: string;
     leadImage: string;
   video?: string;
+  attachment?: string;
+  attachmentName?: string;
     briefTitle: string;
     briefBody: string;
     bullets: string[];
@@ -140,6 +143,8 @@ export default function Cause() {
               </ul>
             )}
           </section>
+
+          <Adjunto url={cause.attachment} nombre={cause.attachmentName} />
 
           {timeline.length > 0 && (
             <section className="timeline-section">

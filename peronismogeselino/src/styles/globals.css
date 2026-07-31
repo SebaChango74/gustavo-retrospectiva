@@ -1110,3 +1110,23 @@ footer img { width: 150px; }
 .news-card:hover .video-play { background: var(--red); }
 .video-embed { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: #000; margin-bottom: 26px; }
 .video-embed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+/* ─── PDF adjunto ─────────────────────────────────────────────────────────── */
+/* En el panel */
+.pdf-subir { align-self: flex-start; padding: 12px 18px; border: 1px dashed var(--cobalt); border-radius: 8px; background: var(--cream-light); color: var(--cobalt); font-weight: 700; cursor: pointer; }
+.pdf-subir:disabled { opacity: .6; cursor: progress; }
+.pdf-actual { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--cream-light); }
+.pdf-icono { flex: 0 0 auto; width: 42px; height: 42px; border-radius: 8px; background: var(--red); color: white; font-family: "Barlow Condensed", sans-serif; font-weight: 900; font-size: 15px; display: flex; align-items: center; justify-content: center; letter-spacing: .04em; }
+.pdf-datos { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.pdf-datos strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pdf-datos a { font-size: 13px; color: var(--cobalt); }
+.pdf-quitar { border: 0; background: none; color: var(--red); font-weight: 700; cursor: pointer; flex: 0 0 auto; }
+
+/* En la nota / causa pública */
+.adjunto { display: flex; align-items: center; gap: 14px; margin: 8px 0 26px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); text-decoration: none; color: var(--ink); transition: border-color .15s, transform .15s; max-width: 460px; }
+.adjunto:hover { border-color: var(--cobalt); transform: translateY(-1px); }
+.adjunto-icono { flex: 0 0 auto; width: 48px; height: 48px; border-radius: 10px; background: var(--red); color: white; font-family: "Barlow Condensed", sans-serif; font-weight: 900; font-size: 17px; display: flex; align-items: center; justify-content: center; letter-spacing: .04em; }
+.adjunto-texto { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.adjunto-texto strong { font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adjunto-texto small { color: var(--muted); }
+.adjunto-flecha { flex: 0 0 auto; width: 36px; height: 36px; border-radius: 50%; background: var(--cobalt); color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; }
