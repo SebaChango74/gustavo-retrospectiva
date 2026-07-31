@@ -42,12 +42,28 @@ const INCLUIDAS = [
 
 const LADO_MAX = 1600;
 const CALIDAD = 0.82;
+/** WhatsApp no muestra vistas previas de imágenes más pesadas que esto. */
+const TOPE_PREVIA_BYTES = 600 * 1024;
 
 /**
  * Achica la foto en el teléfono antes de subirla. Una foto de cámara pesa
  * varios megas y no hace falta: para el portal alcanza con 1600px de lado.
  * Así sube rápido aunque haya poca señal y no llena el volumen.
  */
+/** ¿La imagen tiene algún píxel no del todo opaco? Se muestrea en una grilla
+ *  chica: alcanza para distinguir un logo con fondo transparente de una foto. */
+function tieneTransparencia(ctx: CanvasRenderingContext2D, ancho: number, alto: number): boolean {
+  const pasos = 32;
+  for (let i = 0; i <= pasos; i++) {
+    for (let j = 0; j <= pasos; j++) {
+      const x = Math.min(ancho - 1, Math.round((i / pasos) * ancho));
+      const y = Math.min(alto - 1, Math.round((j / pasos) * alto));
+      if (ctx.getImageData(x, y, 1, 1).data[3] < 250) return true;
+    }
+  }
+  return false;
+}
+
 async function achicar(file: File): Promise<Blob> {
   // Si el achicado falla por lo que sea (un formato que el navegador no
   // decodifica), se sube el original: el servidor igual valida que sea imagen.
@@ -63,10 +79,27 @@ async function achicar(file: File): Promise<Blob> {
     const ctx = lienzo.getContext("2d");
     if (!ctx) return file;
     ctx.drawImage(bitmap, 0, 0, ancho, alto);
+    // Una foto guardada como PNG pesa varios megas y no la muestran en las
+    // vistas previas de WhatsApp. Solo se mantiene PNG si de verdad tiene
+    // partes transparentes (un logo, una placa); una foto va siempre a JPG.
+    const tipo = file.type === "image/png" && tieneTransparencia(ctx, ancho, alto)
+      ? "image/png"
+      : "image/jpeg";
     bitmap.close?.();
-    // Los PNG con transparencia se conservan; el resto va a JPG, más liviano.
-    const tipo = file.type === "image/png" ? "image/png" : "image/jpeg";
-    const blob = await new Promise<Blob | null>((r) => lienzo.toBlob(r, tipo, CALIDAD));
+
+    const salida = async (calidad: number) =>
+      new Promise<Blob | null>((r) => lienzo.toBlob(r, tipo, calidad));
+
+    let blob = await salida(CALIDAD);
+    // WhatsApp no muestra la vista previa si la imagen supera ~600 KB. Para
+    // los JPG se baja la calidad hasta entrar; los PNG con transparencia se
+    // dejan como están (bajarles la calidad no ayuda).
+    if (tipo === "image/jpeg") {
+      for (const calidad of [0.72, 0.6, 0.5]) {
+        if (blob && blob.size <= TOPE_PREVIA_BYTES) break;
+        blob = await salida(calidad);
+      }
+    }
     return blob && blob.size > 0 ? blob : file;
   } catch {
     return file;
