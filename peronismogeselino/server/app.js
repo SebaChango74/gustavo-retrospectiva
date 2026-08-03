@@ -33,6 +33,32 @@ const APP_DISABLED = process.env.PG_APP_DISABLED === "1";
 // Rutas del repositorio que nunca deben servirse como archivos estáticos.
 const BLOCKED_PREFIXES = ["/peronismogeselino", "/_handoff", "/node_modules", "/scripts"];
 
+// La web actual de gustavobarrera.com (index.html en la raíz) usa dos bloques
+// <script> en línea. Con "script-src 'self'" el navegador los bloquea y la
+// página queda en blanco. En vez de habilitar 'unsafe-inline' (que abriría la
+// puerta a cualquier script inyectado), calculamos el hash SHA-256 de cada
+// bloque y lo agregamos a la política: solo esos scripts exactos pueden correr.
+// Se recalcula al arrancar, así cualquier edición del index.html se refleja
+// sola, sin hashes escritos a mano.
+function hashesScriptsEnLinea() {
+  try {
+    const html = fs.readFileSync(path.join(REPO_ROOT, "index.html"), "utf8");
+    const re = /<script(\b[^>]*)?>([\s\S]*?)<\/script>/g;
+    const hashes = [];
+    let m;
+    while ((m = re.exec(html))) {
+      const attrs = m[1] || "";
+      if (/\bsrc\s*=/.test(attrs)) continue; // los que tienen src ya cumplen 'self'
+      const hash = crypto.createHash("sha256").update(m[2], "utf8").digest("base64");
+      hashes.push(`'sha256-${hash}'`);
+    }
+    return hashes;
+  } catch {
+    return [];
+  }
+}
+const HASHES_WEB_ACTUAL = hashesScriptsEnLinea();
+
 export function createApp(db) {
   const app = express();
   app.disable("x-powered-by");
@@ -64,7 +90,7 @@ export function createApp(db) {
       "Content-Security-Policy",
       [
         "default-src 'self'",
-        "script-src 'self'",
+        ["script-src 'self'", ...HASHES_WEB_ACTUAL].join(" "),
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src 'self' https://fonts.gstatic.com data:",
         "img-src 'self' data: blob: https:",
