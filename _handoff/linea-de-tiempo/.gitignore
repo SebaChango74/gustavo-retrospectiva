@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+fotos_*/
+actos_*.tsv
+hitos_*.json
