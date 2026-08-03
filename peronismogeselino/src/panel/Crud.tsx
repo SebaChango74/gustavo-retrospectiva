@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { api } from "../api";
 import { ImagePicker } from "./ImagePicker";
 import { PdfPicker } from "./PdfPicker";
@@ -24,6 +24,7 @@ export type Field = {
   placeholder?: string;
   required?: boolean;
   step?: string;
+  rich?: boolean; // textarea con botón para insertar enlaces
 };
 
 export type TimelineItem = { dateLabel: string; title: string; body: string; state: string };
@@ -215,6 +216,29 @@ export function FieldInput({
   onChange: (value: any) => void;
 }) {
   const type = field.type ?? "text";
+  const areaRef = useRef<HTMLTextAreaElement>(null);
+
+  function insertarEnlace() {
+    const texto: string = value ?? "";
+    const el = areaRef.current;
+    const ini = el ? el.selectionStart : texto.length;
+    const fin = el ? el.selectionEnd : texto.length;
+    const seleccion = texto.slice(ini, fin);
+    const cruda = window.prompt("Pegá la dirección del enlace (https://...)");
+    if (!cruda) return;
+    const dir = cruda.trim();
+    const url = /^(https?:\/\/|mailto:)/i.test(dir) ? dir : "https://" + dir.replace(/^\/+/, "");
+    const etiqueta = (seleccion || window.prompt("Texto que se verá (dejalo vacío para mostrar el link)", "") || url).trim();
+    const fragmento = `[${etiqueta}](${url})`;
+    const nuevo = texto.slice(0, ini) + fragmento + texto.slice(fin);
+    onChange(nuevo);
+    requestAnimationFrame(() => {
+      if (!el) return;
+      const pos = ini + fragmento.length;
+      el.focus();
+      el.setSelectionRange(pos, pos);
+    });
+  }
 
   if (type === "image") {
     return <ImagePicker value={value ?? ""} onChange={onChange} />;
@@ -288,12 +312,22 @@ export function FieldInput({
         {field.required ? " *" : ""}
       </span>
       {type === "textarea" && (
-        <textarea
-          rows={4}
-          value={value ?? ""}
-          placeholder={field.placeholder}
-          onChange={(e) => onChange(e.target.value)}
-        />
+        <>
+          {field.rich && (
+            <div className="panel-richbar">
+              <button type="button" className="panel-link-btn" onClick={insertarEnlace}>
+                🔗 Insertar enlace
+              </button>
+            </div>
+          )}
+          <textarea
+            ref={areaRef}
+            rows={4}
+            value={value ?? ""}
+            placeholder={field.placeholder}
+            onChange={(e) => onChange(e.target.value)}
+          />
+        </>
       )}
       {type === "lines" && (
         <textarea

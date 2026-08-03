@@ -618,6 +618,10 @@ footer img { width: 150px; }
 .panel-timeline-row input, .panel-timeline-row select { padding: 8px 10px; border: 1px solid var(--line); border-radius: 7px; font: inherit; font-size: 12px; }
 .panel-timeline-row button { border: 0; border-radius: 7px; background: #ffe3df; color: #8c1d12; cursor: pointer; }
 .panel-add-row { align-self: flex-start; padding: 8px 14px; border: 1px dashed var(--cobalt); border-radius: 7px; background: none; color: var(--cobalt); font-size: 12px; font-weight: 700; cursor: pointer; }
+.panel-richbar { display: flex; gap: 8px; }
+.panel-link-btn { align-self: flex-start; padding: 6px 12px; border: 1px solid var(--cobalt); border-radius: 7px; background: none; color: var(--cobalt); font-size: 12px; font-weight: 700; cursor: pointer; }
+.panel-link-btn:hover { background: var(--cobalt); color: white; }
+.news-article-body a, .brief-box a, .timeline a, .announcement a, .pin a { color: var(--cobalt); text-decoration: underline; text-underline-offset: 2px; word-break: break-word; }
 .panel-invite { margin-bottom: 22px; padding: 16px; display: flex; flex-wrap: wrap; gap: 10px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; }
 .panel-invite input { flex: 1 1 180px; }
 .panel-subheading { margin: 30px 0 12px; font-family: "Barlow Condensed", sans-serif; font-size: 24px; color: var(--navy); }

@@ -162,7 +162,13 @@ function NewsModule() {
         { key: "title", label: "Título", required: true },
         { key: "tag", label: "Etiqueta", placeholder: "Villa Gesell / Provincia / Comunidad" },
         { key: "summary", label: "Resumen", type: "textarea" },
-        { key: "body", label: "Cuerpo (opcional)", type: "textarea" },
+        {
+          key: "body",
+          label: "Cuerpo (opcional)",
+          type: "textarea",
+          rich: true,
+          help: "Para un enlace: seleccioná el texto y tocá 🔗, o pegá la dirección y se vuelve clickeable sola. También podés escribir [texto](https://...).",
+        },
         { key: "image", label: "Imagen", type: "image" },
         {
           key: "video",
@@ -233,7 +239,13 @@ function CausesModule() {
         },
         { key: "attachment", label: "PDF para descargar", type: "pdf" },
         { key: "briefTitle", label: "Título del resumen", placeholder: "¿QUÉ ESTÁ PASANDO?" },
-        { key: "briefBody", label: "Resumen en 30 segundos", type: "textarea" },
+        {
+          key: "briefBody",
+          label: "Resumen en 30 segundos",
+          type: "textarea",
+          rich: true,
+          help: "Podés insertar enlaces con 🔗 o pegando la dirección.",
+        },
         { key: "bullets", label: "Puntos clave", type: "lines" },
         { key: "keyFactValue", label: "Dato clave (número)", placeholder: "11.000+" },
         { key: "keyFactLabel", label: "Dato clave (texto)" },
@@ -496,7 +508,13 @@ function AnnouncementsModule() {
       ]}
       fields={[
         { key: "title", label: "Título", required: true },
-        { key: "body", label: "Texto", type: "textarea" },
+        {
+          key: "body",
+          label: "Texto",
+          type: "textarea",
+          rich: true,
+          help: "Podés insertar enlaces con 🔗 o pegando la dirección.",
+        },
         {
           key: "eventId",
           label: "ID de actividad vinculada (opcional)",

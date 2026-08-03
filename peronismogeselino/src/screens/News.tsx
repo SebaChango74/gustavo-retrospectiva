@@ -5,6 +5,7 @@ import { VideoEmbed } from "../video";
 import { useNavigate, useParams } from "react-router-dom";
 import { api, type NewsItem } from "../api";
 import { Arrow, ShareIcon, dateLabel } from "../ui";
+import { CuerpoRico } from "../richtext";
 
 export default function News() {
   const navigate = useNavigate();
@@ -62,10 +63,7 @@ export default function News() {
     return <div className="inner-page" style={{ minHeight: "60vh" }} />;
   }
 
-  const paragraphs = (item.body || item.summary || "")
-    .split("\n")
-    .map((p) => p.trim())
-    .filter(Boolean);
+  const bodyText = item.body || item.summary || "";
 
   return (
     <div className="inner-page news-page">
@@ -96,11 +94,7 @@ export default function News() {
             <Foto valor={item.image} />
           </div>
         ) : null}
-        <div className="news-article-body">
-          {paragraphs.map((paragraph, index) => (
-            <p key={index}>{paragraph}</p>
-          ))}
-        </div>
+        <CuerpoRico texto={bodyText} className="news-article-body" />
         <Adjunto url={item.attachment} nombre={item.attachment_name} />
         <button className="text-action dark" onClick={() => go("/#noticias")}>
           ← Volver a las noticias

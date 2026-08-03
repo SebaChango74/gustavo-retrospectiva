@@ -5,6 +5,7 @@ import { VideoEmbed } from "../video";
 import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 import { Arrow, ShareIcon, dateLabel } from "../ui";
+import { TextoConEnlaces } from "../richtext";
 
 type CauseDetail = {
   cause: {
@@ -134,7 +135,7 @@ export default function Cause() {
           <section className="brief-box">
             <span className="eyebrow">EN 30 SEGUNDOS</span>
             <h2>{cause.briefTitle}</h2>
-            <p>{cause.briefBody}</p>
+            <p><TextoConEnlaces>{cause.briefBody}</TextoConEnlaces></p>
             {cause.bullets.length > 0 && (
               <ul>
                 {cause.bullets.map((bullet) => (
@@ -156,7 +157,7 @@ export default function Cause() {
                     <time>{item.date_label}</time>
                     <div>
                       <strong>{item.title}</strong>
-                      <p>{item.body}</p>
+                      <p><TextoConEnlaces>{item.body}</TextoConEnlaces></p>
                     </div>
                   </div>
                 ))}

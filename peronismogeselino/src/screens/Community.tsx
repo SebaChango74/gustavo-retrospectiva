@@ -4,6 +4,7 @@ import { api, type EventItem } from "../api";
 import { useSession } from "../session";
 import { Ingreso } from "../Ingreso";
 import { Arrow, LockIcon, dayOf, monthOf, timeOf } from "../ui";
+import { TextoConEnlaces } from "../richtext";
 
 const IMG = "/peronismogeselino/images";
 
@@ -265,7 +266,7 @@ function Dashboard() {
                   <div>
                     <span>AVISO DE CONDUCCIÓN · FIJADO</span>
                     <h2>{announcement.title}</h2>
-                    <p>{announcement.body}</p>
+                    <p><TextoConEnlaces>{announcement.body}</TextoConEnlaces></p>
                   </div>
                   {announcement.event_starts_at && (
                     <div className="announcement-date">
