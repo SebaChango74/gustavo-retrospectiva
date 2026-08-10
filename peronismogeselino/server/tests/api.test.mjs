@@ -979,6 +979,40 @@ test("compartir una nota muestra la nota, no la placa genérica de la app", asyn
   assert.ok(inexistente.includes('og:title" content="Peronismo Geselino"'));
 });
 
+test("compartir una actividad de la agenda muestra su foto y título", async () => {
+  const { cookie } = await login(ADMIN, { clave: CLAVE_ADMIN });
+  const creada = await fetch(`${base}/peronismogeselino/api/admin/events`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", cookie },
+    body: JSON.stringify({
+      title: "Gustavo junto a Jorge Ferraresi",
+      summary: "Encuentro por obras para Villa Gesell.",
+      startsAt: "2026-08-14T12:00",
+      status: "published",
+      image: "/peronismogeselino/subidas/bbbb222233334444.jpg#e=50,30",
+    }),
+  });
+  const { id } = await creada.json();
+
+  const html = await (await fetch(`${base}/peronismogeselino/agenda/${id}`)).text();
+  assert.ok(
+    html.includes('og:title" content="Gustavo junto a Jorge Ferraresi"'),
+    "el título de la vista previa es el de la actividad",
+  );
+  assert.ok(html.includes("Encuentro por obras para Villa Gesell."), "la descripción es el resumen");
+  assert.ok(
+    html.includes("/peronismogeselino/subidas/bbbb222233334444.jpg"),
+    "la imagen es la de la actividad",
+  );
+  assert.ok(!html.includes("#e="), "el encuadre no viaja en la vista previa");
+
+  // La lista completa y una actividad inexistente conservan la placa genérica.
+  const lista = await (await fetch(`${base}/peronismogeselino/agenda`)).text();
+  assert.ok(lista.includes('og:title" content="Peronismo Geselino"'));
+  const inexistente = await (await fetch(`${base}/peronismogeselino/agenda/999999`)).text();
+  assert.ok(inexistente.includes('og:title" content="Peronismo Geselino"'));
+});
+
 test("adjunto: se sube un PDF y una nota lo ofrece para descargar", async () => {
   const { cookie } = await login(ADMIN, { clave: CLAVE_ADMIN });
 

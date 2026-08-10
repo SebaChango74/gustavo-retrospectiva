@@ -23,7 +23,7 @@ function imagenAbsoluta(valor, origen) {
   const limpio = String(valor ?? "").split("#")[0];
   if (!limpio) return "";
   if (limpio.startsWith("http")) return limpio;
-  return `${origen}${limpio}`;
+  return `${origen}${limpio.startsWith("/") ? "" : "/"}${limpio}`;
 }
 
 /**
@@ -51,6 +51,18 @@ function contenidoDe(db, ruta) {
       .get(causa[1]);
     if (!fila) return null;
     return { titulo: fila.title, descripcion: fila.summary, imagen: fila.lead_image, video: fila.video };
+  }
+
+  // Actividad puntual de la agenda: /agenda/123 muestra su foto y título.
+  const evento = /^\/(?:peronismogeselino\/)?agenda\/(\d+)\/?$/.exec(ruta);
+  if (evento) {
+    const fila = db
+      .prepare(
+        "SELECT title, summary, image FROM events WHERE id = ? AND status = 'published' AND pending = 0",
+      )
+      .get(Number(evento[1]));
+    if (!fila) return null;
+    return { titulo: fila.title, descripcion: fila.summary, imagen: fila.image };
   }
 
   return null;

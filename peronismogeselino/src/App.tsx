@@ -47,6 +47,7 @@ export default function App() {
             <Route path="/causas" element={<Cause />} />
             <Route path="/causas/:slug" element={<Cause />} />
             <Route path="/agenda" element={<Agenda />} />
+            <Route path="/agenda/:id" element={<Agenda />} />
             <Route path="/juegos" element={<Game />} />
             <Route path="/juegos/jugar" element={<Peronometro />} />
             <Route path="/peronometro" element={<Navigate to="/juegos/jugar" replace />} />

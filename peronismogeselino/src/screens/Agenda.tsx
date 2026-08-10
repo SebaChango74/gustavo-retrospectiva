@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Foto } from "../foto";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { api, type EventItem } from "../api";
 import { useSession } from "../session";
 import { Arrow, LockIcon, ShareIcon, dayOf, monthOf, timeOf } from "../ui";
@@ -10,15 +10,19 @@ type EventsPayload = { events: EventItem[]; isMember: boolean };
 export default function Agenda() {
   const navigate = useNavigate();
   const go = (path: string) => navigate(path);
+  const params = useParams();
+  const paramId = params.id ? Number(params.id) : null;
   const { member } = useSession();
   const [data, setData] = useState<EventsPayload>({ events: [], isMember: false });
-  const [featuredId, setFeaturedId] = useState<number | null>(null);
+  const [featuredId, setFeaturedId] = useState<number | null>(paramId);
   const despliegue = useRef<HTMLElement>(null);
 
-  // Elegir una actividad de la fila la despliega arriba; sin este
+  // Elegir una actividad de la fila la despliega arriba y actualiza la
+  // dirección, así el enlace que se comparte apunta a esa actividad. Sin el
   // desplazamiento parecía que tocar no hacía nada.
   const elegir = (id: number) => {
     setFeaturedId(id);
+    navigate(`/agenda/${id}`);
     window.setTimeout(() => {
       despliegue.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 60);
@@ -30,16 +34,30 @@ export default function Agenda() {
       .get<EventsPayload>("/public/events")
       .then((payload) => {
         setData(payload);
-        setFeaturedId((current) => current ?? payload.events[0]?.id ?? null);
+        setFeaturedId((current) => {
+          const desdeUrl = paramId && payload.events.some((e) => e.id === paramId) ? paramId : null;
+          return desdeUrl ?? current ?? payload.events[0]?.id ?? null;
+        });
       })
       .catch(() => {});
   }, [member]);
+
+  // Si se entra directo a /agenda/123 (enlace compartido), enfocar esa
+  // actividad y desplazar hacia ella cuando ya están cargadas.
+  useEffect(() => {
+    if (paramId && data.events.some((e) => e.id === paramId)) {
+      setFeaturedId(paramId);
+      window.setTimeout(() => {
+        despliegue.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 60);
+    }
+  }, [paramId, data.events]);
 
   const featured = data.events.find((e) => e.id === featuredId) ?? data.events[0] ?? null;
   const rest = data.events.filter((e) => e.id !== featured?.id);
 
   const share = async (event: EventItem) => {
-    const url = `${window.location.origin}/peronismogeselino/agenda`;
+    const url = `${window.location.origin}/peronismogeselino/agenda/${event.id}`;
     const text = `${event.title} · ${dayOf(event.startsAt)} ${monthOf(event.startsAt)} ${timeOf(event.startsAt)}`;
     if (navigator.share) {
       try {
