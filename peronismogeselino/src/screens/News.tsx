@@ -6,6 +6,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { api, type NewsItem } from "../api";
 import { Arrow, ShareIcon, dateLabel } from "../ui";
 import { CuerpoRico } from "../richtext";
+import { Publicacion } from "../embeds";
 
 export default function News() {
   const navigate = useNavigate();
@@ -94,6 +95,7 @@ export default function News() {
             <Foto valor={item.image} />
           </div>
         ) : null}
+        {item.embed ? <Publicacion url={item.embed} titulo={item.title} /> : null}
         <CuerpoRico texto={bodyText} className="news-article-body" />
         <Adjunto url={item.attachment} nombre={item.attachment_name} />
         <button className="text-action dark" onClick={() => go("/#noticias")}>

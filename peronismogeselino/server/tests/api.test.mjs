@@ -1079,3 +1079,25 @@ test("adjunto: se sube un PDF y una nota lo ofrece para descargar", async () => 
   });
   assert.equal(borrar.status, 409, "el PDF en uso no se borra en silencio");
 });
+
+test("una noticia puede incrustar una publicación (Instagram/X/YouTube)", async () => {
+  const { cookie } = await login(ADMIN, { clave: CLAVE_ADMIN });
+  await fetch(`${base}/peronismogeselino/api/admin/news`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", cookie },
+    body: JSON.stringify({
+      title: "Reel de Gustavo en el barrio",
+      slug: "reel-gustavo-barrio",
+      status: "published",
+      embed: "https://www.instagram.com/reel/Db8LTSjuF7j/?igsh=abc123",
+    }),
+  });
+  const nota = await (
+    await fetch(`${base}/peronismogeselino/api/public/news/reel-gustavo-barrio`)
+  ).json();
+  assert.equal(
+    nota.item.embed,
+    "https://www.instagram.com/reel/Db8LTSjuF7j/?igsh=abc123",
+    "la publicación incrustada se guarda y se entrega",
+  );
+});

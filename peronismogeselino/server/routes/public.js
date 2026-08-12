@@ -106,7 +106,7 @@ export function publicRoutes(db) {
   router.get("/news/:slug", (req, res) => {
     const item = db
       .prepare(`
-        SELECT slug, tag, title, summary, body, image, video, attachment, attachment_name,
+        SELECT slug, tag, title, summary, body, image, video, embed, attachment, attachment_name,
           featured, published_at
         FROM news WHERE slug = ? AND status = 'published' AND pending = 0
       `)

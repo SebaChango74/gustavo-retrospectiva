@@ -410,3 +410,12 @@ MIGRATIONS.push({
     ALTER TABLE causes ADD COLUMN attachment_name TEXT NOT NULL DEFAULT '';
   `,
 });
+
+MIGRATIONS.push({
+  name: "010_embed_noticias",
+  sql: `
+    -- Una publicación para incrustar en la nota (Instagram, Twitter/X o
+    -- YouTube). Se pega el enlace del posteo y se muestra dentro de la noticia.
+    ALTER TABLE news ADD COLUMN embed TEXT NOT NULL DEFAULT '';
+  `,
+});

@@ -92,9 +92,9 @@ export function adminRoutes(db) {
     const slug = str(b.slug, 80) || uniqueSlug(db, "news", slugify(title));
     const info = db
       .prepare(`
-        INSERT INTO news (slug, tag, title, summary, body, image, video, attachment,
+        INSERT INTO news (slug, tag, title, summary, body, image, video, embed, attachment,
           attachment_name, featured, status, published_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
       .run(
         slug,
@@ -104,6 +104,7 @@ export function adminRoutes(db) {
         str(b.body, 20000),
         str(b.image, 500),
         video.valor,
+        str(b.embed, 500),
         adjuntoUrl(b.attachment),
         str(b.attachmentName, 200),
         b.featured ? 1 : 0,
@@ -123,8 +124,8 @@ export function adminRoutes(db) {
     if (video.error) return res.status(400).json({ error: video.error });
     db.prepare(`
       UPDATE news SET tag = ?, title = ?, summary = ?, body = ?, image = ?, video = ?,
-        attachment = ?, attachment_name = ?, featured = ?, status = ?, published_at = ?,
-        updated_at = datetime('now')
+        embed = ?, attachment = ?, attachment_name = ?, featured = ?, status = ?,
+        published_at = ?, updated_at = datetime('now')
       WHERE id = ?
     `).run(
       str(b.tag, 60) || "Villa Gesell",
@@ -133,6 +134,7 @@ export function adminRoutes(db) {
       str(b.body, 20000),
       str(b.image, 500),
       video.valor,
+      str(b.embed, 500),
       adjuntoUrl(b.attachment),
       str(b.attachmentName, 200),
       b.featured ? 1 : 0,
