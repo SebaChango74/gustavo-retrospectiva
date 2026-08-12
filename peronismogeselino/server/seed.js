@@ -3,8 +3,19 @@
 
 import { QUESTIONS_SEED } from "./questions-seed.js";
 import { seedPeron365 } from "./peron365-seed.js";
+import { ahoraLocal } from "./util.js";
 
 const IMG = "/peronismogeselino/images";
+
+// Fecha de muestra relativa a hoy (hora de Villa Gesell), en formato
+// "YYYY-MM-DDTHH:MM". Así las actividades sembradas siempre están por venir y
+// no quedan vencidas con el paso del tiempo. Las reales se cargan del panel.
+function fechaRelativa(dias, hora, minuto) {
+  const d = new Date(`${ahoraLocal()}:00`);
+  d.setDate(d.getDate() + dias);
+  const p = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(hora)}:${p(minuto)}`;
+}
 
 export function seed(db) {
   seedQuestions(db);
@@ -129,7 +140,7 @@ export function seed(db) {
       "Pensar 2027",
       "Reunión del PJ geselino para trabajar estrategias de comunicación digital, compromiso partidario y puesta en marcha del Plan 2027.",
       "ACTIVIDAD DE LA COMUNIDAD",
-      "2026-08-10T18:30",
+      fechaRelativa(5, 18, 30),
       "Villa Gesell",
       "Villa Gesell, Buenos Aires, Argentina",
       "https://www.google.com/maps/search/?api=1&query=Villa+Gesell%2C+Buenos+Aires%2C+Argentina",
@@ -142,7 +153,7 @@ export function seed(db) {
     "Gustavo en Telefe",
     "Las consecuencias de la quita del beneficio de Zona Fría.",
     "ENTREVISTA · TELEVISIÓN",
-    "2026-08-15T12:00",
+    fechaRelativa(10, 12, 0),
   );
 
   const territories = [

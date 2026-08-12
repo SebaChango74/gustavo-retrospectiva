@@ -240,6 +240,32 @@ export function FieldInput({
     });
   }
 
+  function insertarPublicacion() {
+    const texto: string = value ?? "";
+    const el = areaRef.current;
+    const cruda = window.prompt(
+      "Pegá el enlace de la publicación (YouTube, Instagram o Twitter/X). Se va a ver incrustada en la nota.",
+    );
+    if (!cruda) return;
+    const dir = cruda.trim();
+    if (!/^https?:\/\//i.test(dir)) {
+      window.alert("Pegá el enlace completo, empezando con https://");
+      return;
+    }
+    const ini = el ? el.selectionStart : texto.length;
+    // La publicación va sola en su renglón, con líneas en blanco alrededor.
+    const antes = texto.slice(0, ini).replace(/\s*$/, "");
+    const despues = texto.slice(ini).replace(/^\s*/, "");
+    const bloque = `${antes ? antes + "\n\n" : ""}${dir}${despues ? "\n\n" + despues : "\n"}`;
+    onChange(bloque);
+    requestAnimationFrame(() => {
+      if (!el) return;
+      const pos = (antes ? antes.length + 2 : 0) + dir.length;
+      el.focus();
+      el.setSelectionRange(pos, pos);
+    });
+  }
+
   if (type === "image") {
     return <ImagePicker value={value ?? ""} onChange={onChange} />;
   }
@@ -317,6 +343,9 @@ export function FieldInput({
             <div className="panel-richbar">
               <button type="button" className="panel-link-btn" onClick={insertarEnlace}>
                 🔗 Insertar enlace
+              </button>
+              <button type="button" className="panel-link-btn" onClick={insertarPublicacion}>
+                📎 Insertar publicación
               </button>
             </div>
           )}

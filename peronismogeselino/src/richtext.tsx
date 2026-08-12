@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode } from "react";
+import { esLineaEmbed, Publicacion } from "./embeds";
 
 // Convierte texto plano en párrafos con enlaces. Admite dos formas:
 //   - Enlace con texto:   [Ministerio de Salud](https://...)
@@ -74,19 +75,25 @@ export function TextoConEnlaces({ children }: { children: string }): ReactNode {
   return <Fragment>{enlacesDe(children ?? "")}</Fragment>;
 }
 
-// Cuerpo completo: separa en párrafos por saltos de línea y resuelve enlaces.
+// Cuerpo completo: separa en párrafos por saltos de línea. Un renglón que sea
+// solo una URL de YouTube, Instagram o Twitter/X se muestra como publicación
+// incrustada; el resto, como párrafo de texto con enlaces.
 export function CuerpoRico({ texto, className }: { texto: string; className?: string }) {
-  const parrafos = (texto ?? "")
+  const lineas = (texto ?? "")
     .split("\n")
     .map((p) => p.trim())
     .filter(Boolean);
   return (
     <div className={className}>
-      {parrafos.map((p, i) => (
-        <p key={i}>
-          <TextoConEnlaces>{p}</TextoConEnlaces>
-        </p>
-      ))}
+      {lineas.map((linea, i) => {
+        const embed = esLineaEmbed(linea);
+        if (embed) return <Publicacion key={i} url={linea} />;
+        return (
+          <p key={i}>
+            <TextoConEnlaces>{linea}</TextoConEnlaces>
+          </p>
+        );
+      })}
     </div>
   );
 }

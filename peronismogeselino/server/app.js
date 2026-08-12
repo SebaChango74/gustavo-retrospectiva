@@ -95,8 +95,9 @@ export function createApp(db) {
         "font-src 'self' https://fonts.gstatic.com data:",
         "img-src 'self' data: blob: https:",
         "connect-src 'self'",
-        // Maps embebidos y el reproductor de YouTube (la variante sin cookies).
-        "frame-src https://www.google.com https://www.youtube-nocookie.com",
+        // Mapas, y publicaciones incrustadas por iframe (sin cargar sus
+        // scripts): YouTube, Instagram y Twitter/X.
+        "frame-src https://www.google.com https://www.youtube-nocookie.com https://www.instagram.com https://instagram.com https://platform.twitter.com",
         "object-src 'none'",
         "base-uri 'self'",
         "form-action 'self'",

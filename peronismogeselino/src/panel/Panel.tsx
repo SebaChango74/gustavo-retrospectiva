@@ -167,7 +167,7 @@ function NewsModule() {
           label: "Cuerpo (opcional)",
           type: "textarea",
           rich: true,
-          help: "Para un enlace: seleccioná el texto y tocá 🔗, o pegá la dirección y se vuelve clickeable sola. También podés escribir [texto](https://...).",
+          help: "Enlace: seleccioná el texto y tocá 🔗 (o pegá la dirección, se vuelve clickeable). Publicación de YouTube, Instagram o Twitter/X: tocá 📎 y pegá el enlace; queda incrustada en la nota, sola en su renglón.",
         },
         { key: "image", label: "Imagen", type: "image" },
         {
