@@ -1,4 +1,5 @@
 import { youtubeId } from "./util.js";
+import { SUBIDAS_URL, medidasDeSubida } from "./media.js";
 
 /**
  * Vista previa del enlace, nota por nota.
@@ -86,16 +87,36 @@ export function conVistaPrevia(db, plantilla, ruta, origen) {
     : imagenAbsoluta(dato.imagen, origen) || `${origen}/peronismogeselino/images/og.jpg`;
   const url = `${origen}${ruta}`;
 
-  return plantilla
+  // Medidas reales de la imagen: sin ancho/alto, WhatsApp y Facebook suelen
+  // descartar la foto y mostrar la placa genérica.
+  let medidas = null;
+  if (id) {
+    medidas = { ancho: 480, alto: 360 }; // miniatura hqdefault de YouTube
+  } else {
+    const local = String(dato.imagen ?? "").split("#")[0];
+    if (local.startsWith(SUBIDAS_URL)) {
+      medidas = medidasDeSubida(local.slice(SUBIDAS_URL.length + 1));
+    }
+  }
+
+  const conMedidas = (html) => {
+    if (!medidas) {
+      // Sin medidas conocidas, se quitan las de la placa genérica para no mentir.
+      return html
+        .replace(/\s*<meta property="og:image:width" content="[^"]*" \/>/, "")
+        .replace(/\s*<meta property="og:image:height" content="[^"]*" \/>/, "");
+    }
+    return html
+      .replace(/(<meta property="og:image:width" content=")[^"]*(")/, `$1${medidas.ancho}$2`)
+      .replace(/(<meta property="og:image:height" content=")[^"]*(")/, `$1${medidas.alto}$2`);
+  };
+
+  return conMedidas(plantilla
     .replace(/<title>[^<]*<\/title>/, `<title>${titulo} — Peronismo Geselino</title>`)
     .replace(/(<meta property="og:title" content=")[^"]*(")/, `$1${titulo}$2`)
     .replace(/(<meta property="og:description"\s+content=")[^"]*(")/, `$1${descripcion}$2`)
     .replace(/(<meta\s+property="og:description"[^>]*content=")[^"]*(")/, `$1${descripcion}$2`)
     .replace(/(<meta property="og:url" content=")[^"]*(")/, `$1${escapar(url)}$2`)
     .replace(/(<meta property="og:image" content=")[^"]*(")/, `$1${escapar(imagen)}$2`)
-    .replace(/(<meta property="og:image:alt" content=")[^"]*(")/, `$1${titulo}$2`)
-    // El ancho y alto declarados son los de la placa genérica; para una foto
-    // de nota no se conocen y mentirlos deforma la tarjeta.
-    .replace(/\s*<meta property="og:image:width" content="[^"]*" \/>/, "")
-    .replace(/\s*<meta property="og:image:height" content="[^"]*" \/>/, "");
+    .replace(/(<meta property="og:image:alt" content=")[^"]*(")/, `$1${titulo}$2`));
 }

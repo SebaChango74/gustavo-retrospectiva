@@ -85,6 +85,69 @@ export function listarImagenes() {
     .sort((a, b) => b.subida.localeCompare(a.subida));
 }
 
+/**
+ * Medidas (ancho x alto) de una imagen leyendo solo su encabezado. Sirven para
+ * declarar og:image:width/height en la vista previa: sin esas medidas, WhatsApp
+ * y Facebook suelen descartar la foto y mostrar la placa genérica.
+ */
+export function medidasDeBuffer(b) {
+  if (!Buffer.isBuffer(b) || b.length < 24) return null;
+  // PNG
+  if (b[0] === 0x89 && b[1] === 0x50) {
+    return { ancho: b.readUInt32BE(16), alto: b.readUInt32BE(20) };
+  }
+  // JPEG
+  if (b[0] === 0xff && b[1] === 0xd8) {
+    let i = 2;
+    while (i + 9 < b.length) {
+      if (b[i] !== 0xff) {
+        i++;
+        continue;
+      }
+      const m = b[i + 1];
+      if (m >= 0xc0 && m <= 0xcf && m !== 0xc4 && m !== 0xc8 && m !== 0xcc) {
+        return { alto: b.readUInt16BE(i + 5), ancho: b.readUInt16BE(i + 7) };
+      }
+      i += 2 + b.readUInt16BE(i + 2);
+    }
+    return null;
+  }
+  // WebP
+  if (
+    b.subarray(0, 4).toString("latin1") === "RIFF" &&
+    b.subarray(8, 12).toString("latin1") === "WEBP"
+  ) {
+    const fmt = b.subarray(12, 16).toString("latin1");
+    if (fmt === "VP8X") {
+      return {
+        ancho: 1 + (b[24] | (b[25] << 8) | (b[26] << 16)),
+        alto: 1 + (b[27] | (b[28] << 8) | (b[29] << 16)),
+      };
+    }
+    if (fmt === "VP8 ") {
+      return { ancho: b.readUInt16LE(26) & 0x3fff, alto: b.readUInt16LE(28) & 0x3fff };
+    }
+    if (fmt === "VP8L") {
+      const b0 = b[21], b1 = b[22], b2 = b[23], b3 = b[24];
+      return {
+        ancho: 1 + (((b1 & 0x3f) << 8) | b0),
+        alto: 1 + (((b3 & 0x0f) << 10) | (b2 << 2) | ((b1 & 0xc0) >> 6)),
+      };
+    }
+  }
+  return null;
+}
+
+/** Medidas de una foto subida, por su nombre de archivo. */
+export function medidasDeSubida(nombre) {
+  try {
+    if (!/^[a-f0-9]{16}\.(jpg|png|webp)$/i.test(String(nombre))) return null;
+    return medidasDeBuffer(fs.readFileSync(path.join(SUBIDAS_DIR, nombre)));
+  } catch {
+    return null;
+  }
+}
+
 /** Borra una imagen. El nombre se valida para no salir de la carpeta. */
 export function borrarImagen(nombre) {
   if (!/^[a-f0-9]{16}\.(jpg|png|webp)$/i.test(String(nombre))) return false;
