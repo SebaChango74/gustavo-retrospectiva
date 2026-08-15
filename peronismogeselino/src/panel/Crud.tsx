@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { api } from "../api";
 import { ImagePicker } from "./ImagePicker";
+import { GalleryPicker } from "./GalleryPicker";
 import { PdfPicker } from "./PdfPicker";
 
 export type FieldOption = { value: string; label: string };
@@ -18,6 +19,7 @@ export type Field = {
     | "lines"
     | "timeline"
     | "image"
+    | "gallery"
     | "pdf";
   options?: FieldOption[];
   help?: string;
@@ -268,6 +270,10 @@ export function FieldInput({
 
   if (type === "image") {
     return <ImagePicker value={value ?? ""} onChange={onChange} />;
+  }
+
+  if (type === "gallery") {
+    return <GalleryPicker value={Array.isArray(value) ? value : []} onChange={onChange} />;
   }
 
   if (type === "checkbox") {

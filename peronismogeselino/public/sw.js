@@ -2,7 +2,7 @@
    Gobierna únicamente la base donde está registrado:
    /peronismogeselino/ en modo integrado, / en modo independiente. */
 
-const VERSION = "pg-v5";
+const VERSION = "pg-v6";
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const BASE = new URL(self.registration.scope).pathname;

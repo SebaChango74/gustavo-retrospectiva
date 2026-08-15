@@ -419,3 +419,12 @@ MIGRATIONS.push({
     ALTER TABLE news ADD COLUMN embed TEXT NOT NULL DEFAULT '';
   `,
 });
+
+MIGRATIONS.push({
+  name: "011_galeria_noticias",
+  sql: `
+    -- Galería de fotos de la noticia: una lista (JSON) de direcciones de
+    -- imágenes que se muestran como grilla dentro de la nota.
+    ALTER TABLE news ADD COLUMN gallery TEXT NOT NULL DEFAULT '[]';
+  `,
+});

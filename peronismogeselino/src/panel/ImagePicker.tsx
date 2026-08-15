@@ -1,32 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api";
 import { conEncuadre, fotoPosicion, fotoSrc } from "../foto";
-
-/**
- * Busca la cara más grande de la foto, si el navegador sabe hacerlo (Chrome
- * en Android sabe; otros no, y ahí queda el encuadre a mano). Devuelve el
- * centro de la cara en porcentajes, o null.
- */
-async function buscarCara(blob: Blob): Promise<{ x: number; y: number } | null> {
-  const Detector = (window as any).FaceDetector;
-  if (!Detector) return null;
-  try {
-    const bitmap = await createImageBitmap(blob);
-    const caras = await new Detector({ fastMode: true }).detect(bitmap);
-    if (!caras.length) return null;
-    const caja = caras
-      .map((c: any) => c.boundingBox)
-      .sort((a: any, b: any) => b.width * b.height - a.width * a.height)[0];
-    const punto = {
-      x: Math.round(((caja.x + caja.width / 2) / bitmap.width) * 100),
-      y: Math.round(((caja.y + caja.height / 2) / bitmap.height) * 100),
-    };
-    bitmap.close?.();
-    return punto;
-  } catch {
-    return null;
-  }
-}
+import { achicarImagen, buscarCara } from "../imagenes";
 
 /** Las fotos que ya vinieron cargadas con el sitio. */
 const INCLUIDAS = [
@@ -39,72 +14,6 @@ const INCLUIDAS = [
   "/peronismogeselino/images/hero-mar.jpg",
   "/peronismogeselino/images/peronometro-peron.png",
 ];
-
-const LADO_MAX = 1600;
-const CALIDAD = 0.82;
-/** WhatsApp no muestra vistas previas de imágenes más pesadas que esto. */
-const TOPE_PREVIA_BYTES = 600 * 1024;
-
-/**
- * Achica la foto en el teléfono antes de subirla. Una foto de cámara pesa
- * varios megas y no hace falta: para el portal alcanza con 1600px de lado.
- * Así sube rápido aunque haya poca señal y no llena el volumen.
- */
-/** ¿La imagen tiene algún píxel no del todo opaco? Se muestrea en una grilla
- *  chica: alcanza para distinguir un logo con fondo transparente de una foto. */
-function tieneTransparencia(ctx: CanvasRenderingContext2D, ancho: number, alto: number): boolean {
-  const pasos = 32;
-  for (let i = 0; i <= pasos; i++) {
-    for (let j = 0; j <= pasos; j++) {
-      const x = Math.min(ancho - 1, Math.round((i / pasos) * ancho));
-      const y = Math.min(alto - 1, Math.round((j / pasos) * alto));
-      if (ctx.getImageData(x, y, 1, 1).data[3] < 250) return true;
-    }
-  }
-  return false;
-}
-
-async function achicar(file: File): Promise<Blob> {
-  // Si el achicado falla por lo que sea (un formato que el navegador no
-  // decodifica), se sube el original: el servidor igual valida que sea imagen.
-  // Vale más una foto pesada que ninguna.
-  try {
-    const bitmap = await createImageBitmap(file);
-    const escala = Math.min(1, LADO_MAX / Math.max(bitmap.width, bitmap.height));
-    const ancho = Math.round(bitmap.width * escala);
-    const alto = Math.round(bitmap.height * escala);
-    const lienzo = document.createElement("canvas");
-    lienzo.width = ancho;
-    lienzo.height = alto;
-    const ctx = lienzo.getContext("2d");
-    if (!ctx) return file;
-    ctx.drawImage(bitmap, 0, 0, ancho, alto);
-    // Una foto guardada como PNG pesa varios megas y no la muestran en las
-    // vistas previas de WhatsApp. Solo se mantiene PNG si de verdad tiene
-    // partes transparentes (un logo, una placa); una foto va siempre a JPG.
-    const tipo = file.type === "image/png" && tieneTransparencia(ctx, ancho, alto)
-      ? "image/png"
-      : "image/jpeg";
-    bitmap.close?.();
-
-    const salida = async (calidad: number) =>
-      new Promise<Blob | null>((r) => lienzo.toBlob(r, tipo, calidad));
-
-    let blob = await salida(CALIDAD);
-    // WhatsApp no muestra la vista previa si la imagen supera ~600 KB. Para
-    // los JPG se baja la calidad hasta entrar; los PNG con transparencia se
-    // dejan como están (bajarles la calidad no ayuda).
-    if (tipo === "image/jpeg") {
-      for (const calidad of [0.72, 0.6, 0.5]) {
-        if (blob && blob.size <= TOPE_PREVIA_BYTES) break;
-        blob = await salida(calidad);
-      }
-    }
-    return blob && blob.size > 0 ? blob : file;
-  } catch {
-    return file;
-  }
-}
 
 /**
  * Elegir una foto: la galería de las que ya están, más un botón para subir
@@ -137,7 +46,7 @@ export function ImagePicker({
     setSubiendo(true);
     try {
       for (const file of Array.from(files)) {
-        const blob = await achicar(file);
+        const blob = await achicarImagen(file);
         const { url } = await api.upload<{ url: string }>("/admin/media", blob);
         // Si el navegador encuentra una cara, el recorte apunta ahí solo.
         // Si no, queda el encuadre a mano de acá abajo.

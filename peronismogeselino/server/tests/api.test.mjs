@@ -1101,3 +1101,32 @@ test("una noticia puede incrustar una publicación (Instagram/X/YouTube)", async
     "la publicación incrustada se guarda y se entrega",
   );
 });
+
+test("una noticia guarda y entrega una galería de fotos", async () => {
+  const { cookie } = await login(ADMIN, { clave: CLAVE_ADMIN });
+  await fetch(`${base}/peronismogeselino/api/admin/news`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", cookie },
+    body: JSON.stringify({
+      title: "Recorrida por el barrio",
+      slug: "recorrida-barrio",
+      status: "published",
+      gallery: [
+        "/peronismogeselino/subidas/aaaa000011112222.jpg",
+        "/peronismogeselino/subidas/bbbb000011112222.jpg",
+        "",
+      ],
+    }),
+  });
+  const nota = await (
+    await fetch(`${base}/peronismogeselino/api/public/news/recorrida-barrio`)
+  ).json();
+  assert.deepEqual(
+    nota.item.gallery,
+    [
+      "/peronismogeselino/subidas/aaaa000011112222.jpg",
+      "/peronismogeselino/subidas/bbbb000011112222.jpg",
+    ],
+    "la galería se guarda como lista y descarta los vacíos",
+  );
+});

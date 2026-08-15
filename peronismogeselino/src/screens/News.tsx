@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Foto } from "../foto";
+import { Foto, fotoSrc } from "../foto";
 import { Adjunto } from "../Adjunto";
 import { VideoEmbed } from "../video";
 import { useNavigate, useParams } from "react-router-dom";
@@ -14,6 +14,7 @@ export default function News() {
   const go = (path: string) => navigate(path);
   const [item, setItem] = useState<NewsItem | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [ampliada, setAmpliada] = useState<number | null>(null);
 
   useEffect(() => {
     setItem(null);
@@ -97,11 +98,35 @@ export default function News() {
         ) : null}
         {item.embed ? <Publicacion url={item.embed} titulo={item.title} /> : null}
         <CuerpoRico texto={bodyText} className="news-article-body" />
+        {item.gallery && item.gallery.length > 0 && (
+          <div className="news-galeria">
+            {item.gallery.map((url, i) => (
+              <button
+                type="button"
+                key={`${url}-${i}`}
+                className="news-galeria-item"
+                onClick={() => setAmpliada(i)}
+                aria-label={`Ampliar foto ${i + 1}`}
+              >
+                <Foto valor={url} />
+              </button>
+            ))}
+          </div>
+        )}
         <Adjunto url={item.attachment} nombre={item.attachment_name} />
         <button className="text-action dark" onClick={() => go("/#noticias")}>
           ← Volver a las noticias
         </button>
       </div>
+
+      {ampliada !== null && item.gallery && item.gallery[ampliada] && (
+        <div className="galeria-lightbox" onClick={() => setAmpliada(null)}>
+          <button className="galeria-lightbox-cerrar" onClick={() => setAmpliada(null)} aria-label="Cerrar">
+            ✕
+          </button>
+          <img src={fotoSrc(item.gallery[ampliada])} alt={`Foto ${ampliada + 1}`} onClick={(e) => e.stopPropagation()} />
+        </div>
+      )}
     </div>
   );
 }

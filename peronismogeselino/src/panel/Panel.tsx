@@ -171,6 +171,12 @@ function NewsModule() {
         },
         { key: "image", label: "Imagen", type: "image" },
         {
+          key: "gallery",
+          label: "Galería de fotos",
+          type: "gallery",
+          help: "Sumá varias fotos para mostrar como grilla dentro de la noticia. Opcional.",
+        },
+        {
           key: "embed",
           label: "Publicación incrustada (Instagram, Twitter/X o YouTube)",
           placeholder: "Pegá el enlace del posteo, ej: https://www.instagram.com/reel/…",
@@ -193,6 +199,7 @@ function NewsModule() {
         summary: "",
         body: "",
         image: "",
+        gallery: [],
         embed: "",
         video: "",
         attachment: "",
@@ -207,6 +214,7 @@ function NewsModule() {
         summary: row.summary,
         body: row.body,
         image: row.image,
+        gallery: safeParse(row.gallery),
         embed: row.embed ?? "",
         video: row.video ?? "",
         attachment: row.attachment ?? "",

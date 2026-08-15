@@ -29,6 +29,16 @@ function adjuntoUrl(valor) {
   return /^\/peronismogeselino\/subidas\/[a-f0-9]{16}\.pdf$/.test(texto) ? texto : "";
 }
 
+/** Galería: lista de direcciones de imágenes, saneadas y con tope de cantidad. */
+function galeriaJson(valor) {
+  const lista = Array.isArray(valor) ? valor : [];
+  const limpias = lista
+    .map((x) => str(x, 500))
+    .filter(Boolean)
+    .slice(0, 40);
+  return JSON.stringify(limpias);
+}
+
 /** Guarda la clave de un administrador. Sin clave, no la toca. */
 function aplicarClave(db, memberId, clave) {
   const texto = str(clave, 200);
@@ -92,9 +102,9 @@ export function adminRoutes(db) {
     const slug = str(b.slug, 80) || uniqueSlug(db, "news", slugify(title));
     const info = db
       .prepare(`
-        INSERT INTO news (slug, tag, title, summary, body, image, video, embed, attachment,
-          attachment_name, featured, status, published_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO news (slug, tag, title, summary, body, image, video, embed, gallery,
+          attachment, attachment_name, featured, status, published_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
       .run(
         slug,
@@ -105,6 +115,7 @@ export function adminRoutes(db) {
         str(b.image, 500),
         video.valor,
         str(b.embed, 500),
+        galeriaJson(b.gallery),
         adjuntoUrl(b.attachment),
         str(b.attachmentName, 200),
         b.featured ? 1 : 0,
@@ -124,7 +135,7 @@ export function adminRoutes(db) {
     if (video.error) return res.status(400).json({ error: video.error });
     db.prepare(`
       UPDATE news SET tag = ?, title = ?, summary = ?, body = ?, image = ?, video = ?,
-        embed = ?, attachment = ?, attachment_name = ?, featured = ?, status = ?,
+        embed = ?, gallery = ?, attachment = ?, attachment_name = ?, featured = ?, status = ?,
         published_at = ?, updated_at = datetime('now')
       WHERE id = ?
     `).run(
@@ -135,6 +146,7 @@ export function adminRoutes(db) {
       str(b.image, 500),
       video.valor,
       str(b.embed, 500),
+      galeriaJson(b.gallery),
       adjuntoUrl(b.attachment),
       str(b.attachmentName, 200),
       b.featured ? 1 : 0,
