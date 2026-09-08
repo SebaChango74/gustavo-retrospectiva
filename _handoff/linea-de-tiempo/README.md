@@ -6,13 +6,26 @@ orden; al final está el checklist rápido.
 
 ---
 
-## 0. Estado actual (a agosto 2026)
+## 0. Estado actual (a septiembre 2026)
 
-- **Activos:** 2014, 2015, 2016 (10 hitos), 2017 (9 hitos).
+- **Activos:** 2014, 2015, 2016 (10), 2017 (9), 2018 (10). **Sigue 2019.**
 - El resto de los años existen como *placeholders* bloqueados en `yearsData`.
 - La web es el `index.html` de la raíz del repo (estático), servido por
   `peronismogeselino/server` y desplegado por Railway al hacer **push a `main`**
   (auto-deploy).
+- **Ojo con no repetir:** antes de curar, mirá qué hitos ya están en los años
+  anteriores. En 2018 el "nuevo Hospital" se dejó afuera porque ya estaba en 2017.
+  (Ese año se reemplazó por SAME + pase a planta.)
+
+> ### ⭐ Pedido de Gustavo: búsqueda EXHAUSTIVA
+> Antes de arrancar cada año, **releé este archivo** y hacé un barrido completo,
+> sin dejar nada afuera:
+> - Cosechá el **año entero** (enero a diciembre) con **margen de sobra** en el
+>   rango de páginas; después verificá la cobertura (mín. y máx. de fechas).
+> - Las páginas de cada año **se corren con el tiempo** (el listado crece), así
+>   que **siempre reubicá el rango probando fechas**, no reuses el del año pasado.
+> - Cuantas más publicaciones se junten, mejor: de ahí se curan los 8–12. Si hay
+>   más material del año, buenísimo — primero juntar todo, después elegir.
 
 ## 1. Cosechar los actos de gobierno del año
 
