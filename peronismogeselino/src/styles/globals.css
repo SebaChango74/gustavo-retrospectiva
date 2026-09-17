@@ -179,13 +179,16 @@ button:hover .arrow { transform: translateX(4px); }
 .agenda-hero { background-color: var(--cobalt); }
 .agenda-detail { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 32px; align-items: start; }
 .agenda-feature { background: var(--paper); border: 1px solid var(--line); box-shadow: 0 22px 55px rgba(7,27,51,.09); }
-.agenda-feature-head { min-height: 220px; display: grid; grid-template-columns: 150px 1fr; align-items: stretch; }
+/* minmax(0,…): sin esto la columna no puede achicarse por debajo de su
+   contenido y un enlace largo (los de Maps que se pegan en la actividad)
+   estira la tarjeta más allá de la pantalla y el texto queda cortado. */
+.agenda-feature-head { min-height: 220px; display: grid; grid-template-columns: 150px minmax(0, 1fr); align-items: stretch; }
 .agenda-feature-head > div:last-child { padding: 37px 40px; }
 .agenda-big-date { display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; background: var(--navy); }
 .agenda-big-date strong { font-family: "Barlow Condensed", sans-serif; font-size: 88px; line-height: .75; }
 .agenda-big-date span { margin-top: 14px; font-size: 13px; letter-spacing: .22em; }
-.agenda-feature h2 { margin: 9px 0 8px; font-family: "Barlow Condensed", sans-serif; font-size: clamp(44px, 4.5vw, 66px); line-height: .9; color: var(--navy); }
-.agenda-feature p { margin: 0; max-width: 720px; font-size: 14px; line-height: 1.7; color: var(--muted); }
+.agenda-feature h2 { margin: 9px 0 8px; font-family: "Barlow Condensed", sans-serif; font-size: clamp(44px, 4.5vw, 66px); line-height: .9; color: var(--navy); overflow-wrap: anywhere; }
+.agenda-feature p { margin: 0; max-width: 720px; font-size: 14px; line-height: 1.7; color: var(--muted); overflow-wrap: anywhere; }
 .map-shell { height: 390px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #e8ecee; }
 .map-shell iframe, .mini-map-wrap iframe { width: 100%; height: 100%; display: block; border: 0; }
 .map-actions { padding: 25px 28px; display: flex; align-items: center; justify-content: space-between; gap: 25px; }
@@ -197,8 +200,8 @@ a.button { text-decoration: none; }
 .agenda-side-event { margin: 20px 0; padding: 22px; color: white; background: var(--cobalt); }
 .agenda-side-event > strong { font-family: "Barlow Condensed", sans-serif; font-size: 41px; }
 .agenda-side-event > span { display: block; margin-top: 5px; color: var(--sky); font-size: 8px; letter-spacing: .1em; }
-.agenda-side-event h3 { margin: 15px 0 7px; font-family: "Barlow Condensed", sans-serif; font-size: 31px; }
-.agenda-side-event p { margin: 0; font-size: 11px; line-height: 1.55; color: rgba(255,255,255,.7); }
+.agenda-side-event h3 { margin: 15px 0 7px; font-family: "Barlow Condensed", sans-serif; font-size: 31px; overflow-wrap: anywhere; }
+.agenda-side-event p { margin: 0; font-size: 11px; line-height: 1.55; color: rgba(255,255,255,.7); overflow-wrap: anywhere; }
 .agenda-panel-note { margin: 24px 0; display: grid; grid-template-columns: 26px 1fr; gap: 11px; }
 .agenda-panel-note > span { color: var(--red); }
 .agenda-panel-note strong { font-size: 11px; }
@@ -473,7 +476,7 @@ footer img { width: 150px; }
   .brief-box { width: calc(100% - 20px); margin-top: -35px; padding: 32px 24px; }
   .timeline-item { grid-template-columns: 68px 1fr; padding-left: 25px; }
   .cause-sidebar { position: static; }
-  .agenda-feature-head { grid-template-columns: 92px 1fr; }
+  .agenda-feature-head { grid-template-columns: 92px minmax(0, 1fr); }
   .agenda-feature-head > div:last-child { padding: 25px 20px; }
   .agenda-big-date strong { font-size: 62px; }
   .map-shell { height: 300px; }
