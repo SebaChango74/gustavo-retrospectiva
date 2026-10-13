@@ -1130,3 +1130,75 @@ test("una noticia guarda y entrega una galería de fotos", async () => {
     "la galería se guarda como lista y descarta los vacíos",
   );
 });
+
+test("video propio: se sube, se sirve por tramos y la nota lo entrega", async () => {
+  const { cookie } = await login(ADMIN, { clave: CLAVE_ADMIN });
+
+  // Un archivo que dice ser video pero no lo es: rechazado.
+  const falso = await fetch(`${base}/peronismogeselino/api/admin/media/video`, {
+    method: "POST",
+    headers: { "Content-Type": "video/mp4", cookie },
+    body: Buffer.from("esto no es un video"),
+  });
+  assert.equal(falso.status, 400, "un archivo falso no se guarda como video");
+
+  // Un MP4 de verdad se reconoce por su encabezado (caja ftyp).
+  const mp4 = Buffer.concat([
+    Buffer.from([0, 0, 0, 0x20]),
+    Buffer.from("ftypisom"),
+    Buffer.alloc(2048, 7),
+  ]);
+  const ok = await fetch(`${base}/peronismogeselino/api/admin/media/video`, {
+    method: "POST",
+    headers: { "Content-Type": "video/mp4", cookie },
+    body: mp4,
+  });
+  assert.equal(ok.status, 200);
+  const { url } = await ok.json();
+  assert.match(url, /^\/peronismogeselino\/subidas\/[a-f0-9]{16}\.mp4$/);
+
+  // Se sirve con el tipo correcto y acepta pedidos por tramos (adelantar el video).
+  const servido = await fetch(`${base}${url}`);
+  assert.equal(servido.status, 200);
+  assert.match(servido.headers.get("content-type") || "", /video\/mp4/);
+  const tramo = await fetch(`${base}${url}`, { headers: { Range: "bytes=0-99" } });
+  assert.equal(tramo.status, 206, "responde 206 para poder adelantar y retroceder");
+
+  // El video no se mezcla con la galería de fotos.
+  const fotos = await (
+    await fetch(`${base}/peronismogeselino/api/admin/media`, { headers: { cookie } })
+  ).json();
+  assert.ok(!fotos.items.some((f) => f.url === url), "el video no aparece entre las fotos");
+
+  // Una nota con video propio lo entrega al público.
+  await fetch(`${base}/peronismogeselino/api/admin/news`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", cookie },
+    body: JSON.stringify({
+      title: "Recorrida en video",
+      slug: "recorrida-en-video",
+      status: "published",
+      videoFile: url,
+    }),
+  });
+  const nota = await (
+    await fetch(`${base}/peronismogeselino/api/public/news/recorrida-en-video`)
+  ).json();
+  assert.equal(nota.item.video_file, url, "la nota entrega el video propio");
+
+  // Un enlace externo no se puede colar como video.
+  await fetch(`${base}/peronismogeselino/api/admin/news`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", cookie },
+    body: JSON.stringify({
+      title: "Video trucho",
+      slug: "video-trucho",
+      status: "published",
+      videoFile: "https://malicioso.example/x.mp4",
+    }),
+  });
+  const trucha = await (
+    await fetch(`${base}/peronismogeselino/api/public/news/video-trucho`)
+  ).json();
+  assert.equal(trucha.item.video_file, "", "un enlace externo no se guarda como video");
+});

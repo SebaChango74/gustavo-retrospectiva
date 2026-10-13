@@ -428,3 +428,13 @@ MIGRATIONS.push({
     ALTER TABLE news ADD COLUMN gallery TEXT NOT NULL DEFAULT '[]';
   `,
 });
+
+MIGRATIONS.push({
+  name: "012_video_propio",
+  sql: `
+    -- Video propio, subido al servidor, para no depender de YouTube. Se guarda
+    -- la dirección del archivo; la columna "video" sigue siendo la de YouTube.
+    ALTER TABLE news ADD COLUMN video_file TEXT NOT NULL DEFAULT '';
+    ALTER TABLE causes ADD COLUMN video_file TEXT NOT NULL DEFAULT '';
+  `,
+});

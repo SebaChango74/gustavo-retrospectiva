@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { api } from "../api";
 import { ImagePicker } from "./ImagePicker";
 import { GalleryPicker } from "./GalleryPicker";
+import { VideoPicker } from "../videoPropio";
 import { PdfPicker } from "./PdfPicker";
 
 export type FieldOption = { value: string; label: string };
@@ -20,6 +21,7 @@ export type Field = {
     | "timeline"
     | "image"
     | "gallery"
+    | "video"
     | "pdf";
   options?: FieldOption[];
   help?: string;
@@ -270,6 +272,10 @@ export function FieldInput({
 
   if (type === "image") {
     return <ImagePicker value={value ?? ""} onChange={onChange} />;
+  }
+
+  if (type === "video") {
+    return <VideoPicker value={value ?? ""} onChange={onChange} />;
   }
 
   if (type === "gallery") {

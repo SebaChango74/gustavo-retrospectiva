@@ -7,6 +7,7 @@ import { api, type NewsItem } from "../api";
 import { Arrow, ShareIcon, dateLabel } from "../ui";
 import { CuerpoRico } from "../richtext";
 import { Publicacion } from "../embeds";
+import { VideoPropio } from "../videoPropio";
 
 export default function News() {
   const navigate = useNavigate();
@@ -89,7 +90,9 @@ export default function News() {
       </div>
 
       <div className="section news-article">
-        {item.video ? (
+        {item.video_file ? (
+          <VideoPropio src={item.video_file} titulo={item.title} />
+        ) : item.video ? (
           <VideoEmbed video={item.video} titulo={item.title} />
         ) : item.image ? (
           <div className="cause-lead-image">

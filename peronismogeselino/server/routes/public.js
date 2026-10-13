@@ -106,8 +106,8 @@ export function publicRoutes(db) {
   router.get("/news/:slug", (req, res) => {
     const item = db
       .prepare(`
-        SELECT slug, tag, title, summary, body, image, video, embed, gallery, attachment,
-          attachment_name, featured, published_at
+        SELECT slug, tag, title, summary, body, image, video, video_file, embed, gallery,
+          attachment, attachment_name, featured, published_at
         FROM news WHERE slug = ? AND status = 'published' AND pending = 0
       `)
       .get(req.params.slug);
@@ -148,6 +148,7 @@ export function publicRoutes(db) {
         progressNext: cause.progress_next,
         leadImage: cause.lead_image,
         video: cause.video ?? "",
+        videoFile: cause.video_file ?? "",
         attachment: cause.attachment ?? "",
         attachmentName: cause.attachment_name ?? "",
         briefTitle: cause.brief_title,

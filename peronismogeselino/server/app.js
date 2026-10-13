@@ -94,6 +94,8 @@ export function createApp(db) {
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src 'self' https://fonts.gstatic.com data:",
         "img-src 'self' data: blob: https:",
+        // Videos propios servidos desde la app (blob: para la vista previa al subir).
+        "media-src 'self' blob:",
         "connect-src 'self'",
         // Mapas, y publicaciones incrustadas por iframe (sin cargar sus
         // scripts): YouTube, Instagram y Twitter/X.

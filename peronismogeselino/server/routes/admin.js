@@ -6,6 +6,7 @@ import { normalizarWhatsapp, mostrarWhatsapp, enlaceWhatsapp } from "../whatsapp
 import {
   LIMITE_BYTES,
   LIMITE_PDF,
+  LIMITE_VIDEO,
   SUBIDAS_URL,
   borrarImagen,
   dondeSeUsa,
@@ -13,6 +14,7 @@ import {
   guardarImagen,
   listarImagenes,
   reconocerImagen,
+  reconocerVideo,
 } from "../media.js";
 import {
   codigoValido,
@@ -29,8 +31,13 @@ function adjuntoUrl(valor) {
   return /^\/peronismogeselino\/subidas\/[a-f0-9]{16}\.pdf$/.test(texto) ? texto : "";
 }
 
-/** Galería: lista de direcciones de imágenes, saneadas y con tope de cantidad. */
-function galeriaJson(valor) {
+/** Video propio: solo una dirección de la carpeta de subidas de esta app. */
+function videoUrl(valor) {
+  const texto = str(valor, 500);
+  return /^\/peronismogeselino\/subidas\/[a-f0-9]{16}\.(mp4|webm|mov)$/i.test(texto) ? texto : "";
+}
+
+/** Galería: lista de direcciones de imágenes, saneadas y con tope de cantidad. */function galeriaJson(valor) {
   const lista = Array.isArray(valor) ? valor : [];
   const limpias = lista
     .map((x) => str(x, 500))
@@ -102,9 +109,9 @@ export function adminRoutes(db) {
     const slug = str(b.slug, 80) || uniqueSlug(db, "news", slugify(title));
     const info = db
       .prepare(`
-        INSERT INTO news (slug, tag, title, summary, body, image, video, embed, gallery,
-          attachment, attachment_name, featured, status, published_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO news (slug, tag, title, summary, body, image, video, video_file, embed,
+          gallery, attachment, attachment_name, featured, status, published_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
       .run(
         slug,
@@ -114,6 +121,7 @@ export function adminRoutes(db) {
         str(b.body, 20000),
         str(b.image, 500),
         video.valor,
+        videoUrl(b.videoFile),
         str(b.embed, 500),
         galeriaJson(b.gallery),
         adjuntoUrl(b.attachment),
@@ -135,8 +143,8 @@ export function adminRoutes(db) {
     if (video.error) return res.status(400).json({ error: video.error });
     db.prepare(`
       UPDATE news SET tag = ?, title = ?, summary = ?, body = ?, image = ?, video = ?,
-        embed = ?, gallery = ?, attachment = ?, attachment_name = ?, featured = ?, status = ?,
-        published_at = ?, updated_at = datetime('now')
+        video_file = ?, embed = ?, gallery = ?, attachment = ?, attachment_name = ?,
+        featured = ?, status = ?, published_at = ?, updated_at = datetime('now')
       WHERE id = ?
     `).run(
       str(b.tag, 60) || "Villa Gesell",
@@ -145,6 +153,7 @@ export function adminRoutes(db) {
       str(b.body, 20000),
       str(b.image, 500),
       video.valor,
+      videoUrl(b.videoFile),
       str(b.embed, 500),
       galeriaJson(b.gallery),
       adjuntoUrl(b.attachment),
@@ -183,9 +192,9 @@ export function adminRoutes(db) {
     const info = db
       .prepare(`
         INSERT INTO causes (slug, title, summary, status_label, progress, progress_from,
-          progress_next, lead_image, video, attachment, attachment_name, brief_title, brief_body,
-          bullets, key_fact_value, key_fact_label, next_steps, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          progress_next, lead_image, video, video_file, attachment, attachment_name, brief_title,
+          brief_body, bullets, key_fact_value, key_fact_label, next_steps, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
       .run(...causeParams(b, title, slug));
     markPending(db, "causes", info.lastInsertRowid, req.member);
@@ -204,8 +213,9 @@ export function adminRoutes(db) {
     const params = causeParams(b, title, row.slug);
     db.prepare(`
       UPDATE causes SET slug = ?, title = ?, summary = ?, status_label = ?, progress = ?,
-        progress_from = ?, progress_next = ?, lead_image = ?, video = ?, attachment = ?,
-        attachment_name = ?, brief_title = ?, brief_body = ?, bullets = ?, key_fact_value = ?,
+        progress_from = ?, progress_next = ?, lead_image = ?, video = ?, video_file = ?,
+        attachment = ?, attachment_name = ?, brief_title = ?, brief_body = ?, bullets = ?,
+        key_fact_value = ?,
         key_fact_label = ?, next_steps = ?, status = ?, updated_at = datetime('now')
       WHERE id = ?
     `).run(...params, row.id);
@@ -485,6 +495,28 @@ export function adminRoutes(db) {
       }
       const { nombre, url } = guardarImagen(buffer, "pdf");
       audit(db, req.member.id, "subir_pdf", "media", null, nombre);
+      res.json({ nombre, url });
+    },
+  );
+
+  /** Sube un video propio (MP4/WebM/MOV) para reproducir dentro de la app. */
+  router.post(
+    "/media/video",
+    puedeSubir,
+    express.raw({ type: ["video/*", "application/octet-stream"], limit: LIMITE_VIDEO }),
+    (req, res) => {
+      const buffer = req.body;
+      if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
+        return res.status(400).json({ error: "No llegó ningún video." });
+      }
+      const reconocido = reconocerVideo(buffer);
+      if (!reconocido) {
+        return res.status(400).json({
+          error: "El archivo no es un video válido. Sirven MP4, WebM y MOV.",
+        });
+      }
+      const { nombre, url } = guardarImagen(buffer, reconocido.ext);
+      audit(db, req.member.id, "subir_video", "media", null, nombre);
       res.json({ nombre, url });
     },
   );
@@ -957,6 +989,7 @@ function causeParams(b, title, slug) {
     str(b.progressNext, 120),
     str(b.leadImage, 500),
     normalizarVideo(b.video).valor ?? "",
+    videoUrl(b.videoFile),
     adjuntoUrl(b.attachment),
     str(b.attachmentName, 200),
     str(b.briefTitle, 120) || "¿QUÉ ESTÁ PASANDO?",

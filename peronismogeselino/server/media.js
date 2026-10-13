@@ -20,6 +20,9 @@ export const SUBIDAS_URL = "/peronismogeselino/subidas";
 export const LIMITE_BYTES = 8 * 1024 * 1024;
 // Los PDF (guías, folletos) pesan más que una foto: hasta 25 MB.
 export const LIMITE_PDF = 25 * 1024 * 1024;
+// Los videos propios, hasta 50 MB: alcanza para un clip de alrededor de un
+// minuto grabado con el celular, sin comerse el volumen del servidor.
+export const LIMITE_VIDEO = 50 * 1024 * 1024;
 
 /**
  * El tipo se decide por el contenido, no por lo que diga el navegador: un
@@ -47,6 +50,39 @@ const FIRMAS = [
 export function reconocerImagen(buffer) {
   if (!Buffer.isBuffer(buffer) || buffer.length < 12) return null;
   return FIRMAS.find((f) => f.prueba(buffer)) ?? null;
+}
+
+/**
+ * Videos propios, para no depender de YouTube. Igual que con las imágenes, el
+ * tipo se decide por el contenido. Se aceptan los formatos que los navegadores
+ * saben reproducir sin plugins: MP4 (lo que graban casi todos los celulares),
+ * WebM y MOV de iPhone.
+ */
+const FIRMAS_VIDEO = [
+  {
+    ext: "webm",
+    tipo: "video/webm",
+    // EBML, el encabezado de Matroska/WebM.
+    prueba: (b) => b[0] === 0x1a && b[1] === 0x45 && b[2] === 0xdf && b[3] === 0xa3,
+  },
+  {
+    ext: "mov",
+    tipo: "video/quicktime",
+    prueba: (b) =>
+      b.subarray(4, 8).toString("latin1") === "ftyp" &&
+      b.subarray(8, 12).toString("latin1").toLowerCase() === "qt  ",
+  },
+  {
+    ext: "mp4",
+    tipo: "video/mp4",
+    // Cualquier otra marca ISO-BMFF (isom, mp42, avc1, M4V…) se sirve como MP4.
+    prueba: (b) => b.subarray(4, 8).toString("latin1") === "ftyp",
+  },
+];
+
+export function reconocerVideo(buffer) {
+  if (!Buffer.isBuffer(buffer) || buffer.length < 12) return null;
+  return FIRMAS_VIDEO.find((f) => f.prueba(buffer)) ?? null;
 }
 
 /** Un PDF de verdad empieza con "%PDF-". Se valida el contenido, no la
@@ -141,7 +177,7 @@ export function medidasDeBuffer(b) {
 /** Medidas de una foto subida, por su nombre de archivo. */
 export function medidasDeSubida(nombre) {
   try {
-    if (!/^[a-f0-9]{16}\.(jpg|png|webp)$/i.test(String(nombre))) return null;
+    if (!/^[a-f0-9]{16}\.(jpg|png|webp|mp4|webm|mov|pdf)$/i.test(String(nombre))) return null;
     return medidasDeBuffer(fs.readFileSync(path.join(SUBIDAS_DIR, nombre)));
   } catch {
     return null;
@@ -150,7 +186,7 @@ export function medidasDeSubida(nombre) {
 
 /** Borra una imagen. El nombre se valida para no salir de la carpeta. */
 export function borrarImagen(nombre) {
-  if (!/^[a-f0-9]{16}\.(jpg|png|webp)$/i.test(String(nombre))) return false;
+  if (!/^[a-f0-9]{16}\.(jpg|png|webp|mp4|webm|mov|pdf)$/i.test(String(nombre))) return false;
   const destino = path.join(SUBIDAS_DIR, nombre);
   if (!fs.existsSync(destino)) return false;
   fs.unlinkSync(destino);
@@ -164,8 +200,10 @@ export function dondeSeUsa(db, url) {
   const usos = [];
   const buscar = [
     ["news", "title", "image", "noticia"],
+    ["news", "title", "video_file", "noticia (video)"],
     ["news", "title", "attachment", "noticia (adjunto)"],
     ["causes", "title", "lead_image", "causa"],
+    ["causes", "title", "video_file", "causa (video)"],
     ["causes", "title", "attachment", "causa (adjunto)"],
     ["events", "title", "image", "actividad"],
   ];

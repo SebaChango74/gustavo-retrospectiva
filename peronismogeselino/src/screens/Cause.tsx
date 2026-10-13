@@ -6,6 +6,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 import { Arrow, ShareIcon, dateLabel } from "../ui";
 import { TextoConEnlaces } from "../richtext";
+import { VideoPropio } from "../videoPropio";
 
 type CauseDetail = {
   cause: {
@@ -17,6 +18,7 @@ type CauseDetail = {
     progressFrom: string;
     progressNext: string;
     leadImage: string;
+    videoFile?: string;
   video?: string;
   attachment?: string;
   attachmentName?: string;
@@ -125,7 +127,9 @@ export default function Cause() {
 
       <div className="cause-layout section">
         <article className="cause-main">
-          {cause.video ? (
+          {cause.videoFile ? (
+            <VideoPropio src={cause.videoFile} titulo={cause.title} />
+          ) : cause.video ? (
             <VideoEmbed video={cause.video} titulo={cause.title} />
           ) : cause.leadImage ? (
             <div className="cause-lead-image">
