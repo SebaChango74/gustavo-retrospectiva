@@ -71,14 +71,36 @@ export function VideoPicker({
     }
 
     try {
-      const { url } = await api.upload<{ url: string }>("/admin/media/video", file);
+      // Leemos el archivo a memoria antes de enviarlo. Si el teléfono entrega
+      // el video a través de un proveedor que después lo suelta (pasa al
+      // elegirlo desde ciertas apps), el envío se cortaría a mitad y el
+      // navegador solo diría "Failed to fetch". Así el problema se detecta acá
+      // y se puede explicar. De paso aseguramos el tipo: algunos archivos
+      // llegan sin él y el servidor los rechazaría.
+      let datos: ArrayBuffer;
+      try {
+        datos = await file.arrayBuffer();
+      } catch {
+        setSubiendo(false);
+        if (input.current) input.current.value = "";
+        setError(
+          "No se pudo leer el video desde el teléfono. Probá elegirlo de nuevo, o guardalo primero en la galería y volvé a intentar.",
+        );
+        return;
+      }
+      const tipo = /^video\//.test(file.type) ? file.type : "video/mp4";
+      const blob = new Blob([datos], { type: tipo });
+
+      const { url } = await api.upload<{ url: string }>("/admin/media/video", blob);
       onChange(url);
     } catch (e: any) {
       const msg = String(e?.message || "");
+      const mb = Math.round((file.size / 1024 / 1024) * 10) / 10;
+      const detalle = `(${mb} MB · ${file.type || "sin tipo"})`;
       setError(
         /failed to fetch|network|load failed|conexi/i.test(msg)
-          ? "Se cortó la conexión mientras se subía el video. Puede ser la señal o que venció la sesión: volvé a entrar al panel y probá de nuevo."
-          : msg || "No se pudo subir el video.",
+          ? `Se cortó la conexión al subir el video ${detalle}. Probá con mejor señal, o con un video más corto. Si sigue, mostrame este mensaje.`
+          : `${msg || "No se pudo subir el video."} ${detalle}`,
       );
     } finally {
       setSubiendo(false);
