@@ -53,12 +53,33 @@ export function VideoPicker({
       if (input.current) input.current.value = "";
       return;
     }
+
+    // Antes de mandar un archivo pesado, comprobamos la sesión con un pedido
+    // chico. El servidor valida los permisos antes de leer el cuerpo, así que
+    // sin sesión cortaría la subida a la mitad y el navegador solo diría
+    // "Failed to fetch", sin explicar nada y habiendo gastado los datos.
     setSubiendo(true);
+    try {
+      await api.get("/admin/media");
+    } catch {
+      setSubiendo(false);
+      if (input.current) input.current.value = "";
+      setError(
+        "Tu sesión venció o no tenés permisos para subir. Volvé a entrar al panel y probá de nuevo.",
+      );
+      return;
+    }
+
     try {
       const { url } = await api.upload<{ url: string }>("/admin/media/video", file);
       onChange(url);
     } catch (e: any) {
-      setError(e?.message || "No se pudo subir el video.");
+      const msg = String(e?.message || "");
+      setError(
+        /failed to fetch|network|load failed|conexi/i.test(msg)
+          ? "Se cortó la conexión mientras se subía el video. Puede ser la señal o que venció la sesión: volvé a entrar al panel y probá de nuevo."
+          : msg || "No se pudo subir el video.",
+      );
     } finally {
       setSubiendo(false);
       if (input.current) input.current.value = "";
