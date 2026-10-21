@@ -70,10 +70,12 @@
           '<section class="panel" aria-live="polite"><div class="head">MUNICIPALIDAD DE VILLA GESELL</div><div class="content">' +
             '<div class="intro" id="eg-intro"><div><div class="kicker">Una experiencia para descubrir</div><h1 id="eg-titulo">¿QUÉ <em>VES</em> EN ESTA IMAGEN?</h1></div><div><p>Cuando la luz no alcanza, las cosas no siempre son lo que parecen.</p>' +
             '<button class="power-btn" type="button" id="eg-turn-on">TOCÁ PARA ENCENDER LA LUZ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v9M6 5.5a8 8 0 1 0 12 0"/></svg></button></div></div>' +
-            '<div class="reveal" id="eg-reveal"><div class="kicker">Ahora mirá bien</div><h1>NO ERA LO QUE PARECÍA. <em>FALTABA LUZ.</em></h1>' +
-            '<p class="purchase">La Municipalidad de Villa Gesell compró nuevas luminarias LED.</p>' +
+            // En celular la revelación va en dos bloques (título arriba, remate
+            // abajo) sin caja, para que la luminaria quede a la vista.
+            '<div class="reveal" id="eg-reveal"><div class="reveal-arriba"><div class="kicker">Ahora mirá bien</div><h1>NO ERA LO QUE PARECÍA. <em>FALTABA LUZ.</em></h1></div>' +
+            '<div class="reveal-abajo"><p class="purchase">La Municipalidad de Villa Gesell compró nuevas luminarias LED.</p>' +
             '<div class="benefits"><span>Más potencia.</span><span>Más visibilidad.</span><span>Más seguridad.</span></div>' +
-            '<div class="claim">PARA QUE VEAS MEJOR.<br><b>UNA GESTIÓN QUE SE VE.</b></div></div>' +
+            '<div class="claim">PARA QUE VEAS MEJOR.<br><b>UNA GESTIÓN QUE SE VE.</b></div></div></div>' +
           '</div><div class="foot"><span>ALUMBRADO PÚBLICO · VILLA GESELL</span><button class="replay" id="eg-replay" type="button">Volver a empezar ↻</button></div></section>' +
           '<div class="demo-tag" aria-hidden="true">MAQUETA VISUAL · ESCENAS ILUSTRATIVAS</div>' +
         '</div>' +
