@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Prueba del emergente · Una gestión que se ve</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:,">
+<style>
+  /* Página anfitriona de mentira: imita un sitio institucional cualquiera para
+     comprobar que el emergente se ve bien encima de otro diseño. */
+  body{margin:0;font-family:Georgia,"Times New Roman",serif;background:#f3f1ea;color:#222}
+  header{background:#1b3a5c;color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  header b{font-size:18px;letter-spacing:.04em}
+  nav a{color:#cfe0f2;margin-left:16px;text-decoration:none;font-size:14px}
+  main{max-width:860px;margin:0 auto;padding:28px 20px 60px}
+  h1{font-size:30px;margin:0 0 10px}
+  p{line-height:1.6}
+  .tarjeta{background:#fff;border:1px solid #ddd;padding:18px;margin:18px 0}
+  button.probar{font:inherit;font-size:15px;padding:12px 18px;background:#1b3a5c;color:#fff;border:0;cursor:pointer}
+  footer{text-align:center;color:#777;font-size:12px;padding:20px}
+</style>
+</head>
+<body>
+<header><b>SITIO DE PRUEBA</b><nav><a href="#">Inicio</a><a href="#">Noticias</a><a href="#">Trámites</a><a href="#">Contacto</a></nav></header>
+<main>
+  <h1>Página anfitriona de prueba</h1>
+  <p>Esta página existe solo para probar el emergente «Una gestión que se ve». Se abre solo al cargar (en esta prueba, siempre; en producción, una vez cada 7 días por persona y hasta la fecha indicada).</p>
+  <div class="tarjeta">
+    <p><button class="probar" type="button" onclick="EmergenteGesell.abrir()">Volver a abrir el emergente</button></p>
+    <p>Se cierra con la cruz, con la tecla <kbd>Escape</kbd> o tocando afuera. El sonido solo arranca si se toca el parlante 🔊 de arriba a la derecha.</p>
+  </div>
+  <p>Texto de relleno para que haya algo detrás: la ciudad, sus calles de arena, los pinos y la costa. Nada de esto forma parte de la pieza; solo sirve para ver cómo se comporta el emergente sobre un sitio con su propio diseño y su propio scroll.</p>
+  <p>Más texto de relleno. Más texto de relleno. Más texto de relleno. Más texto de relleno. Más texto de relleno. Más texto de relleno.</p>
+</main>
+<footer>Página de prueba · no es un sitio oficial</footer>
+<script src="emergente-gesell.js" data-siempre="1" data-demora="600"></script>
+</body>
+</html>

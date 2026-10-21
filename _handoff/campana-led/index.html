@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#071321"><title>Una gestión que se ve | Villa Gesell</title>
+<meta name="description" content="Descubrí la diferencia que hace una mejor iluminación LED en Villa Gesell.">
+<style>
+:root {--bg:#061320;--panel:#0a1c2a;--text:#f7f8fa;--muted:#b8c9d1;--green:#80f18c;--border:#ffffff2b;color-scheme:dark;font-family:Arial,Helvetica,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text)}button{font:inherit;cursor:pointer}button:focus-visible{outline:3px solid var(--green);outline-offset:4px}
+.site-shell{min-height:100svh;padding:clamp(12px,4vw,50px);display:grid;place-items:center;background:radial-gradient(ellipse at 65% 12%,#183b4e,#0a1727 50%,#050f1b)}
+.campaign{width:min(1080px,100%);min-height:min(710px,calc(100svh - 55px));display:grid;grid-template-columns:56% 44%;border:1px solid #ffffff2c;border-radius:18px;overflow:hidden;box-shadow:0 30px 110px #0008;background:var(--panel);position:relative;isolation:isolate}
+.scene{position:relative;display:block;min-height:655px;overflow:hidden;background:#030c12;border:0;padding:0;color:inherit;text-align:left;width:100%;appearance:none}
+.scene img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 52%;pointer-events:none;user-select:none;-webkit-user-drag:none}
+.scene .dark-img{filter:brightness(.82) contrast(1.12)}.scene .lit-img{opacity:0;filter:brightness(.88) contrast(1.04);transition:opacity 1.05s cubic-bezier(.25,.5,.15,1),filter 1.2s}
+.campaign.lit .lit-img{opacity:1;filter:brightness(1.04) contrast(1.03)}
+.scene:after{content:"";position:absolute;inset:0;z-index:2;background:linear-gradient(to bottom,#04111e4d,transparent 31%,transparent 60%,#020b16b9);pointer-events:none}
+.flash{position:absolute;inset:0;background:radial-gradient(ellipse at 65% 8%,#ffffffd0,#d9eff5a8 22%,#ffffff20 63%,transparent);z-index:3;pointer-events:none;opacity:0}
+.campaign.lit .flash{animation:flash .95s ease-out both}@keyframes flash{0%{opacity:0}18%{opacity:.74}100%{opacity:0}}
+.photo-label{position:absolute;z-index:4;top:28px;left:27px;display:flex;align-items:center;gap:9px;font-size:10px;font-weight:850;letter-spacing:.16em;text-shadow:0 2px 12px #000;text-transform:uppercase}
+.photo-label:before{content:"";width:8px;height:8px;background:#f2c875;border-radius:50%;box-shadow:0 0 12px #f2c875}.campaign.lit .photo-label:before{background:var(--green);box-shadow:0 0 17px var(--green)}
+.scene-hint{position:absolute;z-index:4;bottom:25px;left:27px;right:27px;display:flex;align-items:center;justify-content:space-between;font-size:10px;font-weight:800;letter-spacing:.1em;text-shadow:0 1px 5px #000}
+.scene-hint b{border:1px solid #ffffff69;border-radius:30px;padding:8px 13px;background:#07162478}
+.panel{display:flex;flex-direction:column;padding:36px 38px 27px;background:linear-gradient(150deg,#0d2634,#061421 80%)}
+.head{padding-bottom:19px;border-bottom:1px solid var(--border);font-size:11px;letter-spacing:.12em;font-weight:850;line-height:1.4}
+.content{flex:1;display:flex;flex-direction:column;justify-content:center;padding:30px 0 18px}
+.kicker{color:var(--green);font-size:11px;text-transform:uppercase;letter-spacing:.17em;font-weight:900}
+h1{font-size:clamp(40px,4.9vw,65px);letter-spacing:-.055em;line-height:1.01;margin:20px 0 24px;font-weight:900;text-wrap:balance}h1 em{font-style:normal;color:var(--green)}
+p{line-height:1.49}.intro p{font-size:16px;color:var(--muted);margin:0 0 25px;max-width:355px}
+.power-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--green);border:1px solid #c0ffc4;border-radius:7px;padding:18px 19px 17px 21px;width:100%;color:#081c17;font-size:13px;font-weight:900;letter-spacing:.03em;text-transform:uppercase;box-shadow:0 6px 25px #51d36230;transition:transform .18s}
+.power-btn:hover{transform:translateY(-2px)}.power-btn svg{width:22px;height:22px;flex:none}
+.reveal{display:none;opacity:0;transform:translateY(14px);transition:opacity .5s,transform .5s}
+.campaign.complete .intro{display:none}.campaign.complete .reveal{display:block;opacity:1;transform:none}
+.reveal h1{font-size:clamp(36px,3.5vw,50px);margin:20px 0 26px}
+.reveal .purchase{border-top:1px solid #ffffff29;border-bottom:1px solid #ffffff29;padding:18px 0;font-size:20px;line-height:1.42;font-weight:700;margin:0 0 25px}
+.benefits{display:grid;gap:11px;font-size:15px;line-height:1.3;font-weight:700}.benefits span:before{content:"✳";color:var(--green);margin-right:11px}
+.claim{margin-top:29px;font-weight:900;font-size:17px;line-height:1.45}.claim b{color:var(--green)}
+.foot{border-top:1px solid var(--border);padding-top:19px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:10px;letter-spacing:.07em;color:#a4b8c1}
+.replay{background:none;border:0;border-bottom:1px solid #8cf59c;color:var(--green);font-size:11px;font-weight:800;padding:7px 1px;visibility:hidden;white-space:nowrap}
+.demo-tag{position:absolute;z-index:8;bottom:8px;left:10px;font-size:9px;opacity:.66;pointer-events:none;text-shadow:0 2px 4px #000}
+@media(max-width:740px){.site-shell{display:block;padding:0}.campaign{display:block;width:100%;height:100svh;min-height:620px;border:0;border-radius:0}.scene{position:absolute;inset:0;min-height:0;height:100%;width:100%}.scene img{object-position:center center}.scene:after{background:linear-gradient(to bottom,#001018c9 0,#00101863 22%,transparent 43%,#030f17a6 70%,#030d18f2 100%)}.panel{position:absolute;z-index:5;inset:0;background:transparent;padding:max(21px,env(safe-area-inset-top)) 23px max(26px,env(safe-area-inset-bottom));pointer-events:none}.panel button{pointer-events:auto}.head{font-size:10px;padding-bottom:15px}.content{justify-content:space-between;padding:34px 0 13px}.intro{display:flex;flex-direction:column;justify-content:space-between;height:100%}.intro h1{font-size:clamp(44px,12vw,68px);max-width:335px;text-shadow:0 4px 18px #020709}.intro p{color:#f1f5f7;font-size:14px;line-height:1.4;text-shadow:0 1px 9px #000}.power-btn{padding:17px;font-size:12px}.scene-hint{display:none}.photo-label{display:none}.reveal{position:absolute;top:73px;left:23px;right:23px;margin:0;border:1px solid #e4fff128;background:#051a23e9;border-radius:13px;padding:14px 17px 13px;backdrop-filter:blur(10px)}.campaign.complete .content{justify-content:end}.reveal h1{font-size:clamp(26px,7.6vw,34px);margin:10px 0 12px}.reveal .purchase{font-size:12px;margin-bottom:10px;padding:9px 0}.benefits{display:flex;flex-wrap:wrap;gap:5px 13px;font-size:10px}.benefits span:before{margin-right:4px}.claim{margin-top:9px;font-size:12px}.foot{font-size:9px;padding-top:14px}.campaign.complete .photo-label{top:auto;bottom:95px}.demo-tag{bottom:4px;left:9px;font-size:8px}}
+@media(max-width:400px) and (max-height:740px){.content{padding-top:23px}.intro h1{font-size:42px}.intro p{font-size:12px}.reveal{top:59px;padding:12px}.reveal h1{font-size:25px}.reveal .purchase{font-size:12px}.benefits{font-size:10px}.claim{font-size:11px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.001ms!important;animation-duration:.001ms!important}}
+</style>
+</head>
+<body>
+<div class="site-shell"><main class="campaign" id="campaign" aria-label="Experiencia interactiva de alumbrado LED en Villa Gesell">
+<button class="scene" id="scene" type="button" aria-label="Encender la luminaria LED para descubrir quién camina por la calle">
+<img class="dark-img" src="assets/escena-oscura.webp" alt="Una figura con capucha y un perro se acercan por una calle de arena, entre pinos, a la noche" draggable="false">
+<img class="lit-img" src="assets/escena-led.webp" alt="Una mujer de pelo largo pasea tranquila con su perro por una calle de arena bien iluminada" draggable="false">
+<span class="flash" aria-hidden="true"></span><span class="photo-label" id="photo-label">Luz tenue</span>
+<span class="scene-hint" aria-hidden="true"><span>VILLA GESELL · CALLE DE ARENA</span><b id="stage-name">ANTES</b></span>
+</button>
+<section class="panel" aria-live="polite"><div class="head">MUNICIPALIDAD DE VILLA GESELL</div><div class="content">
+<div class="intro" id="intro"><div><div class="kicker">Una experiencia para descubrir</div><h1>¿QUÉ <em>VES</em> EN ESTA IMAGEN?</h1></div><div><p>Cuando la luz no alcanza, las cosas no siempre son lo que parecen.</p>
+<button class="power-btn" type="button" id="turn-on">TOCÁ PARA ENCENDER LA LUZ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v9M6 5.5a8 8 0 1 0 12 0"/></svg></button></div></div>
+<div class="reveal" id="reveal"><div class="kicker">Ahora mirá bien</div><h1>NO ERA LO QUE PARECÍA. <em>FALTABA LUZ.</em></h1>
+<p class="purchase">La Municipalidad de Villa Gesell compró nuevas luminarias LED.</p>
+<div class="benefits"><span>Más potencia.</span><span>Más visibilidad.</span><span>Más seguridad.</span></div>
+<div class="claim">PARA QUE VEAS MEJOR.<br><b>UNA GESTIÓN QUE SE VE.</b></div></div>
+</div><div class="foot"><span>ALUMBRADO PÚBLICO · VILLA GESELL</span><button class="replay" id="replay" type="button">Volver a empezar ↻</button></div></section>
+<div class="demo-tag" aria-hidden="true">MAQUETA VISUAL · ESCENAS ILUSTRATIVAS</div></main></div>
+<script>
+const campaign=document.getElementById('campaign'),scene=document.getElementById('scene'),trigger=document.getElementById('turn-on'),replay=document.getElementById('replay'),label=document.getElementById('photo-label'),stage=document.getElementById('stage-name');
+let t=null;
+function turnOn(){if(campaign.classList.contains('lit'))return;campaign.classList.add('lit');label.textContent='Luz LED';stage.textContent='DESPUÉS';scene.setAttribute('aria-label','La luz deja ver a una mujer de pelo largo que pasea a su perro');t=setTimeout(()=>{campaign.classList.add('complete');replay.style.visibility='visible';scene.disabled=true;},1300)}
+function reset(){clearTimeout(t);campaign.classList.remove('lit','complete');label.textContent='Luz tenue';stage.textContent='ANTES';scene.disabled=false;scene.setAttribute('aria-label','Encender la luminaria LED para descubrir quién camina por la calle');replay.style.visibility='hidden';trigger.focus({preventScroll:true})}
+scene.addEventListener('click',turnOn);trigger.addEventListener('click',turnOn);replay.addEventListener('click',reset);
+</script></body></html>

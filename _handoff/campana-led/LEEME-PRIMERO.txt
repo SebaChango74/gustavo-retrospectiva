@@ -1,0 +1,31 @@
+CAMPAÑA «UNA GESTIÓN QUE SE VE» — VERSIÓN REVISADA
+MUNICIPALIDAD DE VILLA GESELL
+
+1. DEMOSTRACION-INTERACTIVA.html
+   Hacé doble clic para abrirla en Chrome/Edge, sin instalar nada. Tocá o hacé clic para encender y luego «Volver a empezar». Incluye las imágenes internamente.
+
+2. index.html + assets/
+   Misma experiencia con imágenes externas para integración en el sitio municipal. En desktop tiene panel doble; en celular, formato inmersivo.
+
+3. REEL-9x16.mp4
+   Maqueta de 11,4 segundos, formato 1080 × 1920, sin sonido. Lista para evaluar como Reel o Historia.
+
+4. referencias/
+   Incluye arte aprobado, escenas del Reel, storyboard y capturas de las interfaces.
+
+5. BRIEF-PARA-CLAUDE-CODE.md
+   Criterios para completar diseño y adaptación del sitio sin cambiar la idea aprobada.
+
+TEXTOS APROBADOS EN ESTOS ARCHIVOS:
+  ¿QUÉ VES EN ESTA IMAGEN?
+  TOCÁ PARA ENCENDER LA LUZ
+  NO ERA LO QUE PARECÍA. FALTABA LUZ.
+  La Municipalidad de Villa Gesell compró nuevas luminarias LED.
+  PARA QUE VEAS MEJOR. UNA GESTIÓN QUE SE VE.
+
+NOTAS:
+* Sin logos inventados.
+* No se anuncia ninguna cantidad porque no fue confirmada.
+* Las imágenes son recreaciones ilustrativas de estética geselina, no fotografías documentales ni ubicaciones verificadas.
+* La transición entre silueta acercándose y mujer alejándose es un montaje narrativo; la persona no se transforma literalmente.
+* Confirmar el texto de la compra y condiciones técnicas con el municipio antes de publicar.
