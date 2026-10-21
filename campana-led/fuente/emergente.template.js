@@ -39,7 +39,9 @@
     hasta: d.hasta || "",
     cada: isNaN(+d.cada) ? 7 : +d.cada,
     demora: isNaN(+d.demora) ? 1200 : +d.demora,
-    siempre: d.siempre === "1" || d.siempre === "true",
+    // Para probarlo en el sitio en línea sin esperar los 7 días: agregar
+    // ?emergente=1 a la dirección (p. ej. gustavobarrera.com/?emergente=1).
+    siempre: d.siempre === "1" || d.siempre === "true" || /[?&]emergente=1(&|$)/.test(location.search),
     audioSuspenso: d.audioSuspenso || "",
     audioAbierto: d.audioAbierto || "",
     clave: "emergente-gesell-led-visto"

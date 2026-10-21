@@ -64,6 +64,12 @@ genéricas, para probar la idea). Para usar pistas reales, basta subir dos
 archivos MP3/OGG y apuntarlos con `data-audio-suspenso` y
 `data-audio-abierto`; el fundido cruzado funciona igual.
 
+## Probar en el sitio ya instalado
+
+Agregar `?emergente=1` a la dirección (por ejemplo `https://www.sitio.gob.ar/?emergente=1`):
+se abre siempre, sin esperar los días de `data-cada` ni mirar la fecha. Sirve
+para revisarlo después de instalarlo sin molestar a nadie más.
+
 ## Probar sin instalar
 
 Abrir `demo.html` en un navegador: es una página anfitriona de mentira que
