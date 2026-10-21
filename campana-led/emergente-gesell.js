@@ -124,7 +124,7 @@
       var o = ctx.createOscillator(), g = ctx.createGain();
       o.type = tipo; o.frequency.value = hz; if (detune) o.detune.value = detune;
       g.gain.value = nivel; o.connect(g); g.connect(dest); o.start();
-      return { o: o, g: g };
+      return { o: o, g: g, base: hz };
     }
 
     // Suspenso: un bordón grave y oscuro, con una segunda menor que late, un
@@ -156,7 +156,11 @@
     }
 
     // Abierto: un colchón mayor y luminoso que se abre (el filtro sube con la
-    // luz) y un arpegio suave y ascendente.
+    // luz) y un arpegio suave y ascendente. Para que no sea reiterativo, cada
+    // 4 compases cambia de tonalidad: sube un tono, sube otro, baja uno y
+    // vuelve a la habitual (pedido de Gustavo).
+    var BLOQUES = [0, 2, 4, 2];          // semitonos de cada bloque de 4 compases
+    var PASOS_POR_BLOQUE = 16;           // 4 compases × 4 tiempos de arpegio
     function crearAbierto() {
       var salida = ctx.createGain(); salida.gain.value = 0;
       var filtro = ctx.createBiquadFilter(); filtro.type = "lowpass"; filtro.frequency.value = 700; filtro.Q.value = 0.5;
@@ -170,16 +174,34 @@
         osc("sine", 65.41, filtro, 0.12)
       ];
       var notas = [523.25, 659.25, 783.99, 1046.5, 783.99, 659.25], i = 0;
+      var bloque = 0, factor = 1;
+      // Lleva el colchón a la tonalidad del bloque con un deslizamiento corto.
+      function transportar(semitonos) {
+        factor = Math.pow(2, semitonos / 12);
+        var t = ctx.currentTime;
+        voces.forEach(function (v) {
+          v.o.frequency.cancelScheduledValues(t);
+          v.o.frequency.setValueAtTime(v.o.frequency.value, t);
+          v.o.frequency.exponentialRampToValueAtTime(v.base * factor, t + 0.35);
+        });
+      }
       var arpegio = setInterval(function () {
         if (!ctx) return;
+        if (i > 0 && i % PASOS_POR_BLOQUE === 0) {
+          bloque = (bloque + 1) % BLOQUES.length;
+          transportar(BLOQUES[bloque]);
+        }
         var t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain();
-        o.type = "sine"; o.frequency.value = notas[i++ % notas.length];
+        o.type = "sine"; o.frequency.value = notas[i++ % notas.length] * factor;
         g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.09, t + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
         o.connect(g); g.connect(salida); o.start(t); o.stop(t + 1);
       }, 420);
-      return { gain: salida, filtro: filtro, parar: function () {
-        clearInterval(arpegio); voces.forEach(function (v) { try { v.o.stop(); } catch (e) {} });
-      } };
+      return { gain: salida, filtro: filtro,
+        // Al encender la luz la música arranca desde la tonalidad habitual.
+        reiniciar: function () { i = 0; bloque = 0; transportar(0); },
+        parar: function () {
+          clearInterval(arpegio); voces.forEach(function (v) { try { v.o.stop(); } catch (e) {} });
+        } };
     }
 
     function arrancarSintesis(encendido) {
@@ -222,6 +244,7 @@
       encender: function () {
         if (!activo) return;
         if (pistas) { fundirPistas(pistas.suspenso, pistas.abierto); return; }
+        abierto.reiniciar();
         rampa(cama.gain, 0, FUNDIDO); rampa(abierto.gain, 1, FUNDIDO);
         var t = ctx.currentTime;
         abierto.filtro.frequency.cancelScheduledValues(t);

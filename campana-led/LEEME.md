@@ -55,7 +55,9 @@ Nada suena solo: los navegadores no lo permiten y además sería molesto. El
 parlante 🔊 (arriba a la derecha) activa el sonido a pedido. Mientras la
 escena está oscura suena un clima de suspenso; al encender la luz hace un
 fundido de 1,3 s hacia una música más abierta y luminosa, acompañando la
-transición. «Volver a empezar» vuelve al suspenso.
+transición. Esa música cambia de tonalidad cada 4 compases (sube, sube,
+baja y vuelve a la habitual) para no ser reiterativa. «Volver a empezar»
+vuelve al suspenso.
 
 Las dos músicas que vienen adentro **se generan en el navegador** (son
 genéricas, para probar la idea). Para usar pistas reales, basta subir dos
