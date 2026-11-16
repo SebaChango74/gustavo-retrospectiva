@@ -6,7 +6,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var escena = $("escena"), gustavo = $("gustavo"), chancho = $("chancho");
   var chanchoImg = $("chancho-img"), globo = $("chancho-globo"), cartel = $("cartel");
-  var nivel = $("medidor-nivel"), toca = $("toca"), porc = $("porcentaje"), discoNuevo = $("disco-nuevo");
+  var nivel = $("medidor-nivel"), toca = $("toca"), velo = $("velo"), porc = $("porcentaje"), discoNuevo = $("disco-nuevo");
   var poses = {};
   [].forEach.call(gustavo.querySelectorAll("img"), function (i) { poses[i.dataset.pose] = i; });
 
@@ -76,12 +76,18 @@
     alcancia();
   }
 
+  // Prende o apaga el llamado a tocar la alcancía.
+  function pedir(si) {
+    chancho.classList.toggle("pide", si);
+    velo.classList.toggle("ver", si);
+  }
+
   /* ───────── Flujo ───────── */
   function empezar() {
     limpiarTemporizadores();
     e = { intento: -1, p: 0, fondos: 1, sacadas: 0, fase: "espera", pose: null, chancho: null };
     [].forEach.call(document.querySelectorAll(".hueco"), function (h) { h.classList.remove("puesto"); h.textContent = ""; });
-    chancho.className = "";
+    chancho.className = ""; velo.classList.remove("ver");
     escena.dataset.pantalla = "juego";
     pose("listo");
     alcancia();
@@ -93,7 +99,7 @@
     var n = e.intento, c = INTENTOS[n];
     e.fase = "espera"; e.p = 0; e.tope = c.base; e.monedas = 0; e.pidio = false;
     e.toquesVacio = 0; e.toques = 0;
-    callar(); toca.classList.remove("ver"); chancho.classList.remove("pide");
+    callar(); toca.classList.remove("ver"); pedir(false);
     $("intento-txt").textContent = "Intento " + (n + 1) + " de 3";
     [].forEach.call(document.querySelectorAll(".punto"), function (p, i) {
       p.className = "punto" + (i < n ? " hecho" : i === n ? " actual" : "");
@@ -118,6 +124,12 @@
     var c = INTENTOS[e.intento];
     e.toques++;
     if (e.toques === 3) toca.classList.remove("ver");
+    // Trabado y con plata por sacar: tocar la pantalla no sirve, hay que ir a la alcancía.
+    if (e.pidio && e.monedas < c.monedas && e.p >= e.tope - 0.001) {
+      chancho.classList.remove("llama"); void chancho.offsetWidth; chancho.classList.add("llama");
+      son.vacio();
+      return;
+    }
     e.p = Math.min(e.tope, e.p + c.suba);
     son.toque();
     gustavo.classList.remove("golpe"); void gustavo.offsetWidth; gustavo.classList.add("golpe");
@@ -129,9 +141,9 @@
     // La fuerza sola no alcanza: hay que ir a la alcancía.
     if (enTope && !e.pidio) {
       e.pidio = true;
-      chancho.classList.add("pide");
-      decir(e.intento === 2 ? "¡No se mueve!<small>Sacá plata de la alcancía</small>"
-        : "¡No alcanza!<small>Sacá plata de la alcancía</small>", "alerta");
+      pedir(true);
+      decir(e.intento === 2 ? "¡No se mueve!<small>👆 Tocá la alcancía para sacar plata</small>"
+        : "¡No alcanza!<small>👆 Tocá la alcancía para sacar plata</small>", "alerta");
       // En el último intento no hay de dónde sacar: se termina solo.
       if (e.intento === 2) luego(5500, cierre);
     }
@@ -154,7 +166,7 @@
         $("calendario").classList.remove("late"); void $("calendario").offsetWidth; $("calendario").classList.add("late");
       }
       if (e.monedas === c.monedas) {
-        chancho.classList.remove("pide");
+        pedir(false);
         decir(e.intento === 0 ? "Lo que queda es para Salud y Obras<small>¡Seguí tocando para levantar!</small>"
           : "Se vació la alcancía<small>¡Seguí tocando para levantar!</small>", "alerta");
         toca.classList.add("ver"); luego(1200, function () { toca.classList.remove("ver"); });
@@ -198,7 +210,7 @@
     if (e.fase !== "juego") return;
     var c = INTENTOS[e.intento], pct = Math.round(c.max * 100);
     e.fase = "cierre"; e.p = c.max;
-    chancho.classList.remove("pide"); toca.classList.remove("ver");
+    pedir(false); toca.classList.remove("ver");
     dibujar(); son.vacio();
     document.querySelector('.hueco[data-disco="' + c.disco + '"]').textContent = pct + "%";
     decir(c.corto + ": solo al " + pct + "%<small>Hasta ahí llegó la plata</small>", "alerta");
@@ -209,7 +221,7 @@
     if (e.fase === "final") return;
     limpiarTemporizadores();
     e.fase = "final"; e.p = 0;
-    callar(); toca.classList.remove("ver"); chancho.classList.remove("pide");
+    callar(); toca.classList.remove("ver"); pedir(false);
     gustavo.classList.remove("tiembla");
     son.final();
     escena.dataset.pantalla = "final";

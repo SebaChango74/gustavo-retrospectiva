@@ -60,18 +60,27 @@ img { display: block; -webkit-user-drag: none; }
 #intento-txt { font-weight: 800; font-size: 2.4vh; text-shadow: 0 .2vh 0 #0006; flex: 1; }
 #sonido { font-size: 2.6vh; padding: .5vh; }
 
+/* Cuando hay que ir a la alcancía, se oscurece todo lo demás. */
+#velo {
+  position: absolute; inset: 0; background: #14275c; opacity: 0; z-index: 2;
+  pointer-events: none; transition: opacity .25s;
+}
+#velo.ver { opacity: .62; }
 #tablero {
-  position: absolute; top: 7.5%; left: 3%; right: 3%;
+  position: absolute; top: 7.5%; left: 3%; right: 3%; z-index: 3;
   display: flex; align-items: flex-start; justify-content: space-between;
 }
 #chancho { position: relative; width: 44%; transition: transform .1s; }
 #chancho img { width: 100%; filter: drop-shadow(0 .6vh .5vh #0005); }
-#chancho.pide { animation: latido .7s ease-in-out infinite; }
+#chancho.pide { animation: latido .6s ease-in-out infinite; }
+#chancho.pide img { filter: drop-shadow(0 0 1.6vh var(--amarillo)) drop-shadow(0 0 .5vh #fff); }
 #chancho.pide::after {
-  content: "👆 TOCÁ"; position: absolute; left: 50%; bottom: -3.4vh; transform: translateX(-50%);
-  background: var(--amarillo); color: var(--azul-oscuro); font-weight: 800; font-size: 2.1vh;
-  padding: 0 1.4vh; border-radius: 2vh; white-space: nowrap; box-shadow: 0 .4vh 0 #0004;
+  content: "👆 TOCÁ ACÁ"; position: absolute; left: 50%; bottom: -4.6vh; transform: translateX(-50%);
+  background: var(--amarillo); color: var(--azul-oscuro); font-weight: 800; font-size: 3vh; line-height: 1.35;
+  padding: 0 1.8vh; border-radius: 2.4vh; white-space: nowrap; box-shadow: 0 .5vh 0 #0005;
+  animation: salta .6s ease-in-out infinite;
 }
+#chancho.llama { animation: llama .4s; }
 #chancho.sacude { animation: sacude .35s; }
 #chancho-globo {
   position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%) scale(0);
@@ -90,7 +99,7 @@ img { display: block; -webkit-user-drag: none; }
 #calendario.late img { animation: latido .7s ease-in-out 3; }
 
 #cartel {
-  position: absolute; top: 26.5%; left: 5%; right: 5%; z-index: 4;
+  position: absolute; top: 28.5%; left: 5%; right: 5%; z-index: 4;
   text-align: center; font-weight: 800; font-size: 3vh; line-height: 1.12;
   background: #fffffff2; color: var(--azul-oscuro);
   border-radius: 2.2vh; padding: 1.1vh 1.6vh; box-shadow: 0 .6vh 0 #0003;
@@ -230,6 +239,8 @@ img { display: block; -webkit-user-drag: none; }
   background: #ffffff1c; border-radius: 2vh; padding: 1.3vh 1.6vh; margin-bottom: .6vh;
 }
 
+@keyframes salta { 50% { transform: translateX(-50%) translateY(-.9vh); } }
+@keyframes llama { 30% { transform: scale(1.22) rotate(-6deg); } 65% { transform: scale(1.22) rotate(6deg); } }
 @keyframes latido { 50% { transform: scale(1.07); } }
 @keyframes respira { 50% { transform: translateY(-.8vh); } }
 @keyframes aparece { from { opacity: 0; } }
