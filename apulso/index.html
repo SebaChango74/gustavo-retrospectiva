@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#1f3f8f">
+<title>A pulso — ¿Podés levantar la ciudad?</title>
+<meta name="description" content="Ayudá a Gustavo a levantar la ciudad. Tenés tres intentos.">
+<meta property="og:title" content="A pulso — ¿Podés levantar la ciudad?">
+<meta property="og:description" content="Ayudá a Gustavo a levantar la ciudad. Tenés tres intentos.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://gustavobarrera.com/apulso/img/compartir.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+<main id="escena" data-pantalla="inicio">
+  <div id="fondo"></div>
+
+  <!-- ───────── Juego ───────── -->
+  <section id="juego" aria-live="polite">
+    <header id="arriba">
+      <div id="intentos" aria-label="Intentos">
+        <span class="punto"></span><span class="punto"></span><span class="punto"></span>
+      </div>
+      <div id="intento-txt">Intento 1 de 3</div>
+      <button id="sonido" type="button" aria-label="Sonido">🔊</button>
+    </header>
+
+    <div id="tablero">
+      <button id="chancho" type="button" aria-label="Alcancía Presupuesto 2024">
+        <img id="chancho-img" src="img/chancho-lleno.webp" alt="" draggable="false">
+        <span id="chancho-globo"></span>
+      </button>
+      <div id="calendario">
+        <span>Hoy</span>
+        <img src="img/calendario.webp" alt="2026" draggable="false">
+      </div>
+    </div>
+
+    <div id="cartel"></div>
+
+    <div id="porcentaje" aria-hidden="true">0%</div>
+    <div id="medidor" aria-hidden="true"><div id="medidor-nivel"></div><span>▲</span></div>
+
+    <div id="gustavo">
+      <img data-pose="listo" src="img/listo.webp" alt="" draggable="false">
+      <img data-pose="esfuerzo-piso" src="img/esfuerzo-piso.webp" alt="" draggable="false">
+      <img data-pose="pecho" src="img/pecho.webp" alt="" draggable="false">
+      <img data-pose="esfuerzo-pecho" src="img/esfuerzo-pecho.webp" alt="" draggable="false">
+    </div>
+
+    <div id="carga">
+      <span class="carga-rotulo">Carga</span>
+      <span class="hueco" data-disco="seguridad"></span>
+      <span class="hueco" data-disco="salud"></span>
+      <span class="hueco" data-disco="obras"></span>
+    </div>
+
+    <div id="toca">¡TOCÁ RÁPIDO!</div>
+    <div id="disco-nuevo"><img alt="" draggable="false"><b></b></div>
+  </section>
+
+  <!-- ───────── Inicio ───────── -->
+  <section id="inicio" class="panel">
+    <h1>A PULSO</h1>
+    <p class="bajada">¿Podés ayudar a Gustavo<br>a levantar la ciudad?</p>
+    <img class="inicio-gus" src="img/pecho.webp" alt="" draggable="false">
+    <p class="como">Tocá la pantalla muchas veces, bien rápido, para levantar la barra.<br><b>Tenés 3 intentos.</b></p>
+    <button id="jugar" type="button" class="boton">JUGAR</button>
+  </section>
+
+  <!-- ───────── Final ───────── -->
+  <section id="final" class="panel">
+    <img class="final-gus" src="img/esfuerzo-piso.webp" alt="" draggable="false">
+    <h2>SIN PRESUPUESTO MUNICIPAL<br><em>NO HAY MUNICIPIO</em></h2>
+    <p class="explica">Estamos en <b>2026</b> y la ciudad se sostiene con el <b>Presupuesto 2024</b>. Por más fuerza que se haga, no alcanza para cubrir nada.</p>
+    <div class="resumen">
+      <span><img src="img/disco-seguridad.webp" alt="Seguridad"><b>50%</b></span>
+      <span><img src="img/disco-salud.webp" alt="Salud"><b>30%</b></span>
+      <span><img src="img/disco-obras.webp" alt="Obras y servicios"><b>10%</b></span>
+    </div>
+    <p class="pedido">Ayudanos enviando este juego para que los concejales de <b>La Libertad Avanza</b> y la <b>UCR</b> lo entiendan.</p>
+    <a id="whatsapp" class="boton verde" target="_blank" rel="noopener">Enviar por WhatsApp</a>
+    <div class="fila">
+      <button id="copiar" type="button" class="boton chico claro">Copiar link</button>
+      <button id="otra" type="button" class="boton chico claro">Jugar de nuevo</button>
+    </div>
+  </section>
+</main>
+<script src="juego.js"></script>
+</body>
+</html>
