@@ -41,7 +41,7 @@ img { display: block; -webkit-user-drag: none; }
 /* ───────── Juego ───────── */
 #juego { position: absolute; inset: 0; }
 #escena[data-pantalla="inicio"] #juego > *:not(#gustavo),
-#escena[data-pantalla="final"] #juego > *:not(#gustavo) { visibility: hidden; }
+#escena[data-pantalla^="final"] #juego > * { visibility: hidden; }
 #escena[data-pantalla="inicio"] #gustavo { visibility: hidden; }
 
 #arriba {
@@ -60,19 +60,38 @@ img { display: block; -webkit-user-drag: none; }
 #intento-txt { font-weight: 800; font-size: 2.4vh; text-shadow: 0 .2vh 0 #0006; flex: 1; }
 #sonido { font-size: 2.6vh; padding: .5vh; }
 
+/* Cuando hay que ir a la alcancía, se oscurece todo lo demás. */
+#velo {
+  position: absolute; inset: 0; background: #14275c; opacity: 0; z-index: 2;
+  pointer-events: none; transition: opacity .25s;
+}
+#velo.ver { opacity: .62; }
 #tablero {
-  position: absolute; top: 7.5%; left: 3%; right: 3%;
+  position: absolute; top: 7.5%; left: 3%; right: 3%; z-index: 3;
   display: flex; align-items: flex-start; justify-content: space-between;
 }
 #chancho { position: relative; width: 44%; transition: transform .1s; }
 #chancho img { width: 100%; filter: drop-shadow(0 .6vh .5vh #0005); }
-#chancho.pide { animation: latido .7s ease-in-out infinite; }
+#chancho.pide { animation: latido .6s ease-in-out infinite; }
+#chancho.pide img { filter: drop-shadow(0 0 1.6vh var(--amarillo)) drop-shadow(0 0 .5vh #fff); }
 #chancho.pide::after {
-  content: "👆 TOCÁ"; position: absolute; left: 50%; bottom: -3.4vh; transform: translateX(-50%);
-  background: var(--amarillo); color: var(--azul-oscuro); font-weight: 800; font-size: 2.1vh;
-  padding: 0 1.4vh; border-radius: 2vh; white-space: nowrap; box-shadow: 0 .4vh 0 #0004;
+  content: "👆 TOCÁ ACÁ"; position: absolute; left: 50%; bottom: -4.6vh; transform: translateX(-50%);
+  background: var(--amarillo); color: var(--azul-oscuro); font-weight: 800; font-size: 3vh; line-height: 1.35;
+  padding: 0 1.8vh; border-radius: 2.4vh; white-space: nowrap; box-shadow: 0 .5vh 0 #0005;
+  animation: salta .6s ease-in-out infinite;
 }
+#chancho.llama { animation: llama .4s; }
 #chancho.sacude { animation: sacude .35s; }
+/* Nivel 2: la placa de la alcancía pasa a decir 2026. */
+#placa-2026 {
+  display: none; position: absolute; left: 29%; top: 49.5%; width: 52%; height: 29%;
+  flex-direction: column; align-items: center; justify-content: center;
+  background: #1c3c96; border: .45vh solid #f4b62a; border-radius: 1.3vh;
+  box-shadow: 0 .3vh 0 #8a5a00; color: #ffd23c; font-weight: 800; font-size: 3.4vh; line-height: .82;
+  text-shadow: 0 .2vh 0 #0b1c52; pointer-events: none;
+}
+#placa-2026 i { font-style: normal; color: #fff; font-size: 1.75vh; line-height: 1.1; }
+#escena[data-nivel="1"] #placa-2026 { display: flex; }
 #chancho-globo {
   position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%) scale(0);
   background: #fff; color: var(--rojo); font-weight: 800; font-size: 2.6vh;
@@ -90,7 +109,7 @@ img { display: block; -webkit-user-drag: none; }
 #calendario.late img { animation: latido .7s ease-in-out 3; }
 
 #cartel {
-  position: absolute; top: 26.5%; left: 5%; right: 5%; z-index: 4;
+  position: absolute; top: 28.5%; left: 5%; right: 5%; z-index: 4;
   text-align: center; font-weight: 800; font-size: 3vh; line-height: 1.12;
   background: #fffffff2; color: var(--azul-oscuro);
   border-radius: 2.2vh; padding: 1.1vh 1.6vh; box-shadow: 0 .6vh 0 #0003;
@@ -188,7 +207,8 @@ img { display: block; -webkit-user-drag: none; }
   padding: calc(env(safe-area-inset-top, 0px) + 3vh) 6% calc(env(safe-area-inset-bottom, 0px) + 3vh);
 }
 #escena[data-pantalla="inicio"] #inicio,
-#escena[data-pantalla="final"] #final { display: flex; }
+#escena[data-pantalla="final"] #final,
+#escena[data-pantalla="final2"] #final2 { display: flex; }
 
 #inicio { background: linear-gradient(#14275cee 0%, #14275c88 38%, #14275c00 60%, #14275ccc 100%); justify-content: space-between; }
 #inicio h1 {
@@ -210,15 +230,20 @@ img { display: block; -webkit-user-drag: none; }
 .boton.verde { background: #25d366; color: #fff; box-shadow: 0 .8vh 0 #128c3f, 0 1.4vh 2vh #0006; }
 .boton.chico { font-size: 2.3vh; padding: 1.3vh 1vh 1.1vh; box-shadow: 0 .5vh 0 #0005; }
 .boton.claro { background: #fff; }
-.fila { display: flex; gap: 2vh; width: 100%; max-width: 42vh; margin-top: 2vh; }
+.fila { display: flex; gap: 2vh; width: 100%; max-width: 42vh; margin-top: 1vh; }
 
-#final {
+#final, #final2 {
   background: linear-gradient(#14275cf7 0%, #14275cf2 70%, #14275ccc 100%);
-  justify-content: center; gap: 1.6vh; animation: aparece .6s;
+  justify-content: center; gap: 1.4vh; animation: aparece .6s;
 }
-.final-gus { height: 19vh; height: 19dvh; animation: tiembla .12s linear infinite; margin-bottom: .5vh; }
-#final h2 { font-size: 4.3vh; line-height: 1; font-weight: 800; }
-#final h2 em { font-style: normal; color: var(--amarillo); font-size: 5.6vh; }
+#final2 { background: linear-gradient(#0f6b3af5 0%, #14275cf0 55%, #14275ccc 100%); }
+#final2 .final-gus { height: 27vh; height: 27dvh; }
+#final2 .resumen b { color: #7dffa9; }
+#nivel2 { font-size: 2.6vh; white-space: nowrap; animation: latido 1s ease-in-out infinite; }
+.final-gus.quieto { animation: respira 1.6s ease-in-out infinite; }
+.final-gus { height: 14vh; height: 14dvh; animation: tiembla .12s linear infinite; margin-bottom: .5vh; }
+.panel h2 { font-size: 3.9vh; line-height: 1; font-weight: 800; }
+.panel h2 em { font-style: normal; color: var(--amarillo); font-size: 5.1vh; }
 .explica { font-size: 2.35vh; line-height: 1.2; font-weight: 600; }
 .explica b { color: var(--amarillo); }
 .resumen { display: flex; gap: 3vh; justify-content: center; }
@@ -227,9 +252,11 @@ img { display: block; -webkit-user-drag: none; }
 .resumen b { display: block; font-size: 3.2vh; line-height: 1; color: var(--amarillo); margin-top: .3vh; }
 .pedido {
   font-size: 2.45vh; line-height: 1.2; font-weight: 700;
-  background: #ffffff1c; border-radius: 2vh; padding: 1.3vh 1.6vh; margin-bottom: .6vh;
+  background: #ffffff1c; border-radius: 2vh; padding: 1.1vh 1.6vh; margin: .4vh 0;
 }
 
+@keyframes salta { 50% { transform: translateX(-50%) translateY(-.9vh); } }
+@keyframes llama { 30% { transform: scale(1.22) rotate(-6deg); } 65% { transform: scale(1.22) rotate(6deg); } }
 @keyframes latido { 50% { transform: scale(1.07); } }
 @keyframes respira { 50% { transform: translateY(-.8vh); } }
 @keyframes aparece { from { opacity: 0; } }

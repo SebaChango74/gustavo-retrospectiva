@@ -1,12 +1,13 @@
-/* A pulso — juego de tres intentos que no se puede ganar.
-   La alcancía es el Presupuesto 2024; la carga se paga a precios de 2026. */
+/* A pulso — dos niveles de tres intentos.
+   Nivel 1: la alcancía es el Presupuesto 2024 y la carga se paga a precios de
+   2026; no se puede ganar. Nivel 2: con el Presupuesto 2026 cuesta, pero se llega. */
 (function () {
   "use strict";
 
   var $ = function (id) { return document.getElementById(id); };
   var escena = $("escena"), gustavo = $("gustavo"), chancho = $("chancho");
   var chanchoImg = $("chancho-img"), globo = $("chancho-globo"), cartel = $("cartel");
-  var nivel = $("medidor-nivel"), toca = $("toca"), porc = $("porcentaje"), discoNuevo = $("disco-nuevo");
+  var nivel = $("medidor-nivel"), toca = $("toca"), velo = $("velo"), porc = $("porcentaje"), discoNuevo = $("disco-nuevo");
   var poses = {};
   [].forEach.call(gustavo.querySelectorAll("img"), function (i) { poses[i.dataset.pose] = i; });
 
@@ -14,12 +15,20 @@
      suba: cuánto sube la barra por toque · baja: cuánto cae por segundo
      base: hasta dónde llega la fuerza sola · max: hasta dónde llega con la plata
      monedas: cuántas se pueden sacar de la alcancía en ese intento */
-  var INTENTOS = [
+  var SIN_PRESUPUESTO = [
     { disco: "seguridad", nombre: "SEGURIDAD", corto: "Seguridad", suba: 0.045, baja: 0.1, base: 0.2, max: 0.5, monedas: 3 },
     { disco: "salud", nombre: "SALUD", corto: "Salud", suba: 0.035, baja: 0.09, base: 0.12, max: 0.3, monedas: 3 },
     { disco: "obras", nombre: "OBRAS Y SERVICIOS", corto: "Obras y servicios", suba: 0.025, baja: 0.06, base: 0.1, max: 0.1, monedas: 0 },
   ];
-  // Cada moneda que sale de la alcancía es más chica que la anterior.
+  // Nivel 2: con el presupuesto del año, cada área llega arriba con esfuerzo.
+  var CON_PRESUPUESTO = [
+    { disco: "seguridad", nombre: "SEGURIDAD", corto: "Seguridad", suba: 0.05, baja: 0.12, base: 0.3, max: 1, monedas: 3 },
+    { disco: "salud", nombre: "SALUD", corto: "Salud", suba: 0.045, baja: 0.12, base: 0.3, max: 1, monedas: 3 },
+    { disco: "obras", nombre: "OBRAS Y SERVICIOS", corto: "Obras y servicios", suba: 0.04, baja: 0.12, base: 0.3, max: 1, monedas: 3 },
+  ];
+  var NIVELES = [SIN_PRESUPUESTO, CON_PRESUPUESTO];
+  function cfg() { return NIVELES[e.nivel][e.intento]; }
+  // Nivel 1: cada moneda que sale de la alcancía es más chica que la anterior.
   var TAMANOS = [1, 0.85, 0.7, 0.55, 0.42, 0.3];
 
   var e = {}; // estado
@@ -48,6 +57,7 @@
     moneda: function (i) { tono(1300 - i * 150, 0.09, "square", 0.04); luego(70, function () { tono(1750 - i * 200, 0.14, "square", 0.04); }); },
         vacio: function () { tono(140, 0.22, "sawtooth", 0.06, 70); },
     disco: function () { tono(90, 0.3, "sine", 0.2, 45); },
+    logro: function () { [523, 659, 784, 1047].forEach(function (f, i) { luego(i * 90, function () { tono(f, 0.18, "triangle", 0.09); }); }); },
     final: function () { [392, 330, 262, 196].forEach(function (f, i) { luego(i * 220, function () { tono(f, 0.4, "triangle", 0.09); }); }); },
   };
 
@@ -67,22 +77,30 @@
     if (e.chancho !== img) { e.chancho = img; chanchoImg.src = "img/chancho-" + img + ".webp"; }
   }
   function dibujar() {
-    var esfuerzo = e.intento > 0 || e.pidio;
-    if (e.p < 0.28) pose(esfuerzo && e.p > 0.03 ? "esfuerzo-piso" : "listo");
+    var esfuerzo = e.nivel ? e.pidio || e.p > 0.5 : e.intento > 0 || e.pidio;
+    if (e.fase === "logro") pose("arriba");
+    else if (e.p < 0.28) pose(esfuerzo && e.p > 0.03 ? "esfuerzo-piso" : "listo");
     else pose(esfuerzo ? "esfuerzo-pecho" : "pecho");
     nivel.style.height = Math.round(e.p * 100) + "%";
     porc.textContent = Math.round(e.p * 100) + "%";
-    gustavo.classList.toggle("tiembla", e.fase !== "espera" && e.p > 0.03 && esfuerzo);
+    gustavo.classList.toggle("tiembla", e.fase !== "espera" && e.fase !== "logro" && e.p > 0.03 && esfuerzo);
     alcancia();
   }
 
+  // Prende o apaga el llamado a tocar la alcancía.
+  function pedir(si) {
+    chancho.classList.toggle("pide", si);
+    velo.classList.toggle("ver", si);
+  }
+
   /* ───────── Flujo ───────── */
-  function empezar() {
+  function empezar(nivel) {
     limpiarTemporizadores();
-    e = { intento: -1, p: 0, fondos: 1, sacadas: 0, fase: "espera", pose: null, chancho: null };
+    e = { nivel: nivel === 1 ? 1 : 0, intento: -1, p: 0, fondos: 1, sacadas: 0, fase: "espera", pose: null, chancho: null };
     [].forEach.call(document.querySelectorAll(".hueco"), function (h) { h.classList.remove("puesto"); h.textContent = ""; });
-    chancho.className = "";
+    chancho.className = ""; velo.classList.remove("ver");
     escena.dataset.pantalla = "juego";
+    escena.dataset.nivel = e.nivel;
     pose("listo");
     alcancia();
     siguienteIntento();
@@ -90,11 +108,11 @@
 
   function siguienteIntento() {
     e.intento++;
-    var n = e.intento, c = INTENTOS[n];
+    var n = e.intento, c = cfg();
     e.fase = "espera"; e.p = 0; e.tope = c.base; e.monedas = 0; e.pidio = false;
     e.toquesVacio = 0; e.toques = 0;
-    callar(); toca.classList.remove("ver"); chancho.classList.remove("pide");
-    $("intento-txt").textContent = "Intento " + (n + 1) + " de 3";
+    callar(); toca.classList.remove("ver"); pedir(false);
+    $("intento-txt").textContent = (e.nivel ? "Con presupuesto · " : "Intento ") + (n + 1) + " de 3";
     [].forEach.call(document.querySelectorAll(".punto"), function (p, i) {
       p.className = "punto" + (i < n ? " hecho" : i === n ? " actual" : "");
     });
@@ -115,9 +133,15 @@
 
   function toque() {
     if (e.fase !== "juego") return;
-    var c = INTENTOS[e.intento];
+    var c = cfg();
     e.toques++;
     if (e.toques === 3) toca.classList.remove("ver");
+    // Trabado y con plata por sacar: tocar la pantalla no sirve, hay que ir a la alcancía.
+    if (e.pidio && e.monedas < c.monedas && e.p >= e.tope - 0.001) {
+      chancho.classList.remove("llama"); void chancho.offsetWidth; chancho.classList.add("llama");
+      son.vacio();
+      return;
+    }
     e.p = Math.min(e.tope, e.p + c.suba);
     son.toque();
     gustavo.classList.remove("golpe"); void gustavo.offsetWidth; gustavo.classList.add("golpe");
@@ -129,11 +153,12 @@
     // La fuerza sola no alcanza: hay que ir a la alcancía.
     if (enTope && !e.pidio) {
       e.pidio = true;
-      chancho.classList.add("pide");
-      decir(e.intento === 2 ? "¡No se mueve!<small>Sacá plata de la alcancía</small>"
-        : "¡No alcanza!<small>Sacá plata de la alcancía</small>", "alerta");
-      // En el último intento no hay de dónde sacar: se termina solo.
-      if (e.intento === 2) luego(5500, cierre);
+      pedir(true);
+      if (e.nivel) decir("¡Cuesta!<small>👆 Tocá la alcancía para sacar plata</small>", "alerta");
+      else decir(e.intento === 2 ? "¡No se mueve!<small>👆 Tocá la alcancía para sacar plata</small>"
+        : "¡No alcanza!<small>👆 Tocá la alcancía para sacar plata</small>", "alerta");
+      // En el último intento sin presupuesto no hay de dónde sacar: se termina solo.
+      if (!e.nivel && e.intento === 2) luego(5500, cierre);
     }
     dibujar();
   }
@@ -141,21 +166,23 @@
   function tocarChancho(ev) {
     ev.stopPropagation();
     if (e.fase !== "juego" || !e.pidio) return toque();
-    var c = INTENTOS[e.intento];
+    var c = cfg();
 
     if (e.monedas < c.monedas) {
       e.tope = Math.min(c.max, e.tope + (c.max - c.base) / c.monedas + 0.0001);
-      lanzarMoneda(TAMANOS[e.sacadas]);
-      son.moneda(e.sacadas);
+      lanzarMoneda(e.nivel ? 1 : TAMANOS[e.sacadas]);
+      son.moneda(e.nivel ? 0 : e.sacadas);
       e.monedas++; e.sacadas++;
-      e.fondos = 1 - e.sacadas / 6;
+      e.fondos = e.nivel ? 1 - e.sacadas * 0.06 : 1 - e.sacadas / 6;
       if (e.monedas === 2) {
-        decir("Son pesos de 2024…<small>y hoy todo cuesta precios de 2026</small>", "alerta");
+        if (e.nivel) decir("Pesos de 2026<small>para precios de 2026</small>", "bien");
+        else decir("Son pesos de 2024…<small>y hoy todo cuesta precios de 2026</small>", "alerta");
         $("calendario").classList.remove("late"); void $("calendario").offsetWidth; $("calendario").classList.add("late");
       }
       if (e.monedas === c.monedas) {
-        chancho.classList.remove("pide");
-        decir(e.intento === 0 ? "Lo que queda es para Salud y Obras<small>¡Seguí tocando para levantar!</small>"
+        pedir(false);
+        if (e.nivel) decir("¡Ahora sí alcanza!<small>¡Seguí tocando para levantar!</small>", "bien");
+        else decir(e.intento === 0 ? "Lo que queda es para Salud y Obras<small>¡Seguí tocando para levantar!</small>"
           : "Se vació la alcancía<small>¡Seguí tocando para levantar!</small>", "alerta");
         toca.classList.add("ver"); luego(1200, function () { toca.classList.remove("ver"); });
       }
@@ -165,10 +192,10 @@
 
     // No se puede sacar más.
     chancho.classList.remove("sacude"); void chancho.offsetWidth; chancho.classList.add("sacude");
-    globo.textContent = e.fondos > 0.05 ? "¡NO ALCANZA!" : "¡VACÍA!";
+    globo.textContent = e.nivel ? "¡A LEVANTAR!" : e.fondos > 0.05 ? "¡NO ALCANZA!" : "¡VACÍA!";
     globo.classList.remove("ver"); void globo.offsetWidth; globo.classList.add("ver");
     son.vacio();
-    if (e.intento === 2) {
+    if (!e.nivel && e.intento === 2) {
       e.toquesVacio++;
       if (e.toquesVacio === 1) decir("No queda nada<small>El Presupuesto 2024 ya se gastó</small>", "alerta");
       if (e.toquesVacio >= 3) luego(500, cierre);
@@ -193,15 +220,21 @@
     setTimeout(function () { m.remove(); }, 650);
   }
 
-  // Fin de un intento: nunca se llega arriba, queda anotado hasta dónde.
+  // Fin de un intento. Sin presupuesto queda a mitad de camino; con presupuesto llega arriba.
   function cierre() {
     if (e.fase !== "juego") return;
-    var c = INTENTOS[e.intento], pct = Math.round(c.max * 100);
-    e.fase = "cierre"; e.p = c.max;
-    chancho.classList.remove("pide"); toca.classList.remove("ver");
-    dibujar(); son.vacio();
+    var c = cfg(), pct = Math.round(c.max * 100);
+    e.fase = e.nivel ? "logro" : "cierre"; e.p = c.max;
+    pedir(false); toca.classList.remove("ver");
+    dibujar();
     document.querySelector('.hueco[data-disco="' + c.disco + '"]').textContent = pct + "%";
-    decir(c.corto + ": solo al " + pct + "%<small>Hasta ahí llegó la plata</small>", "alerta");
+    if (e.nivel) {
+      son.logro();
+      decir("¡" + c.corto + " al 100%!<small>Costó, pero se llegó</small>", "bien");
+    } else {
+      son.vacio();
+      decir(c.corto + ": solo al " + pct + "%<small>Hasta ahí llegó la plata</small>", "alerta");
+    }
     luego(2400, e.intento === 2 ? terminar : siguienteIntento);
   }
 
@@ -209,10 +242,10 @@
     if (e.fase === "final") return;
     limpiarTemporizadores();
     e.fase = "final"; e.p = 0;
-    callar(); toca.classList.remove("ver"); chancho.classList.remove("pide");
+    callar(); toca.classList.remove("ver"); pedir(false);
     gustavo.classList.remove("tiembla");
-    son.final();
-    escena.dataset.pantalla = "final";
+    if (e.nivel) son.logro(); else son.final();
+    escena.dataset.pantalla = e.nivel ? "final2" : "final";
   }
 
   // La barra cae sola si se deja de tocar.
@@ -220,7 +253,7 @@
   function cuadro(ahora) {
     var dt = Math.min(0.1, (ahora - antes) / 1000); antes = ahora;
     if (e.fase === "juego" && e.p > 0) {
-      e.p = Math.max(0, e.p - INTENTOS[e.intento].baja * dt);
+      e.p = Math.max(0, e.p - cfg().baja * dt);
       dibujar();
     }
     requestAnimationFrame(cuadro);
@@ -230,20 +263,27 @@
   /* ───────── Compartir ───────── */
   var enlace = location.origin + location.pathname;
   var mensaje = "Probá levantar la ciudad en 3 intentos 💪 " + enlace;
-  $("whatsapp").href = "https://wa.me/?text=" + encodeURIComponent(mensaje);
-  $("copiar").addEventListener("click", function () {
-    var boton = this, listo = function () {
-      boton.textContent = "¡Copiado!";
-      setTimeout(function () { boton.textContent = "Copiar link"; }, 1800);
-    };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(enlace).then(listo, function () { prompt("Copiá el link:", enlace); });
-    } else { prompt("Copiá el link:", enlace); }
+  [].forEach.call(document.querySelectorAll(".js-whatsapp"), function (a) {
+    a.href = "https://wa.me/?text=" + encodeURIComponent(mensaje);
+  });
+  [].forEach.call(document.querySelectorAll(".js-copiar"), function (boton) {
+    boton.addEventListener("click", function () {
+      var listo = function () {
+        boton.textContent = "¡Copiado!";
+        setTimeout(function () { boton.textContent = "Copiar link"; }, 1800);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(enlace).then(listo, function () { prompt("Copiá el link:", enlace); });
+      } else { prompt("Copiá el link:", enlace); }
+    });
   });
 
   /* ───────── Entradas ───────── */
-  $("jugar").addEventListener("click", empezar);
-  $("otra").addEventListener("click", empezar);
+  $("jugar").addEventListener("click", function () { empezar(0); });
+  $("nivel2").addEventListener("click", function () { empezar(1); });
+  [].forEach.call(document.querySelectorAll(".js-otra"), function (b) {
+    b.addEventListener("click", function () { empezar(0); });
+  });
   chancho.addEventListener("pointerdown", tocarChancho);
   $("sonido").addEventListener("pointerdown", function (ev) {
     ev.stopPropagation(); mudo = !mudo; this.textContent = mudo ? "🔇" : "🔊";
