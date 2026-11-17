@@ -1,6 +1,6 @@
 /* A pulso — dos niveles de tres intentos.
-   Nivel 1: la alcancía es el Presupuesto 2024 y la carga se paga a precios de
-   2026; no se puede ganar. Nivel 2: con el Presupuesto 2026 cuesta, pero se llega. */
+   Nivel 1: la alcancía es el Presupuesto 2025 y la carga se paga a precios de
+   2027; no se puede ganar. Nivel 2: con el Presupuesto 2027 cuesta, pero se llega. */
 (function () {
   "use strict";
 
@@ -74,7 +74,9 @@
   function callar() { cartel.className = ""; }
   function alcancia() {
     var img = e.fondos > 0.6 ? "lleno" : e.fondos > 0.05 ? "medio" : "vacio";
-    if (e.chancho !== img) { e.chancho = img; chanchoImg.src = "img/chancho-" + img + ".webp"; }
+    // En el nivel 2 la alcancía es la del Presupuesto 2027 (nunca llega a vaciarse).
+    var archivo = (e.nivel ? "chancho27-" : "chancho25-") + img;
+    if (e.chancho !== archivo) { e.chancho = archivo; chanchoImg.src = "img/" + archivo + ".webp"; }
   }
   function dibujar() {
     var esfuerzo = e.nivel ? e.pidio || e.p > 0.5 : e.intento > 0 || e.pidio;
@@ -175,8 +177,8 @@
       e.monedas++; e.sacadas++;
       e.fondos = e.nivel ? 1 - e.sacadas * 0.06 : 1 - e.sacadas / 6;
       if (e.monedas === 2) {
-        if (e.nivel) decir("Pesos de 2026<small>para precios de 2026</small>", "bien");
-        else decir("Son pesos de 2024…<small>y hoy todo cuesta precios de 2026</small>", "alerta");
+        if (e.nivel) decir("Pesos de 2027<small>para precios de 2027</small>", "bien");
+        else decir("Son pesos de 2025…<small>y todo cuesta precios de 2027</small>", "alerta");
         $("calendario").classList.remove("late"); void $("calendario").offsetWidth; $("calendario").classList.add("late");
       }
       if (e.monedas === c.monedas) {
@@ -197,7 +199,7 @@
     son.vacio();
     if (!e.nivel && e.intento === 2) {
       e.toquesVacio++;
-      if (e.toquesVacio === 1) decir("No queda nada<small>El Presupuesto 2024 ya se gastó</small>", "alerta");
+      if (e.toquesVacio === 1) decir("No queda nada<small>El Presupuesto 2025 ya se gastó</small>", "alerta");
       if (e.toquesVacio >= 3) luego(500, cierre);
     }
   }
