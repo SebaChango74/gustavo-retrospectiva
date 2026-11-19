@@ -99,9 +99,15 @@
   function marcarVisto() {
     try { localStorage.setItem(cfg.clave, String(Date.now())); } catch (e) {}
   }
+  // Mientras el juego «A pulso» está en campaña, su emergente tiene prioridad:
+  // este no se abre solo, para que no aparezcan dos encimados.
+  function cedeAlJuego() {
+    var j = window.EmergenteAPulso;
+    return !!(j && j.activo && j.activo());
+  }
   function debeMostrar() {
     if (cfg.siempre) return true;
-    if (vencido()) return false;
+    if (vencido() || cedeAlJuego()) return false;
     return vistoHace() > cfg.cada * 86400000;
   }
 

@@ -12,6 +12,16 @@ type TodayPayload = {
   modalEnabled: boolean;
 };
 
+/**
+ * Mientras el emergente del juego «A pulso» está vigente (apulso/emergente.js),
+ * la frase del día no se abre sola, para que no aparezcan dos encimados. La
+ * tarjeta de la portada sigue estando. Cuando el juego se da de baja, vuelve sola.
+ */
+function juegoEnCampania(): boolean {
+  const juego = (window as { EmergenteAPulso?: { activo?: () => boolean } }).EmergenteAPulso;
+  return Boolean(juego?.activo?.());
+}
+
 /** Tarjeta de portada + emergente diario (una sola vez por día y dispositivo). */
 export function Peron365Home() {
   const navigate = useNavigate();
@@ -29,7 +39,7 @@ export function Peron365Home() {
         if (cancelled) return;
         setData(payload);
         const seen = localStorage.getItem(SEEN_KEY);
-        if (payload.modalEnabled && seen !== payload.day.dayKey) {
+        if (payload.modalEnabled && seen !== payload.day.dayKey && !juegoEnCampania()) {
           timerRef.current = window.setTimeout(() => {
             setOpen(true);
             localStorage.setItem(SEEN_KEY, payload.day.dayKey);
