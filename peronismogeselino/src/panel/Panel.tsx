@@ -3,6 +3,7 @@ import { NavLink, Navigate, Route, Routes, useNavigate } from "react-router-dom"
 import { useSession } from "../session";
 import { Ingreso } from "../Ingreso";
 import { Crud, useList } from "./Crud";
+import { ENCUADRE_NOTICIA } from "../foto";
 import { Members } from "./Members";
 import { Moderation } from "./Moderation";
 import { Results } from "./Results";
@@ -169,7 +170,7 @@ function NewsModule() {
           rich: true,
           help: "Para un enlace: seleccioná el texto y tocá 🔗, o pegá la dirección (se vuelve clickeable sola).",
         },
-        { key: "image", label: "Imagen", type: "image" },
+        { key: "image", label: "Imagen", type: "image", encuadrePorDefecto: ENCUADRE_NOTICIA },
         {
           key: "gallery",
           label: "Galería de fotos",

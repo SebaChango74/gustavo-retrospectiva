@@ -762,6 +762,13 @@ footer img { width: 150px; }
 
 /* ───────────────────────── Noticia individual ───────────────────────── */
 .news-article { max-width: 1000px; }
+/* Foto principal de la noticia: siempre entera, con su proporción original.
+   Sin alto fijo, sin aspect-ratio forzado y sin overflow que recorte: la caja
+   toma el alto que pida la imagen, sea apaisada, cuadrada o vertical. Antes
+   usaba .cause-lead-image (max-height 500px / 300px en celular + cover), que
+   se comía los textos de las placas. */
+.news-lead-image { margin: 0; padding: 0; }
+.news-lead-image .foto-completa { width: 100%; height: auto; max-width: 100%; object-fit: contain; display: block; }
 .news-article-body { max-width: 760px; margin: 40px 0 30px; }
 .news-article-body p { margin: 0 0 20px; font-size: 16px; line-height: 1.8; color: var(--ink); }
 .text-action.dark { color: var(--cobalt); border-color: var(--line); }
@@ -1105,8 +1112,9 @@ footer img { width: 150px; }
 .encuadre-completa img { width: 100%; height: auto; display: block; }
 .encuadre-punto { position: absolute; width: 26px; height: 26px; transform: translate(-50%, -50%); border: 3px solid var(--sky-bright); border-radius: 50%; box-shadow: 0 0 0 2px rgba(7,27,51,.55), inset 0 0 0 2px rgba(7,27,51,.55); pointer-events: none; }
 .encuadre-muestra { display: grid; gap: 6px; }
-.encuadre-muestra img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 8px; display: block; }
+.encuadre-muestra img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; display: block; }
 .encuadre-muestra small { color: var(--muted); font-size: 12px; text-align: center; }
+.encuadre-reiniciar { justify-self: start; }
 @media (max-width: 560px) { .encuadre-cuerpo { grid-template-columns: 1fr; } }
 
 /* Que el desplazamiento a la actividad elegida no quede tapado por el header. */

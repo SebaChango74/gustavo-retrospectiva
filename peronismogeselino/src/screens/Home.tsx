@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Foto } from "../foto";
+import { Foto, ENCUADRE_NOTICIA } from "../foto";
 import { VideoMiniatura } from "../video";
 import { useNavigate } from "react-router-dom";
 import { api, type HomePayload } from "../api";
@@ -139,7 +139,7 @@ export default function Home() {
                   </div>
                 ) : item.image ? (
                   <div className="news-image">
-                    <Foto valor={item.image} />
+                    <Foto valor={item.image} porDefecto={ENCUADRE_NOTICIA} />
                   </div>
                 ) : null}
                 <div className="news-body">

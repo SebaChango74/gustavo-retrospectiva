@@ -23,9 +23,13 @@ const INCLUIDAS = [
 export function ImagePicker({
   value,
   onChange,
+  porDefecto,
 }: {
   value: string;
   onChange: (url: string) => void;
+  /** Punto del recorte sin encuadre elegido. Si viene (noticias), la foto
+   *  nueva no se apunta sola a la cara: queda anclada ahí hasta que se toque. */
+  porDefecto?: string;
 }) {
   const [subidas, setSubidas] = useState<{ url: string; nombre: string }[]>([]);
   const [subiendo, setSubiendo] = useState(false);
@@ -50,7 +54,7 @@ export function ImagePicker({
         const { url } = await api.upload<{ url: string }>("/admin/media", blob);
         // Si el navegador encuentra una cara, el recorte apunta ahí solo.
         // Si no, queda el encuadre a mano de acá abajo.
-        const cara = await buscarCara(blob);
+        const cara = porDefecto ? null : await buscarCara(blob);
         onChange(cara ? conEncuadre(url, cara.x, cara.y) : url);
       }
       cargar();
@@ -111,7 +115,7 @@ export function ImagePicker({
       {error && <small className="img-picker-error">{error}</small>}
       <small>Sacá una foto o elegí una del teléfono. Se achica sola antes de subir.</small>
 
-      {value && <Encuadre value={value} onChange={onChange} />}
+      {value && <Encuadre value={value} onChange={onChange} porDefecto={porDefecto} />}
     </div>
   );
 }
@@ -121,7 +125,15 @@ export function ImagePicker({
  * tarjetas recortan alrededor de ese punto. A la derecha se ve el resultado
  * en vivo, con la misma forma que la tarjeta del portal.
  */
-function Encuadre({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+function Encuadre({
+  value,
+  onChange,
+  porDefecto,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  porDefecto?: string;
+}) {
   const elegir = (e: React.MouseEvent<HTMLImageElement>) => {
     const caja = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - caja.left) / caja.width) * 100;
@@ -129,7 +141,8 @@ function Encuadre({ value, onChange }: { value: string; onChange: (v: string) =>
     onChange(conEncuadre(value, x, y));
   };
 
-  const posicion = fotoPosicion(value);
+  const posicion = fotoPosicion(value, porDefecto);
+  const elegido = fotoSrc(value) !== value;
   const [px, py] = posicion.split(" ").map((v) => parseFloat(v));
 
   return (
@@ -149,7 +162,15 @@ function Encuadre({ value, onChange }: { value: string; onChange: (v: string) =>
           <small>Así se ve en la tarjeta</small>
         </div>
       </div>
-      <small>Tocá la cara (o lo importante) en la foto grande: el recorte la sigue.</small>
+      <small>
+        Tocá la cara (o lo importante) en la foto grande: el recorte la sigue.
+        {porDefecto ? " Dentro de la noticia la foto se ve siempre entera, sin recorte." : ""}
+      </small>
+      {porDefecto && elegido && (
+        <button type="button" className="text-action dark encuadre-reiniciar" onClick={() => onChange(fotoSrc(value))}>
+          Volver al encuadre de arriba
+        </button>
+      )}
     </div>
   );
 }
