@@ -29,6 +29,8 @@ export type Field = {
   required?: boolean;
   step?: string;
   rich?: boolean; // textarea con botón para insertar enlaces
+  /** Solo imágenes: punto del recorte de la tarjeta cuando no se eligió uno. */
+  encuadrePorDefecto?: string;
 };
 
 export type TimelineItem = { dateLabel: string; title: string; body: string; state: string };
@@ -271,7 +273,9 @@ export function FieldInput({
   }
 
   if (type === "image") {
-    return <ImagePicker value={value ?? ""} onChange={onChange} />;
+    return (
+      <ImagePicker value={value ?? ""} onChange={onChange} porDefecto={field.encuadrePorDefecto} />
+    );
   }
 
   if (type === "video") {

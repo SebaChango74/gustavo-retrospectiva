@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Foto, fotoSrc } from "../foto";
+import { Foto, FotoCompleta, fotoSrc } from "../foto";
 import { Adjunto } from "../Adjunto";
 import { VideoEmbed } from "../video";
 import { useNavigate, useParams } from "react-router-dom";
@@ -95,9 +95,9 @@ export default function News() {
         ) : item.video ? (
           <VideoEmbed video={item.video} titulo={item.title} />
         ) : item.image ? (
-          <div className="cause-lead-image">
-            <Foto valor={item.image} />
-          </div>
+          <figure className="news-lead-image">
+            <FotoCompleta valor={item.image} alt={item.title} />
+          </figure>
         ) : null}
         {item.embed ? <Publicacion url={item.embed} titulo={item.title} /> : null}
         <CuerpoRico texto={bodyText} className="news-article-body" />
